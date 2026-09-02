@@ -1,0 +1,91 @@
+.civic-button {
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.civic-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.civic-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.civic-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Sizes */
+
+.civic-button-small {
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.civic-button-medium {
+  padding: 11px 16px;
+  font-size: 14px;
+}
+
+.civic-button-large {
+  padding: 13px 20px;
+  font-size: 15px;
+}
+
+/* Primary */
+
+.civic-button-primary {
+  background: var(--color-primary);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.civic-button-primary:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+  box-shadow: var(--shadow-md);
+}
+
+/* Secondary */
+
+.civic-button-secondary {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
+.civic-button-secondary:hover:not(:disabled) {
+  background: var(--color-surface-muted);
+}
+
+/* Ghost */
+
+.civic-button-ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+.civic-button-ghost:hover:not(:disabled) {
+  background: var(--color-surface-muted);
+  color: var(--color-text-primary);
+}
+
+/* Danger */
+
+.civic-button-danger {
+  background: var(--color-danger);
+  color: white;
+}
+
+.civic-button-danger:hover:not(:disabled) {
+  background: #d92d20;
+}
