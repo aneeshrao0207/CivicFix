@@ -205,7 +205,7 @@ function IssueDetails() {
 
               <div className="issue-timeline">
 
-                {report.timeline.map((item, index) => (
+                {report.timeline.map((item) => (
 
                   <div
                     className={`timeline-item ${

@@ -1,0 +1,781 @@
+/* =========================================
+   CIVICFIX — ADMIN MAP
+========================================= */
+
+.admin-map-page {
+  min-height: 100vh;
+  padding: 30px 40px 60px;
+  background: var(--color-background);
+}
+
+/* HEADER */
+
+.admin-map-header {
+  max-width: 1200px;
+  margin: 0 auto 22px;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 25px;
+}
+
+.admin-map-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  margin-bottom: 7px;
+
+  color: var(--color-primary);
+
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 0.5px;
+}
+
+.admin-map-header h1 {
+  margin: 0;
+
+  color: var(--color-text-primary);
+
+  font-size: 25px;
+  letter-spacing: -0.7px;
+}
+
+.admin-map-header p {
+  margin-top: 6px;
+
+  color: var(--color-text-secondary);
+
+  font-size: 9px;
+}
+
+/* SUMMARY */
+
+.admin-map-summary {
+  display: flex;
+  align-items: center;
+
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+
+  background: var(--color-surface);
+}
+
+.admin-map-summary div {
+  min-width: 85px;
+
+  padding: 10px 14px;
+
+  border-right: 1px solid var(--color-border);
+}
+
+.admin-map-summary div:last-child {
+  border-right: 0;
+}
+
+.admin-map-summary strong {
+  display: block;
+
+  color: var(--color-text-primary);
+
+  font-size: 14px;
+}
+
+.admin-map-summary span {
+  display: block;
+
+  margin-top: 3px;
+
+  color: var(--color-text-muted);
+
+  font-size: 6px;
+}
+
+/* TOOLBAR */
+
+.admin-map-toolbar {
+  max-width: 1200px;
+
+  margin: 0 auto 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+}
+
+.admin-map-search {
+  width: 280px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  padding: 0 9px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+
+  background: #fff;
+
+  color: #98a2b3;
+}
+
+.admin-map-search input {
+  width: 100%;
+
+  border: 0;
+  outline: 0;
+
+  background: transparent;
+
+  color: var(--color-text-primary);
+
+  font-size: 8px;
+}
+
+.admin-map-search input::placeholder {
+  color: #98a2b3;
+}
+
+.admin-map-search button {
+  display: flex;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #98a2b3;
+}
+
+.admin-map-filters {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  overflow-x: auto;
+}
+
+.admin-map-filters button {
+  height: 30px;
+
+  padding: 0 9px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+
+  background: #fff;
+
+  color: var(--color-text-secondary);
+
+  font-size: 7px;
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+.admin-map-filters button:hover {
+  border-color: #cbd5e1;
+}
+
+.admin-map-filters button.active {
+  border-color: var(--color-primary);
+
+  background: var(--color-primary-light);
+
+  color: var(--color-primary);
+}
+
+/* MAP LAYOUT */
+
+.admin-map-layout {
+  max-width: 1200px;
+
+  height: 570px;
+
+  margin: 0 auto;
+
+  display: grid;
+
+  grid-template-columns: minmax(0, 1fr) 315px;
+
+  overflow: hidden;
+
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+
+  background: #fff;
+
+  box-shadow: var(--shadow-sm);
+}
+
+/* MAP */
+
+.admin-map-container {
+  position: relative;
+
+  min-width: 0;
+}
+
+.admin-leaflet-map {
+  width: 100%;
+  height: 100%;
+}
+
+/* MARKER */
+
+.civicfix-map-marker-wrapper {
+  background: transparent;
+
+  border: 0;
+}
+
+.civicfix-map-marker {
+  width: 28px;
+  height: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 2px solid #fff;
+  border-radius: 50%;
+
+  background: var(--marker-color);
+
+  box-shadow:
+    0 2px 7px rgba(0, 0, 0, 0.28);
+}
+
+.civicfix-map-marker span {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: #fff;
+}
+
+/* POPUP */
+
+.map-popup {
+  min-width: 170px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+.map-popup-id {
+  color: var(--color-primary);
+
+  font-size: 8px;
+  font-weight: 750;
+}
+
+.map-popup strong {
+  color: #111827;
+
+  font-size: 10px;
+
+  line-height: 1.35;
+}
+
+.map-popup > span:nth-child(3) {
+  color: #667085;
+
+  font-size: 8px;
+}
+
+.map-popup-status {
+  width: fit-content;
+
+  padding: 3px 5px;
+
+  border-radius: 4px;
+
+  font-size: 6px;
+  font-weight: 700;
+
+  text-transform: uppercase;
+}
+
+.map-popup-status.reported {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.map-popup-status.under_review {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.map-popup-status.assigned {
+  background: #f5f3ff;
+  color: #7c3aed;
+}
+
+.map-popup-status.in_progress {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.map-popup-status.resolved {
+  background: #ecfdf3;
+  color: #15803d;
+}
+
+.map-popup a {
+  margin-top: 3px;
+
+  color: var(--color-primary);
+
+  font-size: 8px;
+  font-weight: 700;
+}
+
+/* LEGEND */
+
+.admin-map-legend {
+  position: absolute;
+
+  left: 12px;
+  bottom: 12px;
+
+  z-index: 500;
+
+  padding: 10px 11px;
+
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 7px;
+
+  background: rgba(255, 255, 255, 0.95);
+
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.12);
+
+  font-size: 7px;
+}
+
+.admin-map-legend strong {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: #111827;
+
+  font-size: 7px;
+}
+
+.admin-map-legend div {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  margin-top: 5px;
+
+  color: #667085;
+}
+
+.legend-dot {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+}
+
+.legend-dot.reported {
+  background: #64748b;
+}
+
+.legend-dot.review {
+  background: #f97316;
+}
+
+.legend-dot.assigned {
+  background: #8b5cf6;
+}
+
+.legend-dot.progress {
+  background: #2563eb;
+}
+
+.legend-dot.resolved {
+  background: #22c55e;
+}
+
+/* SIDEBAR */
+
+.admin-map-sidebar {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+
+  border-left: 1px solid var(--color-border);
+
+  background: #fff;
+}
+
+.admin-map-sidebar-header {
+  padding: 15px;
+
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-map-sidebar-header h2 {
+  color: var(--color-text-primary);
+
+  font-size: 10px;
+}
+
+.admin-map-sidebar-header p {
+  margin-top: 3px;
+
+  color: var(--color-text-muted);
+
+  font-size: 7px;
+}
+
+.admin-map-issue-list {
+  flex: 1;
+
+  overflow-y: auto;
+}
+
+/* ISSUE */
+
+.admin-map-issue {
+  width: 100%;
+
+  padding: 13px;
+
+  display: block;
+
+  border: 0;
+  border-bottom: 1px solid #edf0f3;
+
+  background: #fff;
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.admin-map-issue:hover {
+  background: #fafbfc;
+}
+
+.admin-map-issue.selected {
+  background: var(--color-primary-light);
+
+  box-shadow:
+    inset 3px 0 0 var(--color-primary);
+}
+
+.admin-map-issue-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 5px;
+}
+
+.admin-map-issue-id {
+  color: var(--color-primary);
+
+  font-size: 7px;
+  font-weight: 750;
+}
+
+.admin-map-priority {
+  padding: 3px 5px;
+
+  border-radius: 4px;
+
+  font-size: 5px;
+  font-weight: 750;
+}
+
+.admin-map-priority.low {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.admin-map-priority.medium {
+  background: #fffaeb;
+  color: #b54708;
+}
+
+.admin-map-priority.high {
+  background: #fff1f0;
+  color: #d92d20;
+}
+
+.admin-map-priority.critical {
+  background: #fef3f2;
+  color: #b42318;
+}
+
+.admin-map-issue > strong {
+  display: block;
+
+  color: var(--color-text-primary);
+
+  font-size: 8px;
+
+  line-height: 1.4;
+}
+
+.admin-map-issue-location {
+  display: flex;
+  align-items: center;
+
+  gap: 4px;
+
+  margin-top: 6px;
+
+  color: var(--color-text-muted);
+
+  font-size: 6px;
+}
+
+.admin-map-issue-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-top: 9px;
+
+  color: var(--color-text-muted);
+
+  font-size: 6px;
+}
+
+.admin-map-status {
+  padding: 3px 5px;
+
+  border-radius: 4px;
+
+  font-weight: 650;
+}
+
+.admin-map-status.reported {
+  color: #475569;
+  background: #f1f5f9;
+}
+
+.admin-map-status.under_review {
+  color: #c2410c;
+  background: #fff7ed;
+}
+
+.admin-map-status.assigned {
+  color: #7c3aed;
+  background: #f5f3ff;
+}
+
+.admin-map-status.in_progress {
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+.admin-map-status.resolved {
+  color: #15803d;
+  background: #ecfdf3;
+}
+
+/* EMPTY */
+
+.admin-map-empty {
+  padding: 45px 20px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  text-align: center;
+
+  color: #98a2b3;
+}
+
+.admin-map-empty strong {
+  margin-top: 9px;
+
+  color: #475467;
+
+  font-size: 9px;
+}
+
+.admin-map-empty p {
+  margin-top: 4px;
+
+  font-size: 7px;
+}
+
+/* SELECTED ISSUE */
+
+.admin-map-selected {
+  max-width: 1200px;
+
+  margin: 13px auto 0;
+
+  padding: 12px 14px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  border: 1px solid #dbe7ff;
+  border-radius: 8px;
+
+  background: #f5f8ff;
+}
+
+.admin-map-selected-icon {
+  width: 31px;
+  height: 31px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 6px;
+
+  background: #eaf2ff;
+
+  color: var(--color-primary);
+}
+
+.admin-map-selected-content {
+  flex: 1;
+}
+
+.admin-map-selected-content span {
+  display: block;
+
+  color: var(--color-primary);
+
+  font-size: 6px;
+  font-weight: 700;
+}
+
+.admin-map-selected-content strong {
+  display: block;
+
+  margin-top: 2px;
+
+  color: var(--color-text-primary);
+
+  font-size: 9px;
+}
+
+.admin-map-selected-content p {
+  margin-top: 2px;
+
+  color: var(--color-text-secondary);
+
+  font-size: 6px;
+}
+
+.admin-map-selected-status {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  color: #2563eb;
+
+  font-size: 7px;
+  font-weight: 700;
+}
+
+.admin-map-selected > a {
+  padding: 7px 9px;
+
+  border-radius: 5px;
+
+  background: var(--color-primary);
+
+  color: #fff;
+
+  font-size: 7px;
+  font-weight: 700;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1000px) {
+
+  .admin-map-page {
+    padding: 25px 18px 50px;
+  }
+
+  .admin-map-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-map-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-map-search {
+    width: 100%;
+  }
+
+}
+
+@media (max-width: 750px) {
+
+  .admin-map-layout {
+    height: auto;
+
+    grid-template-columns: 1fr;
+  }
+
+  .admin-map-container {
+    height: 500px;
+  }
+
+  .admin-map-sidebar {
+    height: 360px;
+
+    border-left: 0;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .admin-map-summary {
+    width: 100%;
+  }
+
+  .admin-map-summary div {
+    flex: 1;
+  }
+
+  .admin-map-selected {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .admin-map-selected-content {
+    min-width: calc(100% - 45px);
+  }
+
+  .admin-map-selected-status {
+    margin-left: 41px;
+  }
+
+}
