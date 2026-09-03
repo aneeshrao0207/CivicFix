@@ -1,0 +1,849 @@
+/* =========================================
+   CIVICFIX — ADMIN ISSUE DETAILS
+========================================= */
+
+.admin-issue-details-page {
+  min-height: 100vh;
+
+  padding: 30px 40px 70px;
+
+  background: #f7f8fa;
+}
+
+/* =========================================
+   BACK
+========================================= */
+
+.admin-issue-back {
+  max-width: 1100px;
+
+  margin: 0 auto 22px;
+}
+
+.admin-issue-back a {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 6px;
+
+  color: var(--color-text-muted);
+
+  font-size: 8px;
+  font-weight: 600;
+}
+
+.admin-issue-back a:hover {
+  color: var(--color-primary);
+}
+
+/* =========================================
+   HEADER
+========================================= */
+
+.admin-issue-details-header {
+  max-width: 1100px;
+
+  margin: 0 auto 24px;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+.admin-issue-id-label {
+  margin-bottom: 7px;
+
+  color: var(--color-primary);
+
+  font-size: 8px;
+  font-weight: 750;
+
+  letter-spacing: 0.4px;
+}
+
+.admin-issue-details-header h1 {
+  margin: 0;
+
+  color: var(--color-text-primary);
+
+  font-size: 24px;
+
+  letter-spacing: -0.7px;
+}
+
+.admin-issue-details-header p {
+  margin: 6px 0 0;
+
+  color: var(--color-text-secondary);
+
+  font-size: 9px;
+}
+
+.admin-current-status {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  padding: 8px 10px;
+
+  border-radius: 6px;
+
+  font-size: 7px;
+  font-weight: 750;
+
+  text-transform: uppercase;
+}
+
+.admin-current-status span {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+}
+
+.admin-current-status.reported {
+  color: #475569;
+  background: #f1f5f9;
+}
+
+.admin-current-status.reported span {
+  background: #64748b;
+}
+
+.admin-current-status.under_review {
+  color: #c2410c;
+  background: #fff7ed;
+}
+
+.admin-current-status.under_review span {
+  background: #f97316;
+}
+
+.admin-current-status.assigned {
+  color: #7c3aed;
+  background: #f5f3ff;
+}
+
+.admin-current-status.assigned span {
+  background: #8b5cf6;
+}
+
+.admin-current-status.in_progress {
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+.admin-current-status.in_progress span {
+  background: #3b82f6;
+}
+
+.admin-current-status.resolved {
+  color: #15803d;
+  background: #ecfdf3;
+}
+
+.admin-current-status.resolved span {
+  background: #22c55e;
+}
+
+/* =========================================
+   GRID
+========================================= */
+
+.admin-issue-details-grid {
+  max-width: 1100px;
+
+  margin: 0 auto;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    300px;
+
+  gap: 17px;
+}
+
+.admin-issue-details-grid main {
+  display: flex;
+  flex-direction: column;
+
+  gap: 15px;
+}
+
+.admin-issue-details-grid aside {
+  display: flex;
+  flex-direction: column;
+
+  gap: 15px;
+}
+
+/* =========================================
+   DETAIL CARD
+========================================= */
+
+.admin-detail-card {
+  padding: 18px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+
+  background: #ffffff;
+}
+
+.admin-detail-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  margin-bottom: 18px;
+
+  color: #94a3b8;
+}
+
+.admin-detail-card-header h2 {
+  margin: 0;
+
+  color: var(--color-text-primary);
+
+  font-size: 11px;
+}
+
+.admin-detail-card-header p {
+  margin: 4px 0 0;
+
+  color: var(--color-text-muted);
+
+  font-size: 8px;
+}
+
+/* =========================================
+   INFORMATION
+========================================= */
+
+.admin-information-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, 1fr);
+
+  gap: 15px;
+
+  padding-top: 2px;
+}
+
+.admin-information-item {
+  padding: 11px;
+
+  border: 1px solid #edf0f3;
+  border-radius: 7px;
+
+  background: #fafbfc;
+}
+
+.admin-information-item span {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: var(--color-text-muted);
+
+  font-size: 7px;
+}
+
+.admin-information-item strong {
+  color: var(--color-text-primary);
+
+  font-size: 9px;
+}
+
+/* =========================================
+   DESCRIPTION
+========================================= */
+
+.admin-description {
+  padding: 13px;
+
+  border: 1px solid #edf0f3;
+  border-radius: 7px;
+
+  background: #fafbfc;
+}
+
+.admin-description p {
+  margin: 0;
+
+  color: var(--color-text-secondary);
+
+  font-size: 9px;
+
+  line-height: 1.65;
+}
+
+/* =========================================
+   LOCATION
+========================================= */
+
+.admin-location-box {
+  display: flex;
+
+  gap: 12px;
+
+  padding: 11px;
+
+  border: 1px solid #edf0f3;
+  border-radius: 7px;
+
+  background: #fafbfc;
+}
+
+.admin-location-map {
+  width: 75px;
+  height: 75px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 6px;
+
+  background:
+    linear-gradient(
+      45deg,
+      #edf1f4 25%,
+      transparent 25%
+    ),
+    linear-gradient(
+      -45deg,
+      #edf1f4 25%,
+      transparent 25%
+    ),
+    #f7f9fa;
+
+  background-size: 16px 16px;
+
+  color: #ef4444;
+}
+
+.admin-location-info {
+  display: flex;
+  flex-direction: column;
+
+  justify-content: center;
+}
+
+.admin-location-info span {
+  color: var(--color-text-muted);
+
+  font-size: 7px;
+}
+
+.admin-location-info strong {
+  margin-top: 4px;
+
+  color: var(--color-text-primary);
+
+  font-size: 9px;
+}
+
+.admin-location-info small {
+  max-width: 390px;
+
+  margin-top: 5px;
+
+  color: var(--color-text-muted);
+
+  font-size: 7px;
+
+  line-height: 1.4;
+}
+
+/* =========================================
+   TIMELINE
+========================================= */
+
+.admin-status-timeline {
+  display: flex;
+
+  align-items: flex-start;
+
+  padding: 8px 0;
+}
+
+.admin-timeline-step {
+  position: relative;
+
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  text-align: center;
+}
+
+.admin-timeline-marker {
+  position: relative;
+  z-index: 2;
+
+  width: 27px;
+  height: 27px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #dce2e8;
+  border-radius: 50%;
+
+  background: #ffffff;
+
+  color: #cbd5e1;
+}
+
+.admin-timeline-marker span {
+  width: 5px;
+  height: 5px;
+
+  border-radius: 50%;
+
+  background: #cbd5e1;
+}
+
+.admin-timeline-step.completed
+  .admin-timeline-marker {
+  border-color: #2563eb;
+
+  background: #eff6ff;
+
+  color: #2563eb;
+}
+
+.admin-timeline-step.current
+  .admin-timeline-marker {
+  box-shadow:
+    0 0 0 4px #eff6ff;
+}
+
+.admin-timeline-step > div:nth-child(2) {
+  margin-top: 8px;
+}
+
+.admin-timeline-step strong {
+  display: block;
+
+  color: var(--color-text-secondary);
+
+  font-size: 7px;
+}
+
+.admin-timeline-step.completed strong {
+  color: var(--color-text-primary);
+}
+
+.admin-timeline-step small {
+  display: block;
+
+  margin-top: 3px;
+
+  color: var(--color-primary);
+
+  font-size: 6px;
+}
+
+.admin-timeline-line {
+  position: absolute;
+
+  top: 13px;
+  left: 50%;
+
+  width: 100%;
+  height: 1px;
+
+  background: #e3e7eb;
+
+  z-index: 1;
+}
+
+.admin-timeline-line.filled {
+  background: #2563eb;
+}
+
+/* =========================================
+   ACTION CARD
+========================================= */
+
+.admin-action-card {
+  padding: 17px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+
+  background: #ffffff;
+}
+
+.admin-action-header {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  padding-bottom: 15px;
+
+  margin-bottom: 15px;
+
+  border-bottom: 1px solid #edf0f3;
+}
+
+.admin-action-icon {
+  width: 29px;
+  height: 29px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 6px;
+
+  background: #eff6ff;
+
+  color: var(--color-primary);
+}
+
+.admin-action-header h2 {
+  margin: 0;
+
+  color: var(--color-text-primary);
+
+  font-size: 10px;
+}
+
+.admin-action-header p {
+  margin: 3px 0 0;
+
+  color: var(--color-text-muted);
+
+  font-size: 7px;
+}
+
+.admin-action-fields {
+  display: flex;
+  flex-direction: column;
+
+  gap: 13px;
+}
+
+.admin-action-fields label {
+  display: flex;
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+.admin-action-fields label > span {
+  color: var(--color-text-secondary);
+
+  font-size: 7px;
+  font-weight: 650;
+}
+
+.admin-detail-select {
+  position: relative;
+
+  height: 34px;
+}
+
+.admin-detail-select select {
+  width: 100%;
+  height: 100%;
+
+  padding: 0 28px 0 9px;
+
+  appearance: none;
+
+  border: 1px solid #e2e7ec;
+  border-radius: 6px;
+
+  outline: 0;
+
+  background: #ffffff;
+
+  color: var(--color-text-primary);
+
+  font-family: inherit;
+
+  font-size: 8px;
+
+  cursor: pointer;
+}
+
+.admin-detail-select svg {
+  position: absolute;
+
+  right: 8px;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  pointer-events: none;
+
+  color: #94a3b8;
+}
+
+.admin-update-button {
+  width: 100%;
+
+  height: 35px;
+
+  margin-top: 16px;
+
+  border: 0;
+  border-radius: 6px;
+
+  background: var(--color-primary);
+
+  color: #ffffff;
+
+  font-family: inherit;
+
+  font-size: 8px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.admin-update-button:hover {
+  opacity: 0.92;
+}
+
+/* =========================================
+   NOTE
+========================================= */
+
+.admin-note-card {
+  padding: 17px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+
+  background: #ffffff;
+}
+
+.admin-note-header {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 8px;
+
+  margin-bottom: 12px;
+
+  color: #64748b;
+}
+
+.admin-note-header h2 {
+  margin: 0;
+
+  color: var(--color-text-primary);
+
+  font-size: 9px;
+}
+
+.admin-note-header p {
+  margin: 3px 0 0;
+
+  color: var(--color-text-muted);
+
+  font-size: 7px;
+}
+
+.admin-note-card textarea {
+  width: 100%;
+  min-height: 90px;
+
+  box-sizing: border-box;
+
+  resize: vertical;
+
+  padding: 9px;
+
+  border: 1px solid #e2e7ec;
+  border-radius: 6px;
+
+  outline: 0;
+
+  color: var(--color-text-primary);
+
+  background: #fafbfc;
+
+  font-family: inherit;
+
+  font-size: 8px;
+
+  line-height: 1.5;
+}
+
+.admin-note-card textarea:focus {
+  border-color: var(--color-primary);
+}
+
+.admin-note-card textarea::placeholder {
+  color: #9aa4b2;
+}
+
+.admin-note-button {
+  width: 100%;
+
+  height: 32px;
+
+  margin-top: 8px;
+
+  border: 1px solid #e1e6eb;
+  border-radius: 6px;
+
+  background: #ffffff;
+
+  color: var(--color-text-secondary);
+
+  font-family: inherit;
+
+  font-size: 7px;
+  font-weight: 650;
+
+  cursor: pointer;
+}
+
+.admin-note-button:hover {
+  border-color: #cbd5e1;
+
+  color: var(--color-primary);
+}
+
+/* =========================================
+   REPORTER
+========================================= */
+
+.admin-reporter-card {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 13px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+
+  background: #ffffff;
+}
+
+.admin-reporter-icon {
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #f1f5f9;
+
+  color: #64748b;
+}
+
+.admin-reporter-card span,
+.admin-reporter-card strong,
+.admin-reporter-card small {
+  display: block;
+}
+
+.admin-reporter-card span {
+  color: var(--color-text-muted);
+
+  font-size: 6px;
+}
+
+.admin-reporter-card strong {
+  margin-top: 2px;
+
+  color: var(--color-text-primary);
+
+  font-size: 8px;
+}
+
+.admin-reporter-card small {
+  margin-top: 2px;
+
+  color: var(--color-text-muted);
+
+  font-size: 6px;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 900px) {
+
+  .admin-issue-details-page {
+    padding: 25px 18px 50px;
+  }
+
+  .admin-issue-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-issue-details-grid aside {
+    display: grid;
+
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-action-card {
+    grid-row: span 2;
+  }
+
+}
+
+@media (max-width: 650px) {
+
+  .admin-issue-details-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .admin-information-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-status-timeline {
+    overflow-x: auto;
+
+    min-width: 600px;
+  }
+
+  .admin-detail-card:has(.admin-status-timeline) {
+    overflow-x: auto;
+  }
+
+  .admin-issue-details-grid aside {
+    display: flex;
+  }
+
+  .admin-location-box {
+    flex-direction: column;
+  }
+
+  .admin-location-map {
+    width: 100%;
+    height: 100px;
+  }
+
+}

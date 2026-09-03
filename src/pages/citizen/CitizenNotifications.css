@@ -1,0 +1,293 @@
+/* =========================================
+   CIVICFIX — NOTIFICATIONS
+========================================= */
+
+.citizen-notifications-page {
+  min-height: 100vh;
+
+  padding: 38px 42px 70px;
+
+  background: #f7f8fa;
+}
+
+/* =========================================
+   HEADER
+========================================= */
+
+.notifications-header {
+  max-width: 900px;
+
+  margin: 0 auto 28px;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+.notifications-eyebrow {
+  margin-bottom: 7px;
+
+  color: var(--color-primary);
+
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+}
+
+.notifications-header h1 {
+  margin: 0;
+
+  color: var(--color-text-primary);
+
+  font-size: 28px;
+  letter-spacing: -0.8px;
+}
+
+.notifications-header p {
+  margin: 7px 0 0;
+
+  color: var(--color-text-secondary);
+
+  font-size: 12px;
+}
+
+.mark-read-button {
+  padding: 10px 13px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: var(--color-text-secondary);
+
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+/* =========================================
+   SUMMARY
+========================================= */
+
+.notification-summary {
+  max-width: 900px;
+
+  margin: 0 auto 15px;
+
+  display: flex;
+
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+
+  background: #ffffff;
+}
+
+.notification-summary > div {
+  flex: 1;
+
+  padding: 15px 18px;
+
+  border-right: 1px solid var(--color-border);
+}
+
+.notification-summary > div:last-child {
+  border-right: 0;
+}
+
+.notification-summary strong {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: var(--color-text-primary);
+
+  font-size: 20px;
+}
+
+.notification-summary span {
+  color: var(--color-text-muted);
+
+  font-size: 9px;
+}
+
+/* =========================================
+   LIST
+========================================= */
+
+.notifications-list {
+  max-width: 900px;
+
+  margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 7px;
+}
+
+.notification-card {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 13px;
+
+  padding: 17px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.notification-card:hover {
+  border-color: #cbd5e1;
+
+  transform: translateY(-1px);
+}
+
+.notification-card.unread {
+  border-left: 3px solid var(--color-primary);
+}
+
+.notification-icon {
+  width: 38px;
+  height: 38px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  background: #f1f5f9;
+
+  color: var(--color-primary);
+}
+
+.notification-icon.resolved {
+  background: #ecfdf3;
+  color: #15803d;
+}
+
+.notification-icon.review {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.notification-icon.info {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-title-row {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+}
+
+.notification-title-row h2 {
+  margin: 0;
+
+  color: var(--color-text-primary);
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.unread-dot {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background: var(--color-primary);
+}
+
+.notification-content p {
+  max-width: 700px;
+
+  margin: 5px 0 8px;
+
+  color: var(--color-text-secondary);
+
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.notification-time {
+  color: var(--color-text-muted);
+
+  font-size: 8px;
+}
+
+/* =========================================
+   EMPTY
+========================================= */
+
+.notifications-empty {
+  max-width: 900px;
+
+  margin: 15px auto;
+
+  padding: 60px 20px;
+
+  text-align: center;
+
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  color: var(--color-text-muted);
+}
+
+.notifications-empty h2 {
+  margin: 10px 0 5px;
+
+  color: var(--color-text-primary);
+
+  font-size: 15px;
+}
+
+.notifications-empty p {
+  margin: 0;
+
+  font-size: 10px;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 700px) {
+
+  .citizen-notifications-page {
+    padding: 28px 18px 50px;
+  }
+
+  .notifications-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .mark-read-button {
+    width: 100%;
+  }
+
+}

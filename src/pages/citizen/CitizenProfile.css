@@ -1,0 +1,357 @@
+/* =========================================
+   CIVICFIX — CITIZEN PROFILE
+========================================= */
+
+.citizen-profile-page {
+  min-height: 100vh;
+
+  padding: 38px 42px 70px;
+
+  background: #f7f8fa;
+}
+
+/* =========================================
+   HEADER
+========================================= */
+
+.profile-header {
+  max-width: 900px;
+
+  margin: 0 auto 28px;
+}
+
+.profile-eyebrow {
+  margin-bottom: 7px;
+
+  color: var(--color-primary);
+
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+}
+
+.profile-header h1 {
+  margin: 0;
+
+  color: var(--color-text-primary);
+
+  font-size: 28px;
+  letter-spacing: -0.8px;
+}
+
+.profile-header p {
+  margin: 7px 0 0;
+
+  color: var(--color-text-secondary);
+
+  font-size: 12px;
+}
+
+/* =========================================
+   CONTAINER
+========================================= */
+
+.profile-container {
+  max-width: 900px;
+
+  margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 13px;
+}
+
+/* =========================================
+   PROFILE CARD
+========================================= */
+
+.profile-card {
+  display: flex;
+  align-items: center;
+
+  gap: 15px;
+
+  padding: 20px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 11px;
+
+  background: #ffffff;
+}
+
+.profile-avatar {
+  width: 55px;
+  height: 55px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #eaf2ff;
+
+  color: var(--color-primary);
+
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.profile-main {
+  flex: 1;
+}
+
+.profile-main h2 {
+  margin: 0;
+
+  color: var(--color-text-primary);
+
+  font-size: 15px;
+}
+
+.profile-role {
+  display: inline-block;
+
+  margin-top: 4px;
+
+  padding: 3px 7px;
+
+  border-radius: 5px;
+
+  background: #f1f5f9;
+
+  color: var(--color-text-secondary);
+
+  font-size: 8px;
+  font-weight: 650;
+}
+
+.profile-contact {
+  display: flex;
+  gap: 15px;
+
+  margin-top: 8px;
+}
+
+.profile-contact span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  color: var(--color-text-muted);
+
+  font-size: 9px;
+}
+
+.edit-profile-button {
+  padding: 9px 12px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+
+  background: #ffffff;
+
+  color: var(--color-text-secondary);
+
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 650;
+
+  cursor: pointer;
+}
+
+/* =========================================
+   SECTIONS
+========================================= */
+
+.profile-section {
+  padding: 19px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 11px;
+
+  background: #ffffff;
+}
+
+.profile-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  margin-bottom: 19px;
+
+  color: var(--color-text-muted);
+}
+
+.profile-section-heading h2 {
+  margin: 0;
+
+  color: var(--color-text-primary);
+
+  font-size: 13px;
+}
+
+.profile-section-heading p {
+  margin: 4px 0 0;
+
+  color: var(--color-text-muted);
+
+  font-size: 9px;
+}
+
+/* =========================================
+   FIELDS
+========================================= */
+
+.profile-fields {
+  display: grid;
+
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 15px;
+}
+
+.profile-field span {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: var(--color-text-muted);
+
+  font-size: 9px;
+}
+
+.profile-field strong {
+  color: var(--color-text-primary);
+
+  font-size: 10px;
+}
+
+/* =========================================
+   SETTINGS
+========================================= */
+
+.settings-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.setting-item {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  padding: 11px 0;
+
+  border: 0;
+  border-top: 1px solid #edf0f3;
+
+  background: transparent;
+
+  color: var(--color-text-muted);
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.setting-icon {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 8px;
+
+  background: #f5f7fa;
+
+  color: var(--color-primary);
+}
+
+.setting-item > div:nth-child(2) {
+  flex: 1;
+}
+
+.setting-item strong,
+.setting-item span {
+  display: block;
+}
+
+.setting-item strong {
+  color: var(--color-text-primary);
+
+  font-size: 10px;
+}
+
+.setting-item span {
+  margin-top: 3px;
+
+  color: var(--color-text-muted);
+
+  font-size: 8px;
+}
+
+/* =========================================
+   LOGOUT
+========================================= */
+
+.logout-button {
+  align-self: flex-start;
+
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  padding: 9px 12px;
+
+  border: 1px solid #fecaca;
+  border-radius: 7px;
+
+  background: #fffafa;
+
+  color: #dc2626;
+
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 650;
+
+  cursor: pointer;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 700px) {
+
+  .citizen-profile-page {
+    padding: 28px 18px 50px;
+  }
+
+  .profile-card {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .edit-profile-button {
+    width: 100%;
+  }
+
+  .profile-contact {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .profile-fields {
+    grid-template-columns: 1fr;
+  }
+
+}
