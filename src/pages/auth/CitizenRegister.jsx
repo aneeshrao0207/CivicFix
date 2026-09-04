@@ -4,23 +4,82 @@ import {
   User,
   Mail,
   LockKeyhole,
+  Phone,
   Eye,
   EyeOff,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Button from "../../components/ui/Button";
+import { apiRequest } from "../../services/api";
 import "./Auth.css";
 
 function CitizenRegister() {
+  const navigate = useNavigate();
+
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = (event) => {
-  event.preventDefault();
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    phone: "",
+  });
 
-  console.log("Citizen registration submitted");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  window.location.href = "/citizen/login";
-};
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+
+    setFormData((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+
+    // Remove previous error when user starts correcting the form
+    if (error) {
+      setError("");
+    }
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    setError("");
+    setLoading(true);
+
+    try {
+      const data = await apiRequest("/auth/register", {
+        method: "POST",
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          phone: formData.phone,
+        }),
+      });
+
+      // Store authentication information
+      localStorage.setItem("civicfix_token", data.token);
+      localStorage.setItem(
+        "civicfix_user",
+        JSON.stringify(data.user)
+      );
+
+      // Registration successful
+      navigate("/citizen/dashboard");
+
+    } catch (registrationError) {
+      console.error("Registration error:", registrationError);
+
+      setError(
+        registrationError.message ||
+          "Registration failed. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="auth-page">
@@ -73,6 +132,14 @@ function CitizenRegister() {
 
           </div>
 
+          {/* ERROR MESSAGE */}
+
+          {error && (
+            <div className="auth-error">
+              {error}
+            </div>
+          )}
+
           <form
             className="auth-form"
             onSubmit={handleSubmit}
@@ -99,6 +166,8 @@ function CitizenRegister() {
                   type="text"
                   className="auth-input"
                   placeholder="Your full name"
+                  value={formData.name}
+                  onChange={handleChange}
                   required
                 />
 
@@ -127,6 +196,38 @@ function CitizenRegister() {
                   type="email"
                   className="auth-input"
                   placeholder="you@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+
+              </div>
+
+            </div>
+
+            {/* PHONE */}
+
+            <div className="auth-field">
+
+              <label htmlFor="phone">
+                Phone number
+              </label>
+
+              <div className="auth-input-wrapper">
+
+                <Phone
+                  size={18}
+                  className="auth-input-icon"
+                />
+
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  className="auth-input"
+                  placeholder="Your phone number"
+                  value={formData.phone}
+                  onChange={handleChange}
                   required
                 />
 
@@ -156,6 +257,8 @@ function CitizenRegister() {
                   className="auth-input"
                   placeholder="Create a password"
                   minLength={8}
+                  value={formData.password}
+                  onChange={handleChange}
                   required
                 />
 
@@ -202,9 +305,16 @@ function CitizenRegister() {
               <Button
                 type="submit"
                 size="large"
+                disabled={loading}
               >
-                Create account
-                <ArrowRight size={17} />
+                {loading ? (
+                  "Creating account..."
+                ) : (
+                  <>
+                    Create account
+                    <ArrowRight size={17} />
+                  </>
+                )}
               </Button>
 
             </div>

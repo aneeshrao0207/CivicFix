@@ -151,6 +151,25 @@ export const getIssueById = async (req, res) => {
 
         const issue = result.rows[0];
 
+        // ============================================
+        // ACCESS CONTROL
+        // ============================================
+
+        // Citizens can only view their own issues.
+        if (
+            req.user.role === "citizen" &&
+            issue.reported_by !== req.user.id
+        ) {
+            return res.status(403).json({
+                success: false,
+                message: "You are not authorized to view this issue.",
+            });
+        }
+
+        // ============================================
+        // GET ISSUE TIMELINE
+        // ============================================
+
         const updates = await pool.query(
             `SELECT
                 iu.*,
@@ -178,7 +197,6 @@ export const getIssueById = async (req, res) => {
         });
     }
 };
-
 
 // ============================================
 // ADMIN — GET ALL ISSUES

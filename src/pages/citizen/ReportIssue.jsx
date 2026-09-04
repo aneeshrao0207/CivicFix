@@ -13,6 +13,8 @@ import {
 
 import { Link, useNavigate } from "react-router-dom";
 
+import { apiRequest } from "../../services/api";
+
 import "./ReportIssue.css";
 
 function ReportIssue() {
@@ -29,7 +31,9 @@ function ReportIssue() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [location, setLocation] = useState(null);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   const categories = [
     "Road",
@@ -48,6 +52,10 @@ function ReportIssue() {
       ...previous,
       [name]: value,
     }));
+
+    if (error) {
+      setError("");
+    }
   };
 
   const handleFileChange = (event) => {
@@ -83,6 +91,8 @@ function ReportIssue() {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         });
+
+        setError("");
       },
       () => {
         alert(
@@ -95,27 +105,50 @@ function ReportIssue() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    setError("");
     setIsSubmitting(true);
 
-    // Temporary submission simulation.
-    // This will later be replaced with our real backend API.
+    try {
+      const data = await apiRequest("/issues", {
+        method: "POST",
+        body: JSON.stringify({
+          title: formData.title.trim(),
+          category: formData.category,
+          description: formData.description.trim(),
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+          latitude: location?.latitude || null,
+          longitude: location?.longitude || null,
 
-    const reportId = `CF-${Math.floor(
-      1000 + Math.random() * 9000
-    )}`;
+          address: formData.address.trim() || null,
 
-    console.log("Report submitted:", {
-      id: reportId,
-      ...formData,
-      location,
-      image: selectedFile,
-    });
+          // Image upload will be connected separately
+          // when the backend storage/upload system is added.
+          imageUrl: null,
+        }),
+      });
 
-    setIsSubmitting(false);
+      console.log("Issue created successfully:", data);
 
-    navigate(`/citizen/reports/${reportId}`);
+      const issueId = data.issue?.id;
+
+      if (!issueId) {
+        throw new Error(
+          "Issue was created, but no issue ID was returned."
+        );
+      }
+
+      navigate(`/citizen/reports/${issueId}`);
+
+    } catch (submitError) {
+      console.error("Report submission error:", submitError);
+
+      setError(
+        submitError.message ||
+          "Unable to submit your report. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -144,6 +177,7 @@ function ReportIssue() {
         <div className="report-header-spacer"></div>
 
       </header>
+
 
       {/* =====================================
           MAIN
@@ -178,6 +212,16 @@ function ReportIssue() {
 
           </div>
 
+
+          {/* ERROR */}
+
+          {error && (
+            <div className="auth-error">
+              {error}
+            </div>
+          )}
+
+
           {/* FORM */}
 
           <form
@@ -207,6 +251,7 @@ function ReportIssue() {
 
               </div>
 
+
               {/* TITLE */}
 
               <div className="report-field">
@@ -230,6 +275,7 @@ function ReportIssue() {
                 </small>
 
               </div>
+
 
               {/* CATEGORY */}
 
@@ -269,6 +315,7 @@ function ReportIssue() {
 
               </div>
 
+
               {/* DESCRIPTION */}
 
               <div className="report-field">
@@ -296,6 +343,7 @@ function ReportIssue() {
 
             </section>
 
+
             {/* =================================
                 LOCATION
             ================================= */}
@@ -313,6 +361,7 @@ function ReportIssue() {
                 </div>
 
               </div>
+
 
               <div className="location-box">
 
@@ -358,9 +407,11 @@ function ReportIssue() {
 
               </div>
 
+
               <div className="location-divider">
                 <span>OR</span>
               </div>
+
 
               <div className="report-field">
 
@@ -378,6 +429,7 @@ function ReportIssue() {
                 />
 
               </div>
+
 
               <div className="map-placeholder">
 
@@ -397,6 +449,7 @@ function ReportIssue() {
 
             </section>
 
+
             {/* =================================
                 PHOTO
             ================================= */}
@@ -412,6 +465,7 @@ function ReportIssue() {
                     Add a photo to help authorities
                     understand the issue.
                   </p>
+
                 </div>
 
                 <span className="optional-note">
@@ -419,6 +473,7 @@ function ReportIssue() {
                 </span>
 
               </div>
+
 
               {!preview ? (
 
@@ -478,6 +533,7 @@ function ReportIssue() {
 
               )}
 
+
               <input
                 ref={fileInputRef}
                 type="file"
@@ -487,6 +543,7 @@ function ReportIssue() {
               />
 
             </section>
+
 
             {/* =================================
                 SUBMIT
@@ -505,6 +562,7 @@ function ReportIssue() {
 
               </div>
 
+
               <div className="report-submit-actions">
 
                 <Link
@@ -513,6 +571,7 @@ function ReportIssue() {
                 >
                   Cancel
                 </Link>
+
 
                 <button
                   type="submit"
@@ -548,6 +607,7 @@ function ReportIssue() {
   );
 }
 
+
 /* Small inline icon component */
 
 function ShieldIcon() {
@@ -557,5 +617,6 @@ function ShieldIcon() {
     </div>
   );
 }
+
 
 export default ReportIssue;

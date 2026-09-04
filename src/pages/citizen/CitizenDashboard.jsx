@@ -1,3 +1,5 @@
+import { useEffect, useMemo, useState } from "react";
+
 import {
   Bell,
   ChevronDown,
@@ -9,50 +11,179 @@ import {
   Menu,
   Plus,
   Search,
+  UserRound,
 } from "lucide-react";
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+
+import { apiRequest } from "../../services/api";
 
 import "./CitizenDashboard.css";
 
+const statusLabels = {
+  REPORTED: "Reported",
+  UNDER_REVIEW: "Under Review",
+  ASSIGNED: "Assigned",
+  IN_PROGRESS: "In Progress",
+  RESOLVED: "Resolved",
+  REJECTED: "Rejected",
+};
+
 function CitizenDashboard() {
-  const reports = [
-    {
-      id: "CF-1024",
-      title: "Large pothole near Main Road",
-      category: "Road",
-      location: "Main Road",
-      date: "Sep 2, 2026",
-      status: "In Progress",
-    },
-    {
-      id: "CF-1023",
-      title: "Broken streetlight near bus stop",
-      category: "Streetlight",
-      location: "MG Road",
-      date: "Sep 1, 2026",
-      status: "Under Review",
-    },
-    {
-      id: "CF-1022",
-      title: "Garbage overflow near residential area",
-      category: "Garbage",
-      location: "Indiranagar",
-      date: "Aug 29, 2026",
-      status: "Resolved",
-    },
-  ];
+  const navigate = useNavigate();
+
+  const [reports, setReports] = useState([]);
+  const [search, setSearch] = useState("");
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  // ============================================
+  // FETCH CITIZEN REPORTS
+  // ============================================
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const data = await apiRequest("/issues/my");
+
+        setReports(data.issues || []);
+      } catch (fetchError) {
+        console.error(
+          "Failed to fetch citizen reports:",
+          fetchError
+        );
+
+        setError(
+          fetchError.message ||
+            "Unable to load your reports."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReports();
+  }, []);
+
+  // ============================================
+  // STATISTICS
+  // ============================================
+
+  const statistics = useMemo(() => {
+    return {
+      total: reports.length,
+
+      pending: reports.filter(
+        (report) =>
+          report.status === "REPORTED" ||
+          report.status === "UNDER_REVIEW"
+      ).length,
+
+      inProgress: reports.filter(
+        (report) =>
+          report.status === "ASSIGNED" ||
+          report.status === "IN_PROGRESS"
+      ).length,
+
+      resolved: reports.filter(
+        (report) =>
+          report.status === "RESOLVED"
+      ).length,
+    };
+  }, [reports]);
+
+  // ============================================
+  // RECENT REPORTS + SEARCH
+  // ============================================
+
+  const recentReports = useMemo(() => {
+    const searchText = search.trim().toLowerCase();
+
+    const filtered = reports.filter((report) => {
+      if (!searchText) return true;
+
+      return (
+        report.title
+          ?.toLowerCase()
+          .includes(searchText) ||
+
+        report.category
+          ?.toLowerCase()
+          .includes(searchText) ||
+
+        report.address
+          ?.toLowerCase()
+          .includes(searchText) ||
+
+        report.report_id
+          ?.toLowerCase()
+          .includes(searchText)
+      );
+    });
+
+    return filtered.slice(0, 5);
+  }, [reports, search]);
+
+  // ============================================
+  // LOGOUT
+  // ============================================
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    navigate("/citizen/login", {
+      replace: true,
+    });
+  };
+
+  // ============================================
+  // CLOSE PROFILE MENU
+  // ============================================
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        !event.target.closest(
+          ".user-menu-wrapper"
+        )
+      ) {
+        setProfileOpen(false);
+      }
+    };
+
+    document.addEventListener(
+      "click",
+      handleClickOutside
+    );
+
+    return () => {
+      document.removeEventListener(
+        "click",
+        handleClickOutside
+      );
+    };
+  }, []);
 
   return (
     <div className="citizen-dashboard">
 
-      {/* ==============================
+      {/* =========================================
           SIDEBAR
-      ============================== */}
+      ========================================= */}
 
       <aside className="citizen-sidebar">
 
-        <Link to="/" className="dashboard-logo">
+        <Link
+          to="/"
+          className="dashboard-logo"
+        >
           <span className="dashboard-logo-mark">
             C
           </span>
@@ -60,11 +191,13 @@ function CitizenDashboard() {
           <span>CivicFix</span>
         </Link>
 
+
         <nav className="dashboard-nav">
 
           <p className="dashboard-nav-label">
             Workspace
           </p>
+
 
           <Link
             to="/citizen/dashboard"
@@ -74,6 +207,7 @@ function CitizenDashboard() {
             Dashboard
           </Link>
 
+
           <Link
             to="/citizen/reports"
             className="dashboard-nav-item"
@@ -81,6 +215,7 @@ function CitizenDashboard() {
             <ClipboardList size={18} />
             My Reports
           </Link>
+
 
           <Link
             to="/citizen/report"
@@ -92,20 +227,32 @@ function CitizenDashboard() {
 
         </nav>
 
+
         <div className="dashboard-sidebar-bottom">
 
           <div className="dashboard-help">
+
             <div className="dashboard-help-icon">
               ?
             </div>
 
             <div>
-              <strong>Need help?</strong>
-              <span>Contact CivicFix support</span>
+              <strong>
+                Need help?
+              </strong>
+
+              <span>
+                Contact CivicFix support
+              </span>
             </div>
+
           </div>
 
-          <button className="dashboard-logout">
+
+          <button
+            className="dashboard-logout"
+            onClick={handleLogout}
+          >
             <LogOut size={17} />
             Sign out
           </button>
@@ -114,49 +261,162 @@ function CitizenDashboard() {
 
       </aside>
 
-      {/* ==============================
-          MAIN AREA
-      ============================== */}
+
+      {/* =========================================
+          MAIN
+      ========================================= */}
 
       <main className="citizen-main">
 
-        {/* TOPBAR */}
+        {/* =====================================
+            TOPBAR
+        ===================================== */}
 
         <header className="citizen-topbar">
 
-          <button className="mobile-menu">
+          <button
+            className="mobile-menu"
+            type="button"
+          >
             <Menu size={21} />
           </button>
 
+
           <div className="topbar-search">
+
             <Search size={17} />
 
             <input
               type="text"
               placeholder="Search your reports..."
+              value={search}
+              onChange={(event) =>
+                setSearch(event.target.value)
+              }
             />
+
           </div>
+
 
           <div className="topbar-actions">
 
-            <button className="notification-button">
+            {/* NOTIFICATIONS */}
+
+            <button
+              className="notification-button"
+              type="button"
+              onClick={() =>
+                navigate(
+                  "/citizen/notifications"
+                )
+              }
+            >
               <Bell size={19} />
 
-              <span className="notification-dot"></span>
+              <span className="notification-dot" />
             </button>
 
-            <div className="user-menu">
 
-              <div className="user-avatar">
-                A
-              </div>
+            {/* PROFILE */}
 
-              <div className="user-info">
-                <strong>Aneesh</strong>
-                <span>Citizen</span>
-              </div>
+            <div className="user-menu-wrapper">
 
-              <ChevronDown size={16} />
+              <button
+                type="button"
+                className={`user-menu ${
+                  profileOpen
+                    ? "open"
+                    : ""
+                }`}
+                onClick={(event) => {
+                  event.stopPropagation();
+
+                  setProfileOpen(
+                    (current) =>
+                      !current
+                  );
+                }}
+              >
+
+                <div className="user-avatar">
+                  A
+                </div>
+
+                <div className="user-info">
+
+                  <strong>
+                    Aneesh
+                  </strong>
+
+                  <span>
+                    Citizen
+                  </span>
+
+                </div>
+
+                <ChevronDown
+                  size={16}
+                  className={
+                    profileOpen
+                      ? "profile-chevron-open"
+                      : ""
+                  }
+                />
+
+              </button>
+
+
+              {/* PROFILE DROPDOWN */}
+
+              {profileOpen && (
+
+                <div className="profile-dropdown">
+
+                  <Link
+                    to="/citizen/profile"
+                    onClick={() =>
+                      setProfileOpen(false)
+                    }
+                  >
+                    <UserRound size={16} />
+
+                    <span>
+                      My Profile
+                    </span>
+                  </Link>
+
+
+                  <Link
+                    to="/citizen/notifications"
+                    onClick={() =>
+                      setProfileOpen(false)
+                    }
+                  >
+                    <Bell size={16} />
+
+                    <span>
+                      Notifications
+                    </span>
+                  </Link>
+
+
+                  <div className="profile-dropdown-divider" />
+
+
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                  >
+                    <LogOut size={16} />
+
+                    <span>
+                      Sign out
+                    </span>
+                  </button>
+
+                </div>
+
+              )}
 
             </div>
 
@@ -164,15 +424,22 @@ function CitizenDashboard() {
 
         </header>
 
-        {/* CONTENT */}
+
+        {/* =====================================
+            CONTENT
+        ===================================== */}
 
         <div className="citizen-content">
 
-          {/* HERO */}
+
+          {/* ===================================
+              HERO
+          =================================== */}
 
           <section className="dashboard-welcome">
 
             <div>
+
               <p className="dashboard-eyebrow">
                 CITIZEN DASHBOARD
               </p>
@@ -183,10 +450,13 @@ function CitizenDashboard() {
               </h1>
 
               <p className="dashboard-subtitle">
-                Keep your community moving forward.
-                Report problems and follow their progress.
+                Keep your community moving
+                forward. Report problems and
+                follow their progress.
               </p>
+
             </div>
+
 
             <Link
               to="/citizen/report"
@@ -198,48 +468,82 @@ function CitizenDashboard() {
 
           </section>
 
-          {/* STATISTICS */}
+
+          {/* ===================================
+              STATISTICS
+          =================================== */}
 
           <section className="dashboard-stats">
 
-            <div className="stat-card">
-
-              <div className="stat-icon">
-                <ClipboardList size={19} />
-              </div>
-
-              <div>
-                <span>Total reports</span>
-                <strong>6</strong>
-              </div>
-
-            </div>
 
             <div className="stat-card">
 
               <div className="stat-icon">
-                <FilePlus2 size={19} />
+                <ClipboardList
+                  size={19}
+                />
               </div>
 
               <div>
-                <span>Pending</span>
-                <strong>2</strong>
+                <span>
+                  Total reports
+                </span>
+
+                <strong>
+                  {loading
+                    ? "—"
+                    : statistics.total}
+                </strong>
               </div>
 
             </div>
+
 
             <div className="stat-card">
 
               <div className="stat-icon">
-                <MapPin size={19} />
+                <FilePlus2
+                  size={19}
+                />
               </div>
 
               <div>
-                <span>In progress</span>
-                <strong>3</strong>
+                <span>
+                  Pending
+                </span>
+
+                <strong>
+                  {loading
+                    ? "—"
+                    : statistics.pending}
+                </strong>
               </div>
 
             </div>
+
+
+            <div className="stat-card">
+
+              <div className="stat-icon">
+                <MapPin
+                  size={19}
+                />
+              </div>
+
+              <div>
+                <span>
+                  In progress
+                </span>
+
+                <strong>
+                  {loading
+                    ? "—"
+                    : statistics.inProgress}
+                </strong>
+              </div>
+
+            </div>
+
 
             <div className="stat-card">
 
@@ -248,96 +552,261 @@ function CitizenDashboard() {
               </div>
 
               <div>
-                <span>Resolved</span>
-                <strong>1</strong>
+                <span>
+                  Resolved
+                </span>
+
+                <strong>
+                  {loading
+                    ? "—"
+                    : statistics.resolved}
+                </strong>
               </div>
 
             </div>
 
           </section>
 
-          {/* REPORTS */}
+
+          {/* ===================================
+              REPORTS
+          =================================== */}
 
           <section className="reports-section">
 
             <div className="section-heading">
 
               <div>
-                <h2>Recent reports</h2>
+
+                <h2>
+                  Recent reports
+                </h2>
 
                 <p>
-                  Track the civic issues you've reported.
+                  Track the civic issues
+                  you've reported.
                 </p>
+
               </div>
 
-              <Link to="/citizen/reports">
+
+              <Link
+                to="/citizen/reports"
+              >
                 View all
                 <span>→</span>
               </Link>
 
             </div>
 
-            <div className="reports-table">
 
-              <div className="reports-table-header">
-                <span>Report</span>
-                <span>Category</span>
-                <span>Location</span>
-                <span>Date</span>
-                <span>Status</span>
+            {/* ERROR */}
+
+            {error && (
+
+              <div className="dashboard-report-message">
+
+                <strong>
+                  Unable to load reports
+                </strong>
+
+                <span>
+                  {error}
+                </span>
+
               </div>
 
-              {reports.map((report) => (
+            )}
 
-                <Link
-                  to={`/citizen/reports/${report.id}`}
-                  className="report-row"
-                  key={report.id}
-                >
 
-                  <div className="report-title">
+            {/* LOADING */}
 
-                    <strong>
-                      {report.title}
-                    </strong>
+            {loading && !error && (
+
+              <div className="dashboard-report-message">
+
+                <strong>
+                  Loading reports...
+                </strong>
+
+                <span>
+                  Fetching your latest
+                  CivicFix reports.
+                </span>
+
+              </div>
+
+            )}
+
+
+            {/* EMPTY */}
+
+            {!loading &&
+              !error &&
+              recentReports.length === 0 && (
+
+                <div className="dashboard-report-message">
+
+                  <strong>
+                    No reports yet
+                  </strong>
+
+                  <span>
+                    Report your first civic
+                    issue to get started.
+                  </span>
+
+                  <Link
+                    to="/citizen/report"
+                  >
+                    Report an issue →
+                  </Link>
+
+                </div>
+
+              )}
+
+
+            {/* REPORT TABLE */}
+
+            {!loading &&
+              !error &&
+              recentReports.length > 0 && (
+
+                <div className="reports-table">
+
+                  <div className="reports-table-header">
 
                     <span>
-                      #{report.id}
+                      Report
+                    </span>
+
+                    <span>
+                      Category
+                    </span>
+
+                    <span>
+                      Location
+                    </span>
+
+                    <span>
+                      Date
+                    </span>
+
+                    <span>
+                      Status
                     </span>
 
                   </div>
 
-                  <span className="report-category">
-                    {report.category}
-                  </span>
 
-                  <span className="report-location">
-                    <MapPin size={14} />
-                    {report.location}
-                  </span>
+                  {recentReports.map(
+                    (report) => {
 
-                  <span className="report-date">
-                    {report.date}
-                  </span>
+                      const reportId =
+                        report.id ||
+                        report.issue_id;
 
-                  <span
-                    className={`status-badge ${report.status
-                      .toLowerCase()
-                      .replaceAll(" ", "-")}`}
-                  >
-                    <span></span>
-                    {report.status}
-                  </span>
+                      const status =
+                        statusLabels[
+                          report.status
+                        ] ||
+                        "Reported";
 
-                </Link>
+                      return (
 
-              ))}
+                        <Link
+                          to={`/citizen/reports/${reportId}`}
+                          className="report-row"
+                          key={reportId}
+                        >
 
-            </div>
+                          <div className="report-title">
+
+                            <strong>
+                              {report.title ||
+                                "Civic issue"}
+                            </strong>
+
+                            <span>
+                              #
+                              {report.report_id ||
+                                `CF-${reportId}`}
+                            </span>
+
+                          </div>
+
+
+                          <span className="report-category">
+                            {report.category ||
+                              "General"}
+                          </span>
+
+
+                          <span className="report-location">
+
+                            <MapPin
+                              size={14}
+                            />
+
+                            {report.address ||
+                              "Location unavailable"}
+
+                          </span>
+
+
+                          <span className="report-date">
+
+                            {report.created_at
+                              ? new Date(
+                                  report.created_at
+                                ).toLocaleDateString(
+                                  "en-IN",
+                                  {
+                                    day: "numeric",
+                                    month: "short",
+                                    year: "numeric",
+                                  }
+                                )
+                              : "—"}
+
+                          </span>
+
+
+                          <span
+                            className={`status-badge ${
+                              report.status
+                                ?.toLowerCase()
+                                .replaceAll(
+                                  "_",
+                                  "-"
+                                ) ||
+                              "reported"
+                            }`}
+                          >
+
+                            <span />
+
+                            {status}
+
+                          </span>
+
+                        </Link>
+
+                      );
+                    }
+                  )}
+
+                </div>
+
+              )}
 
           </section>
 
-          {/* EMPTY/INFO CARD */}
+
+          {/* ===================================
+              INFO CARD
+          =================================== */}
 
           <section className="dashboard-info">
 
@@ -348,17 +817,21 @@ function CitizenDashboard() {
             <div>
 
               <strong>
-                Every report helps improve your community.
+                Every report helps improve
+                your community.
               </strong>
 
               <p>
-                See something that needs attention?
-                Report it and let the right people know.
+                See something that needs
+                attention? Report it and let
+                the right people know.
               </p>
 
             </div>
 
-            <Link to="/citizen/report">
+            <Link
+              to="/citizen/report"
+            >
               Report an issue →
             </Link>
 

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -6,121 +7,165 @@ import {
   MapPin,
   MessageSquare,
   UserRound,
+  AlertCircle,
 } from "lucide-react";
 
 import { Link, useParams } from "react-router-dom";
 
+import { apiRequest } from "../../services/api";
+
 import "./IssueDetails.css";
 
-const reports = {
-  "CF-1024": {
-    id: "CF-1024",
-    title: "Large pothole near Main Road",
-    category: "Road",
-    description:
-      "There is a large pothole near the bus stop causing difficulty for two-wheelers and other vehicles.",
-    location: "Main Road, Bengaluru",
-    date: "September 2, 2026",
-    priority: "HIGH",
-    status: "IN_PROGRESS",
-    department: "Road Maintenance",
-
-    timeline: [
-      {
-        title: "Report submitted",
-        description: "Your report was successfully received by CivicFix.",
-        time: "10:32 AM",
-        completed: true,
-      },
-      {
-        title: "Report reviewed",
-        description: "The issue was reviewed by the municipal authority.",
-        time: "11:15 AM",
-        completed: true,
-      },
-      {
-        title: "Assigned to Road Maintenance",
-        description:
-          "The report has been assigned to the responsible department.",
-        time: "12:10 PM",
-        completed: true,
-      },
-      {
-        title: "Work in progress",
-        description:
-          "The responsible department is currently working on the issue.",
-        time: "Today",
-        completed: true,
-        active: true,
-      },
-      {
-        title: "Issue resolved",
-        description:
-          "The issue will be marked resolved after the work is completed.",
-        time: "",
-        completed: false,
-      },
-    ],
-  },
-
-  "CF-1021": {
-    id: "CF-1021",
-    title: "Broken streetlight near bus stop",
-    category: "Streetlight",
-    description:
-      "The streetlight near the bus stop is not functioning during the evening.",
-    location: "MG Road, Bengaluru",
-    date: "September 1, 2026",
-    priority: "MEDIUM",
-    status: "UNDER_REVIEW",
-    department: "Electrical / Street Lighting",
-
-    timeline: [
-      {
-        title: "Report submitted",
-        description: "Your report was successfully received by CivicFix.",
-        time: "4:20 PM",
-        completed: true,
-      },
-      {
-        title: "Under review",
-        description:
-          "The municipal authority is reviewing the reported issue.",
-        time: "5:05 PM",
-        completed: true,
-        active: true,
-      },
-      {
-        title: "Assigned to department",
-        description: "The responsible department has not yet been assigned.",
-        time: "",
-        completed: false,
-      },
-      {
-        title: "Work in progress",
-        description: "Work will begin after the issue is assigned.",
-        time: "",
-        completed: false,
-      },
-      {
-        title: "Issue resolved",
-        description: "The issue will appear here once resolved.",
-        time: "",
-        completed: false,
-      },
-    ],
-  },
+const statusLabels = {
+  REPORTED: "Reported",
+  UNDER_REVIEW: "Under Review",
+  ASSIGNED: "Assigned",
+  IN_PROGRESS: "In Progress",
+  RESOLVED: "Resolved",
 };
 
 function IssueDetails() {
   const { id } = useParams();
 
-  const report = reports[id] || reports["CF-1024"];
+  const [report, setReport] = useState(null);
+  const [timeline, setTimeline] = useState([]);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchIssue = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const data = await apiRequest(`/issues/${id}`);
+
+        setReport(data.issue);
+        setTimeline(data.timeline || []);
+      } catch (fetchError) {
+        console.error("Failed to fetch issue:", fetchError);
+
+        setError(
+          fetchError.message ||
+            "Unable to load this report."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchIssue();
+  }, [id]);
+
+  /* ================================
+     LOADING
+  ================================= */
+
+  if (loading) {
+    return (
+      <div className="citizen-issue-page">
+
+        <div className="issue-topbar">
+
+          <Link
+            to="/citizen/reports"
+            className="back-link"
+          >
+            <ArrowLeft size={16} />
+            Back to My Reports
+          </Link>
+
+        </div>
+
+        <main className="issue-details-container">
+
+          <div className="reports-empty">
+
+            <div className="reports-empty-icon">
+              <FileText size={23} />
+            </div>
+
+            <h2>Loading report...</h2>
+
+            <p>
+              Fetching the latest report information.
+            </p>
+
+          </div>
+
+        </main>
+
+      </div>
+    );
+  }
+
+
+  /* ================================
+     ERROR
+  ================================= */
+
+  if (error || !report) {
+    return (
+      <div className="citizen-issue-page">
+
+        <div className="issue-topbar">
+
+          <Link
+            to="/citizen/reports"
+            className="back-link"
+          >
+            <ArrowLeft size={16} />
+            Back to My Reports
+          </Link>
+
+        </div>
+
+        <main className="issue-details-container">
+
+          <div className="reports-empty">
+
+            <div className="reports-empty-icon">
+              <AlertCircle size={23} />
+            </div>
+
+            <h2>Unable to load report</h2>
+
+            <p>
+              {error || "This report could not be found."}
+            </p>
+
+            <Link to="/citizen/reports">
+              Return to My Reports
+            </Link>
+
+          </div>
+
+        </main>
+
+      </div>
+    );
+  }
+
+
+  const formattedDate = report.created_at
+    ? new Date(report.created_at).toLocaleDateString(
+        "en-IN",
+        {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }
+      )
+    : "Date unavailable";
+
 
   return (
     <div className="citizen-issue-page">
 
-      {/* TOP BAR */}
+      {/* =====================================
+          TOP BAR
+      ===================================== */}
 
       <div className="issue-topbar">
 
@@ -133,14 +178,18 @@ function IssueDetails() {
         </Link>
 
         <span className="issue-reference">
-          {report.id}
+          {report.report_id ||
+            `CF-${report.id}`}
         </span>
 
       </div>
 
+
       <main className="issue-details-container">
 
-        {/* HEADER */}
+        {/* =====================================
+            HEADER
+        ===================================== */}
 
         <section className="issue-details-header">
 
@@ -149,18 +198,22 @@ function IssueDetails() {
             <div className="issue-header-meta">
 
               <span className="issue-category">
-                {report.category}
+                {report.category || "General"}
               </span>
 
-              <span className="issue-dot">•</span>
+              <span className="issue-dot">
+                •
+              </span>
 
               <span>
-                Reported {report.date}
+                Reported {formattedDate}
               </span>
 
             </div>
 
-            <h1>{report.title}</h1>
+            <h1>
+              {report.title}
+            </h1>
 
             <p>
               {report.description}
@@ -168,23 +221,32 @@ function IssueDetails() {
 
           </div>
 
+
           <div className="issue-current-status">
-            <span>Current status</span>
+
+            <span>
+              Current status
+            </span>
 
             <strong>
-              {report.status === "IN_PROGRESS"
-                ? "In Progress"
-                : "Under Review"}
+              {statusLabels[report.status] ||
+                report.status}
             </strong>
+
           </div>
 
         </section>
 
-        {/* CONTENT */}
+
+        {/* =====================================
+            CONTENT
+        ===================================== */}
 
         <div className="issue-details-grid">
 
-          {/* LEFT */}
+          {/* =================================
+              LEFT COLUMN
+          ================================= */}
 
           <div className="issue-main-column">
 
@@ -193,34 +255,105 @@ function IssueDetails() {
             <section className="issue-panel">
 
               <div className="panel-heading">
+
                 <div>
-                  <h2>Report timeline</h2>
+
+                  <h2>
+                    Report timeline
+                  </h2>
+
                   <p>
                     Follow the progress of your report.
                   </p>
+
                 </div>
 
                 <Clock3 size={18} />
+
               </div>
+
 
               <div className="issue-timeline">
 
-                {report.timeline.map((item) => (
+                {timeline.length > 0 ? (
 
-                  <div
-                    className={`timeline-item ${
-                      item.active ? "active" : ""
-                    }`}
-                    key={item.title}
-                  >
+                  timeline.map((item, index) => {
+
+                    const isLast =
+                      index === timeline.length - 1;
+
+                    return (
+                      <div
+                        className={`timeline-item ${
+                          isLast
+                            ? "active"
+                            : ""
+                        }`}
+                        key={
+                          item.id ||
+                          `${item.status}-${index}`
+                        }
+                      >
+
+                        <div className="timeline-marker">
+
+                          <CheckCircle2
+                            size={17}
+                          />
+
+                        </div>
+
+
+                        <div className="timeline-content">
+
+                          <div className="timeline-title-row">
+
+                            <h3>
+                              {statusLabels[
+                                item.status
+                              ] ||
+                                item.status}
+                            </h3>
+
+                            {item.created_at && (
+                              <span>
+                                {new Date(
+                                  item.created_at
+                                ).toLocaleString(
+                                  "en-IN",
+                                  {
+                                    day: "numeric",
+                                    month: "short",
+                                    hour: "numeric",
+                                    minute: "2-digit",
+                                  }
+                                )}
+                              </span>
+                            )}
+
+                          </div>
+
+
+                          <p>
+                            {item.note ||
+                              "Issue status updated."}
+                          </p>
+
+                        </div>
+
+                      </div>
+                    );
+                  })
+
+                ) : (
+
+                  <div className="timeline-item active">
 
                     <div className="timeline-marker">
 
-                      {item.completed ? (
-                        <CheckCircle2 size={17} />
-                      ) : (
-                        <span />
-                      )}
+                      <CheckCircle2
+                        size={17}
+                      />
 
                     </div>
 
@@ -228,63 +361,91 @@ function IssueDetails() {
 
                       <div className="timeline-title-row">
 
-                        <h3>{item.title}</h3>
-
-                        {item.time && (
-                          <span>{item.time}</span>
-                        )}
+                        <h3>
+                          Report submitted
+                        </h3>
 
                       </div>
 
                       <p>
-                        {item.description}
+                        Your report was successfully
+                        received by CivicFix.
                       </p>
 
                     </div>
 
                   </div>
 
-                ))}
+                )}
 
               </div>
 
             </section>
 
-            {/* DESCRIPTION */}
+
+            {/* ISSUE INFORMATION */}
 
             <section className="issue-panel">
 
               <div className="panel-heading">
 
                 <div>
-                  <h2>Issue information</h2>
+
+                  <h2>
+                    Issue information
+                  </h2>
+
                   <p>
                     Details submitted with your report.
                   </p>
+
                 </div>
 
                 <FileText size={18} />
 
               </div>
 
+
               <div className="issue-information">
 
                 <div>
-                  <span>Description</span>
-                  <p>{report.description}</p>
+
+                  <span>
+                    Description
+                  </span>
+
+                  <p>
+                    {report.description}
+                  </p>
+
                 </div>
 
-                <div>
-                  <span>Category</span>
-                  <strong>{report.category}</strong>
-                </div>
 
                 <div>
-                  <span>Priority</span>
+
+                  <span>
+                    Category
+                  </span>
+
+                  <strong>
+                    {report.category ||
+                      "General"}
+                  </strong>
+
+                </div>
+
+
+                <div>
+
+                  <span>
+                    Priority
+                  </span>
 
                   <strong className="priority-high">
-                    {report.priority}
+                    {report.priority ||
+                      "NORMAL"}
                   </strong>
+
                 </div>
 
               </div>
@@ -293,7 +454,10 @@ function IssueDetails() {
 
           </div>
 
-          {/* RIGHT */}
+
+          {/* =================================
+              RIGHT COLUMN
+          ================================= */}
 
           <aside className="issue-side-column">
 
@@ -304,15 +468,21 @@ function IssueDetails() {
               <div className="panel-heading">
 
                 <div>
-                  <h2>Location</h2>
+
+                  <h2>
+                    Location
+                  </h2>
+
                   <p>
                     Where the issue was reported.
                   </p>
+
                 </div>
 
                 <MapPin size={18} />
 
               </div>
+
 
               <div className="location-box">
 
@@ -320,17 +490,24 @@ function IssueDetails() {
                   <MapPin size={23} />
                 </div>
 
+
                 <div>
-                  <strong>{report.location}</strong>
+
+                  <strong>
+                    {report.address ||
+                      "Location captured"}
+                  </strong>
 
                   <span>
                     Reported location
                   </span>
+
                 </div>
 
               </div>
 
             </section>
+
 
             {/* ASSIGNMENT */}
 
@@ -339,25 +516,37 @@ function IssueDetails() {
               <div className="panel-heading">
 
                 <div>
-                  <h2>Assigned department</h2>
+
+                  <h2>
+                    Assigned department
+                  </h2>
+
                   <p>
                     Responsible authority.
                   </p>
+
                 </div>
 
                 <UserRound size={18} />
 
               </div>
 
+
               <div className="department-box">
-                <strong>{report.department}</strong>
+
+                <strong>
+                  {report.department_name ||
+                    "Not assigned yet"}
+                </strong>
 
                 <span>
                   Responsible department
                 </span>
+
               </div>
 
             </section>
+
 
             {/* SUPPORT */}
 
@@ -367,14 +556,17 @@ function IssueDetails() {
                 <MessageSquare size={18} />
               </div>
 
+
               <div>
 
-                <h3>Need help?</h3>
+                <h3>
+                  Need help?
+                </h3>
 
                 <p>
-                  If the information about this report
-                  looks incorrect, contact the CivicFix
-                  administration team.
+                  If the information about this
+                  report looks incorrect, contact
+                  the CivicFix administration team.
                 </p>
 
               </div>

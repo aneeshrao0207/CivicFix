@@ -6,20 +6,81 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Button from "../../components/ui/Button";
 import "./Auth.css";
+import { apiRequest } from "../../services/api";
 
 function CitizenLogin() {
+  const navigate = useNavigate();
+
   const [showPassword, setShowPassword] = useState(false);
 
- const handleSubmit = (event) => {
-  event.preventDefault();
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
 
-  console.log("Citizen login submitted");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  window.location.href = "/citizen/dashboard";
-};
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+
+    setFormData((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+
+    if (error) {
+      setError("");
+    }
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    setError("");
+    setLoading(true);
+
+    try {
+      const data = await apiRequest("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      // Make sure this is actually a citizen account
+      if (data.user?.role !== "citizen") {
+        throw new Error(
+          "This account is not registered as a citizen."
+        );
+      }
+
+      // Save authentication data
+      localStorage.setItem("civicfix_token", data.token);
+
+      localStorage.setItem(
+        "civicfix_user",
+        JSON.stringify(data.user)
+      );
+
+      // Go to citizen dashboard
+      navigate("/citizen/dashboard");
+
+    } catch (loginError) {
+      console.error("Citizen login error:", loginError);
+
+      setError(
+        loginError.message ||
+          "Login failed. Please check your email and password."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="auth-page">
@@ -71,6 +132,14 @@ function CitizenLogin() {
 
           </div>
 
+          {/* ERROR */}
+
+          {error && (
+            <div className="auth-error">
+              {error}
+            </div>
+          )}
+
           <form
             className="auth-form"
             onSubmit={handleSubmit}
@@ -97,6 +166,8 @@ function CitizenLogin() {
                   type="email"
                   className="auth-input"
                   placeholder="you@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
                   required
                 />
 
@@ -125,6 +196,8 @@ function CitizenLogin() {
                   type={showPassword ? "text" : "password"}
                   className="auth-input"
                   placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={handleChange}
                   required
                 />
 
@@ -182,9 +255,16 @@ function CitizenLogin() {
               <Button
                 type="submit"
                 size="large"
+                disabled={loading}
               >
-                Sign in
-                <ArrowRight size={17} />
+                {loading ? (
+                  "Signing in..."
+                ) : (
+                  <>
+                    Sign in
+                    <ArrowRight size={17} />
+                  </>
+                )}
               </Button>
 
             </div>

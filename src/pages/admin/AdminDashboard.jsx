@@ -1,3 +1,5 @@
+import { useEffect, useMemo, useState } from "react";
+
 import {
   AlertTriangle,
   ArrowRight,
@@ -11,46 +13,9 @@ import {
 
 import { Link } from "react-router-dom";
 
+import { apiRequest } from "../../services/api";
+
 import "./AdminDashboard.css";
-
-const recentIssues = [
-  {
-    id: "CF-1024",
-    title: "Large pothole near Main Road",
-    category: "Road",
-    priority: "HIGH",
-    status: "IN_PROGRESS",
-  },
-  {
-    id: "CF-1023",
-    title: "Broken streetlight near bus stop",
-    category: "Streetlight",
-    priority: "MEDIUM",
-    status: "UNDER_REVIEW",
-  },
-  {
-    id: "CF-1022",
-    title: "Garbage overflow near residential area",
-    category: "Garbage",
-    priority: "HIGH",
-    status: "ASSIGNED",
-  },
-  {
-    id: "CF-1021",
-    title: "Water leakage on roadside",
-    category: "Water",
-    priority: "CRITICAL",
-    status: "REPORTED",
-  },
-];
-
-const categoryData = [
-  { name: "Road", value: 42 },
-  { name: "Garbage", value: 31 },
-  { name: "Streetlight", value: 24 },
-  { name: "Water", value: 18 },
-  { name: "Traffic", value: 9 },
-];
 
 const statusLabels = {
   REPORTED: "Reported",
@@ -62,14 +27,216 @@ const statusLabels = {
 };
 
 function AdminDashboard() {
-  const maxCategoryValue = Math.max(
-    ...categoryData.map((item) => item.value)
-  );
+  const [issues, setIssues] = useState([]);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // ============================================
+  // FETCH ALL ISSUES
+  // ============================================
+
+  useEffect(() => {
+    const fetchIssues = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const data = await apiRequest("/issues");
+
+        setIssues(data.issues || []);
+      } catch (fetchError) {
+        console.error(
+          "Failed to fetch admin issues:",
+          fetchError
+        );
+
+        setError(
+          fetchError.message ||
+            "Unable to load dashboard data."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchIssues();
+  }, []);
+
+  // ============================================
+  // DASHBOARD STATISTICS
+  // ============================================
+
+  const statistics = useMemo(() => {
+    const total = issues.length;
+
+    const reported = issues.filter(
+      (issue) => issue.status === "REPORTED"
+    ).length;
+
+    const inProgress = issues.filter(
+      (issue) =>
+        issue.status === "ASSIGNED" ||
+        issue.status === "IN_PROGRESS"
+    ).length;
+
+    const resolved = issues.filter(
+      (issue) => issue.status === "RESOLVED"
+    ).length;
+
+    const critical = issues.filter(
+      (issue) => issue.priority === "CRITICAL"
+    ).length;
+
+    const resolutionRate =
+      total > 0
+        ? Math.round((resolved / total) * 100)
+        : 0;
+
+    return {
+      total,
+      reported,
+      inProgress,
+      resolved,
+      critical,
+      resolutionRate,
+    };
+  }, [issues]);
+
+  // ============================================
+  // CATEGORY DATA
+  // ============================================
+
+  const categoryData = useMemo(() => {
+    const categoryCounts = {};
+
+    issues.forEach((issue) => {
+      const category =
+        issue.category || "Other";
+
+      categoryCounts[category] =
+        (categoryCounts[category] || 0) + 1;
+    });
+
+    return Object.entries(categoryCounts)
+      .map(([name, value]) => ({
+        name,
+        value,
+      }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+  }, [issues]);
+
+  const maxCategoryValue =
+    categoryData.length > 0
+      ? Math.max(
+          ...categoryData.map(
+            (item) => item.value
+          )
+        )
+      : 1;
+
+  // ============================================
+  // RECENT ISSUES
+  // ============================================
+
+  const recentIssues = useMemo(() => {
+    return [...issues]
+      .sort(
+        (a, b) =>
+          new Date(b.created_at) -
+          new Date(a.created_at)
+      )
+      .slice(0, 5);
+  }, [issues]);
+
+  // ============================================
+  // LOADING STATE
+  // ============================================
+
+  if (loading) {
+    return (
+      <div className="admin-dashboard-page">
+
+        <div className="admin-dashboard-header">
+          <div>
+            <div className="admin-dashboard-eyebrow">
+              <ShieldAlert size={13} />
+              AUTHORITY COMMAND CENTER
+            </div>
+
+            <h1>Admin Dashboard</h1>
+
+            <p>
+              Loading CivicFix issue data...
+            </p>
+          </div>
+        </div>
+
+        <div className="admin-dashboard-panel">
+          <div className="admin-dashboard-loading">
+            Loading dashboard...
+          </div>
+        </div>
+
+      </div>
+    );
+  }
+
+  // ============================================
+  // ERROR STATE
+  // ============================================
+
+  if (error) {
+    return (
+      <div className="admin-dashboard-page">
+
+        <div className="admin-dashboard-header">
+          <div>
+            <div className="admin-dashboard-eyebrow">
+              <ShieldAlert size={13} />
+              AUTHORITY COMMAND CENTER
+            </div>
+
+            <h1>Admin Dashboard</h1>
+
+            <p>
+              Monitor, prioritize and manage civic
+              issues across the city.
+            </p>
+          </div>
+
+          <Link
+            to="/admin/issues"
+            className="admin-view-all-button"
+          >
+            View all issues
+            <ArrowRight size={14} />
+          </Link>
+        </div>
+
+        <div className="admin-dashboard-panel">
+          <div className="admin-dashboard-error">
+            <AlertTriangle size={20} />
+
+            <strong>
+              Unable to load dashboard
+            </strong>
+
+            <span>{error}</span>
+          </div>
+        </div>
+
+      </div>
+    );
+  }
 
   return (
     <div className="admin-dashboard-page">
 
-      {/* HEADER */}
+      {/* ============================================
+          HEADER
+      ============================================ */}
 
       <header className="admin-dashboard-header">
 
@@ -82,7 +249,8 @@ function AdminDashboard() {
           <h1>Admin Dashboard</h1>
 
           <p>
-            Monitor, prioritize and manage civic issues across the city.
+            Monitor, prioritize and manage civic
+            issues across the city.
           </p>
         </div>
 
@@ -96,7 +264,10 @@ function AdminDashboard() {
 
       </header>
 
-      {/* STAT CARDS */}
+
+      {/* ============================================
+          STAT CARDS
+      ============================================ */}
 
       <section className="admin-stat-grid">
 
@@ -108,13 +279,16 @@ function AdminDashboard() {
 
           <span>Total issues</span>
 
-          <strong>124</strong>
+          <strong>
+            {statistics.total}
+          </strong>
 
           <small>
             All reported issues
           </small>
 
         </div>
+
 
         <div className="admin-stat-card">
 
@@ -124,13 +298,16 @@ function AdminDashboard() {
 
           <span>Reported</span>
 
-          <strong>31</strong>
+          <strong>
+            {statistics.reported}
+          </strong>
 
           <small>
             Awaiting review
           </small>
 
         </div>
+
 
         <div className="admin-stat-card">
 
@@ -140,13 +317,16 @@ function AdminDashboard() {
 
           <span>In progress</span>
 
-          <strong>42</strong>
+          <strong>
+            {statistics.inProgress}
+          </strong>
 
           <small>
             Currently being handled
           </small>
 
         </div>
+
 
         <div className="admin-stat-card">
 
@@ -156,13 +336,16 @@ function AdminDashboard() {
 
           <span>Resolved</span>
 
-          <strong>27</strong>
+          <strong>
+            {statistics.resolved}
+          </strong>
 
           <small>
             Successfully completed
           </small>
 
         </div>
+
 
         <div className="admin-stat-card critical-card">
 
@@ -172,13 +355,16 @@ function AdminDashboard() {
 
           <span>Critical</span>
 
-          <strong>8</strong>
+          <strong>
+            {statistics.critical}
+          </strong>
 
           <small>
             Requires attention
           </small>
 
         </div>
+
 
         <div className="admin-stat-card">
 
@@ -188,7 +374,9 @@ function AdminDashboard() {
 
           <span>Resolution rate</span>
 
-          <strong>72%</strong>
+          <strong>
+            {statistics.resolutionRate}%
+          </strong>
 
           <small>
             Overall resolution
@@ -198,7 +386,10 @@ function AdminDashboard() {
 
       </section>
 
-      {/* MAIN CONTENT */}
+
+      {/* ============================================
+          MAIN CONTENT
+      ============================================ */}
 
       <section className="admin-dashboard-grid">
 
@@ -212,7 +403,8 @@ function AdminDashboard() {
               <h2>Issues by category</h2>
 
               <p>
-                Distribution of reported civic problems.
+                Distribution of reported civic
+                problems.
               </p>
             </div>
 
@@ -220,48 +412,61 @@ function AdminDashboard() {
 
           </div>
 
+
           <div className="category-chart">
 
-            {categoryData.map((category) => (
+            {categoryData.length === 0 ? (
 
-              <div
-                className="category-row"
-                key={category.name}
-              >
-
-                <div className="category-row-top">
-
-                  <span>
-                    {category.name}
-                  </span>
-
-                  <strong>
-                    {category.value}
-                  </strong>
-
-                </div>
-
-                <div className="category-bar">
-
-                  <div
-                    className="category-bar-fill"
-                    style={{
-                      width: `${(
-                        (category.value / maxCategoryValue) *
-                        100
-                      ).toFixed(0)}%`,
-                    }}
-                  />
-
-                </div>
-
+              <div className="admin-dashboard-empty">
+                No category data available.
               </div>
 
-            ))}
+            ) : (
+
+              categoryData.map((category) => (
+
+                <div
+                  className="category-row"
+                  key={category.name}
+                >
+
+                  <div className="category-row-top">
+
+                    <span>
+                      {category.name}
+                    </span>
+
+                    <strong>
+                      {category.value}
+                    </strong>
+
+                  </div>
+
+                  <div className="category-bar">
+
+                    <div
+                      className="category-bar-fill"
+                      style={{
+                        width: `${(
+                          (category.value /
+                            maxCategoryValue) *
+                          100
+                        ).toFixed(0)}%`,
+                      }}
+                    />
+
+                  </div>
+
+                </div>
+
+              ))
+
+            )}
 
           </div>
 
         </div>
+
 
         {/* RESOLUTION */}
 
@@ -281,44 +486,58 @@ function AdminDashboard() {
 
           </div>
 
+
           <div className="resolution-content">
 
             <div className="resolution-circle">
 
               <div>
-                <strong>72%</strong>
+
+                <strong>
+                  {statistics.resolutionRate}%
+                </strong>
 
                 <span>
                   Resolved
                 </span>
+
               </div>
 
             </div>
+
 
             <div className="resolution-legend">
 
               <div>
                 <span className="legend-dot resolved" />
                 <span>Resolved</span>
-                <strong>27</strong>
+                <strong>
+                  {statistics.resolved}
+                </strong>
               </div>
 
               <div>
                 <span className="legend-dot progress" />
                 <span>In Progress</span>
-                <strong>42</strong>
+                <strong>
+                  {statistics.inProgress}
+                </strong>
               </div>
 
               <div>
                 <span className="legend-dot pending" />
                 <span>Pending</span>
-                <strong>31</strong>
+                <strong>
+                  {statistics.reported}
+                </strong>
               </div>
 
               <div>
                 <span className="legend-dot critical" />
                 <span>Critical</span>
-                <strong>8</strong>
+                <strong>
+                  {statistics.critical}
+                </strong>
               </div>
 
             </div>
@@ -329,7 +548,10 @@ function AdminDashboard() {
 
       </section>
 
-      {/* RECENT ISSUES */}
+
+      {/* ============================================
+          RECENT ISSUES
+      ============================================ */}
 
       <section className="admin-dashboard-panel recent-panel">
 
@@ -339,7 +561,8 @@ function AdminDashboard() {
             <h2>Recent issues</h2>
 
             <p>
-              Latest reports requiring administrative attention.
+              Latest reports requiring administrative
+              attention.
             </p>
           </div>
 
@@ -350,59 +573,102 @@ function AdminDashboard() {
 
         </div>
 
+
         <div className="recent-issues-list">
 
-          {recentIssues.map((issue) => (
+          {recentIssues.length === 0 ? (
 
-            <Link
-              key={issue.id}
-              to={`/admin/issues/${issue.id}`}
-              className="recent-issue-row"
-            >
+            <div className="admin-dashboard-empty">
+              No issues have been reported yet.
+            </div>
 
-              <div className="recent-issue-main">
+          ) : (
 
-                <span className="recent-issue-id">
-                  {issue.id}
-                </span>
+            recentIssues.map((issue) => {
 
-                <strong>
-                  {issue.title}
-                </strong>
+              const status =
+                statusLabels[
+                  issue.status
+                ] || "Reported";
 
-                <span className="recent-issue-category">
-                  {issue.category}
-                </span>
+              const issueIdentifier =
+                issue.id;
 
-              </div>
+              return (
 
-              <div className="recent-issue-right">
-
-                <span
-                  className={`priority-badge ${issue.priority.toLowerCase()}`}
+                <Link
+                  key={issueIdentifier}
+                  to={`/admin/issues/${issueIdentifier}`}
+                  className="recent-issue-row"
                 >
-                  {issue.priority}
-                </span>
 
-                <span
-                  className={`status-badge ${issue.status.toLowerCase()}`}
-                >
-                  {statusLabels[issue.status]}
-                </span>
+                  <div className="recent-issue-main">
 
-                <ArrowRight size={14} />
+                    <span className="recent-issue-id">
+                      {issue.report_id ||
+                        `CF-${issue.id}`}
+                    </span>
 
-              </div>
+                    <strong>
+                      {issue.title ||
+                        "Civic issue"}
+                    </strong>
 
-            </Link>
+                    <span className="recent-issue-category">
+                      {issue.category ||
+                        "Other"}
+                    </span>
 
-          ))}
+                  </div>
+
+
+                  <div className="recent-issue-right">
+
+                    <span
+                      className={`priority-badge ${
+                        (
+                          issue.priority ||
+                          "MEDIUM"
+                        ).toLowerCase()
+                      }`}
+                    >
+                      {issue.priority ||
+                        "MEDIUM"}
+                    </span>
+
+
+                    <span
+                      className={`status-badge ${
+                        (
+                          issue.status ||
+                          "REPORTED"
+                        ).toLowerCase()
+                      }`}
+                    >
+                      {status}
+                    </span>
+
+
+                    <ArrowRight size={14} />
+
+                  </div>
+
+                </Link>
+
+              );
+
+            })
+
+          )}
 
         </div>
 
       </section>
 
-      {/* MAP */}
+
+      {/* ============================================
+          MAP
+      ============================================ */}
 
       <section className="admin-dashboard-panel map-panel">
 
@@ -412,7 +678,8 @@ function AdminDashboard() {
             <h2>Issue map</h2>
 
             <p>
-              Geographic overview of reported civic issues.
+              Geographic overview of reported civic
+              issues.
             </p>
           </div>
 
@@ -423,29 +690,35 @@ function AdminDashboard() {
 
         </div>
 
+
         <div className="dashboard-map">
 
           <div className="map-grid-pattern" />
 
-          <div className="map-marker marker-one">
-            <MapPin size={18} />
-          </div>
+          {issues
+            .filter(
+              (issue) =>
+                issue.latitude &&
+                issue.longitude
+            )
+            .slice(0, 5)
+            .map((issue, index) => (
 
-          <div className="map-marker marker-two">
-            <MapPin size={18} />
-          </div>
+              <div
+                key={issue.id}
+                className={`map-marker marker-${
+                  index + 1
+                }`}
+                title={
+                  issue.title ||
+                  "Civic issue"
+                }
+              >
+                <MapPin size={18} />
+              </div>
 
-          <div className="map-marker marker-three">
-            <MapPin size={18} />
-          </div>
+            ))}
 
-          <div className="map-marker marker-four">
-            <MapPin size={18} />
-          </div>
-
-          <div className="map-marker marker-five">
-            <MapPin size={18} />
-          </div>
 
           <div className="dashboard-map-overlay">
 

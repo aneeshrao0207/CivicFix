@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   AlertCircle,
   CheckCircle2,
@@ -10,46 +11,9 @@ import {
 
 import { Link } from "react-router-dom";
 
-import "./MyReports.css";
+import { apiRequest } from "../../services/api";
 
-const reports = [
-  {
-    id: "CF-1024",
-    title: "Large pothole near Main Road",
-    category: "Road",
-    location: "Main Road, Bengaluru",
-    status: "IN_PROGRESS",
-    priority: "HIGH",
-    date: "Sep 2, 2026",
-  },
-  {
-    id: "CF-1021",
-    title: "Broken streetlight near bus stop",
-    category: "Streetlight",
-    location: "MG Road, Bengaluru",
-    status: "UNDER_REVIEW",
-    priority: "MEDIUM",
-    date: "Sep 1, 2026",
-  },
-  {
-    id: "CF-1017",
-    title: "Garbage overflowing from public bin",
-    category: "Garbage",
-    location: "Indiranagar, Bengaluru",
-    status: "RESOLVED",
-    priority: "MEDIUM",
-    date: "Aug 29, 2026",
-  },
-  {
-    id: "CF-1012",
-    title: "Damaged footpath",
-    category: "Public Infrastructure",
-    location: "Koramangala, Bengaluru",
-    status: "REPORTED",
-    priority: "LOW",
-    date: "Aug 26, 2026",
-  },
-];
+import "./MyReports.css";
 
 const statusConfig = {
   REPORTED: {
@@ -80,6 +44,58 @@ const statusConfig = {
 };
 
 function MyReports() {
+  const [reports, setReports] = useState([]);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const data = await apiRequest("/issues/my");
+
+        setReports(data.issues || data || []);
+      } catch (fetchError) {
+        console.error("Failed to fetch reports:", fetchError);
+
+        setError(
+          fetchError.message ||
+            "Unable to load your reports."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReports();
+  }, []);
+
+  const filteredReports = reports.filter((report) => {
+    const searchText = search.toLowerCase();
+
+    return (
+      report.title?.toLowerCase().includes(searchText) ||
+      report.category?.toLowerCase().includes(searchText) ||
+      report.location?.toLowerCase().includes(searchText) ||
+      report.id?.toString().toLowerCase().includes(searchText)
+    );
+  });
+
+  const inProgressCount = reports.filter(
+    (report) => report.status === "IN_PROGRESS"
+  ).length;
+
+  const underReviewCount = reports.filter(
+    (report) => report.status === "UNDER_REVIEW"
+  ).length;
+
+  const resolvedCount = reports.filter(
+    (report) => report.status === "RESOLVED"
+  ).length;
+
   return (
     <div className="my-reports-page">
 
@@ -108,6 +124,7 @@ function MyReports() {
 
       </header>
 
+
       {/* SUMMARY */}
 
       <section className="reports-summary">
@@ -119,41 +136,21 @@ function MyReports() {
 
         <div className="summary-item">
           <span>In progress</span>
-          <strong>
-            {
-              reports.filter(
-                (report) =>
-                  report.status === "IN_PROGRESS"
-              ).length
-            }
-          </strong>
+          <strong>{inProgressCount}</strong>
         </div>
 
         <div className="summary-item">
           <span>Under review</span>
-          <strong>
-            {
-              reports.filter(
-                (report) =>
-                  report.status === "UNDER_REVIEW"
-              ).length
-            }
-          </strong>
+          <strong>{underReviewCount}</strong>
         </div>
 
         <div className="summary-item">
           <span>Resolved</span>
-          <strong>
-            {
-              reports.filter(
-                (report) =>
-                  report.status === "RESOLVED"
-              ).length
-            }
-          </strong>
+          <strong>{resolvedCount}</strong>
         </div>
 
       </section>
+
 
       {/* FILTER BAR */}
 
@@ -166,116 +163,195 @@ function MyReports() {
           <input
             type="text"
             placeholder="Search your reports..."
+            value={search}
+            onChange={(event) =>
+              setSearch(event.target.value)
+            }
           />
 
         </div>
 
-        <button className="filter-button">
+        <button
+          type="button"
+          className="filter-button"
+        >
           <Filter size={15} />
           Filter
         </button>
 
       </section>
 
-      {/* REPORT LIST */}
 
-      <section className="reports-list">
+      {/* LOADING */}
 
-        {reports.map((report) => {
-          const status = statusConfig[report.status];
-
-          const StatusIcon = status.icon;
-
-          return (
-            <Link
-              to={`/citizen/reports/${report.id}`}
-              className="report-list-card"
-              key={report.id}
-            >
-
-              <div className="report-card-main">
-
-                <div className="report-status-icon">
-                  <StatusIcon size={18} />
-                </div>
-
-                <div className="report-card-content">
-
-                  <div className="report-card-top">
-
-                    <span className="report-id">
-                      {report.id}
-                    </span>
-
-                    <span
-                      className={`report-status ${status.className}`}
-                    >
-                      {status.label}
-                    </span>
-
-                  </div>
-
-                  <h2>
-                    {report.title}
-                  </h2>
-
-                  <div className="report-meta">
-
-                    <span>
-                      {report.category}
-                    </span>
-
-                    <span>•</span>
-
-                    <span>
-                      {report.location}
-                    </span>
-
-                    <span>•</span>
-
-                    <span>
-                      {report.date}
-                    </span>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-              <ChevronRight
-                size={18}
-                className="report-chevron"
-              />
-
-            </Link>
-          );
-        })}
-
-      </section>
-
-      {/* EMPTY STATE PREPARATION */}
-
-      {reports.length === 0 && (
+      {loading && (
         <div className="reports-empty">
 
           <div className="reports-empty-icon">
             <FileText size={23} />
           </div>
 
-          <h2>No reports yet</h2>
+          <h2>Loading reports...</h2>
 
           <p>
-            When you report a civic issue, it will
-            appear here.
+            Fetching your reports from CivicFix.
           </p>
-
-          <Link to="/citizen/report">
-            Report your first issue
-          </Link>
 
         </div>
       )}
+
+
+      {/* ERROR */}
+
+      {!loading && error && (
+        <div className="reports-empty">
+
+          <div className="reports-empty-icon">
+            <AlertCircle size={23} />
+          </div>
+
+          <h2>Unable to load reports</h2>
+
+          <p>{error}</p>
+
+        </div>
+      )}
+
+
+      {/* REPORT LIST */}
+
+      {!loading && !error && filteredReports.length > 0 && (
+        <section className="reports-list">
+
+          {filteredReports.map((report) => {
+
+            const status =
+              statusConfig[report.status] ||
+              statusConfig.REPORTED;
+
+            const StatusIcon = status.icon;
+
+            const reportId =
+              report.id || report.issue_id;
+
+            return (
+              <Link
+                to={`/citizen/reports/${reportId}`}
+                className="report-list-card"
+                key={reportId}
+              >
+
+                <div className="report-card-main">
+
+                  <div className="report-status-icon">
+                    <StatusIcon size={18} />
+                  </div>
+
+                  <div className="report-card-content">
+
+                    <div className="report-card-top">
+
+                      <span className="report-id">
+                        {report.reference_id ||
+                          `CF-${reportId}`}
+                      </span>
+
+                      <span
+                        className={`report-status ${status.className}`}
+                      >
+                        {status.label}
+                      </span>
+
+                    </div>
+
+                    <h2>
+                      {report.title ||
+                        report.description ||
+                        "Civic issue"}
+                    </h2>
+
+                    <div className="report-meta">
+
+                      <span>
+                        {report.category ||
+                          "General"}
+                      </span>
+
+                      <span>•</span>
+
+                      <span>
+                        {report.location ||
+                          report.address ||
+                          "Location unavailable"}
+                      </span>
+
+                      <span>•</span>
+
+                      <span>
+                        {report.created_at
+                          ? new Date(
+                              report.created_at
+                            ).toLocaleDateString(
+                              "en-IN",
+                              {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              }
+                            )
+                          : "Date unavailable"}
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+                <ChevronRight
+                  size={18}
+                  className="report-chevron"
+                />
+
+              </Link>
+            );
+          })}
+
+        </section>
+      )}
+
+
+      {/* EMPTY STATE */}
+
+      {!loading &&
+        !error &&
+        filteredReports.length === 0 && (
+          <div className="reports-empty">
+
+            <div className="reports-empty-icon">
+              <FileText size={23} />
+            </div>
+
+            <h2>
+              {search
+                ? "No matching reports"
+                : "No reports yet"}
+            </h2>
+
+            <p>
+              {search
+                ? "Try a different search term."
+                : "When you report a civic issue, it will appear here."}
+            </p>
+
+            {!search && (
+              <Link to="/citizen/report">
+                Report your first issue
+              </Link>
+            )}
+
+          </div>
+        )}
 
     </div>
   );

@@ -818,3 +818,141 @@
     margin-left: 48px;
   }
 }
+
+/* =========================================
+   PROFILE MENU
+========================================= */
+
+.user-menu-wrapper {
+  position: relative;
+}
+
+.user-menu {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.user-menu:hover {
+  background: #f5f7fa;
+}
+
+.user-menu.open {
+  background: #f5f7fa;
+}
+
+.profile-chevron-open {
+  transform: rotate(180deg);
+}
+
+.profile-dropdown {
+  position: absolute;
+  top: calc(100% + 9px);
+  right: 0;
+  width: 190px;
+  padding: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  z-index: 100;
+}
+
+.profile-dropdown a,
+.profile-dropdown button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-family: inherit;
+  font-size: 11px;
+  text-decoration: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.profile-dropdown a:hover,
+.profile-dropdown button:hover {
+  background: #f5f7fa;
+  color: var(--color-text-primary);
+}
+
+.profile-dropdown-divider {
+  height: 1px;
+  margin: 5px 4px;
+  background: var(--color-border);
+}
+
+
+/* =========================================
+   DASHBOARD REPORT MESSAGE
+========================================= */
+
+.dashboard-report-message {
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 30px 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: #ffffff;
+  text-align: center;
+}
+
+.dashboard-report-message strong {
+  color: var(--color-text-primary);
+  font-size: 13px;
+}
+
+.dashboard-report-message span {
+  color: var(--color-text-muted);
+  font-size: 10px;
+}
+
+.dashboard-report-message a {
+  margin-top: 7px;
+  color: var(--color-primary);
+  font-size: 10px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+
+/* =========================================
+   NOTIFICATION BUTTON
+========================================= */
+
+.notification-button {
+  position: relative;
+  cursor: pointer;
+}
+
+.notification-button:hover {
+  background: #f5f7fa;
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 700px) {
+
+  .profile-dropdown {
+    right: -5px;
+  }
+
+  .user-info {
+    display: none;
+  }
+
+}

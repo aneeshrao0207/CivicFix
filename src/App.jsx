@@ -19,77 +19,114 @@ import AdminIssueDetails from "./pages/admin/AdminIssueDetails";
 import AdminMap from "./pages/admin/AdminMap";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 
+import ProtectedRoute from "./components/ProtectedRoute";
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
 
-        {/* Public */}
+        {/* =========================
+            PUBLIC ROUTES
+        ========================== */}
+
         <Route path="/" element={<Landing />} />
 
-        {/* Authentication */}
-        <Route path="/citizen/login" element={<CitizenLogin />} />
-        <Route path="/citizen/register" element={<CitizenRegister />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
+        {/* =========================
+            AUTHENTICATION
+        ========================== */}
 
-        {/* Citizen */}
         <Route
-          path="/citizen/dashboard"
-          element={<CitizenDashboard />}
+          path="/citizen/login"
+          element={<CitizenLogin />}
         />
 
         <Route
-          path="/citizen/report"
-          element={<ReportIssue />}
+          path="/citizen/register"
+          element={<CitizenRegister />}
         />
 
         <Route
-          path="/citizen/reports"
-          element={<MyReports />}
+          path="/admin/login"
+          element={<AdminLogin />}
         />
 
-        <Route
-          path="/citizen/reports/:id"
-          element={<IssueDetails />}
-        />
 
-        <Route
-          path="/citizen/notifications"
-          element={<CitizenNotifications />}
-        />
+        {/* =========================
+            CITIZEN ROUTES
+        ========================== */}
 
-        <Route
-          path="/citizen/profile"
-          element={<CitizenProfile />}
-        />
+        <Route element={<ProtectedRoute allowedRole="citizen"/>}>
 
-        {/* Admin */}
-        <Route
-          path="/admin/dashboard"
-          element={<AdminDashboard />}
-        />
+          <Route
+            path="/citizen/dashboard"
+            element={<CitizenDashboard />}
+          />
 
-        <Route
-          path="/admin/issues"
-          element={<AdminIssues />}
-        />
+          <Route
+            path="/citizen/report"
+            element={<ReportIssue />}
+          />
 
-        <Route
-          path="/admin/issues/:id"
-          element={<AdminIssueDetails />}
-        />
+          <Route
+            path="/citizen/reports"
+            element={<MyReports />}
+          />
 
-        <Route
-          path="/admin/map"
-          element={<AdminMap />}
-        />
+          <Route
+            path="/citizen/reports/:id"
+            element={<IssueDetails />}
+          />
 
-        <Route
-          path="/admin/analytics"
-          element={<AdminAnalytics />}
-        />
+          <Route
+            path="/citizen/notifications"
+            element={<CitizenNotifications />}
+          />
 
-        {/* Unknown route */}
+          <Route
+            path="/citizen/profile"
+            element={<CitizenProfile />}
+          />
+
+        </Route>
+
+
+        {/* =========================
+            ADMIN ROUTES
+        ========================== */}
+
+        <Route element={<ProtectedRoute allowedRole="admin"/>}>         
+        <Route path="/admin/dashboard"
+            element={<AdminDashboard />}
+          />
+
+          <Route
+            path="/admin/issues"
+            element={<AdminIssues />}
+          />
+
+          <Route
+            path="/admin/issues/:id"
+            element={<AdminIssueDetails />}
+          />
+
+          <Route
+            path="/admin/map"
+            element={<AdminMap />}
+          />
+
+          <Route
+            path="/admin/analytics"
+            element={<AdminAnalytics />}
+          />
+
+        </Route>
+
+
+        {/* =========================
+            UNKNOWN ROUTES
+        ========================== */}
+
         <Route
           path="*"
           element={<Navigate to="/" replace />}

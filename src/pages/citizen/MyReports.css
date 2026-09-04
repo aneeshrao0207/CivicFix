@@ -8,7 +8,34 @@
 
   background: #f7f8fa;
 }
+/* =========================================
+   BACK TO DASHBOARD
+========================================= */
 
+.my-reports-back {
+  max-width: 1100px;
+  margin: 0 auto 18px;
+}
+
+.my-reports-back a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  color: var(--color-text-secondary);
+
+  font-size: 10px;
+  font-weight: 600;
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.my-reports-back a:hover {
+  color: var(--color-primary);
+  transform: translateX(-2px);
+}
 /* =========================================
    HEADER
 ========================================= */

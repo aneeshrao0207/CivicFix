@@ -1,3 +1,5 @@
+import { useEffect, useMemo, useState } from "react";
+
 import {
   Activity,
   AlertTriangle,
@@ -5,6 +7,7 @@ import {
   CheckCircle2,
   Clock3,
   FileText,
+  LoaderCircle,
   TrendingUp,
 } from "lucide-react";
 
@@ -23,59 +26,14 @@ import {
   Line,
 } from "recharts";
 
+import { apiRequest } from "../../services/api";
+
 import "./AdminAnalytics.css";
 
-const issues = [
-  {
-    id: "CF-1024",
-    category: "Road",
-    department: "Road Maintenance",
-    priority: "HIGH",
-    status: "IN_PROGRESS",
-  },
-  {
-    id: "CF-1023",
-    category: "Streetlight",
-    department: "Electrical",
-    priority: "MEDIUM",
-    status: "UNDER_REVIEW",
-  },
-  {
-    id: "CF-1022",
-    category: "Garbage",
-    department: "Waste Management",
-    priority: "HIGH",
-    status: "ASSIGNED",
-  },
-  {
-    id: "CF-1021",
-    category: "Water",
-    department: "Water Supply",
-    priority: "CRITICAL",
-    status: "REPORTED",
-  },
-  {
-    id: "CF-1020",
-    category: "Infrastructure",
-    department: "Road Maintenance",
-    priority: "MEDIUM",
-    status: "IN_PROGRESS",
-  },
-  {
-    id: "CF-1019",
-    category: "Traffic",
-    department: "Traffic Department",
-    priority: "CRITICAL",
-    status: "RESOLVED",
-  },
-  {
-    id: "CF-1018",
-    category: "Garbage",
-    department: "Waste Management",
-    priority: "LOW",
-    status: "RESOLVED",
-  },
-];
+
+// ============================================
+// CONSTANTS
+// ============================================
 
 const statusLabels = {
   REPORTED: "Reported",
@@ -83,6 +41,7 @@ const statusLabels = {
   ASSIGNED: "Assigned",
   IN_PROGRESS: "In Progress",
   RESOLVED: "Resolved",
+  REJECTED: "Rejected",
 };
 
 const categoryLabels = [
@@ -92,120 +51,23 @@ const categoryLabels = [
   "Water",
   "Traffic",
   "Infrastructure",
+  "Public Infrastructure",
+  "Other",
 ];
 
-function countBy(field, values) {
-  return values.map((value) => ({
-    name: value,
-    value: issues.filter(
-      (issue) => issue[field] === value
-    ).length,
-  }));
-}
-
-const categoryData = countBy("category", categoryLabels);
-
-const statusData = [
+const statusOrder = [
   "REPORTED",
   "UNDER_REVIEW",
   "ASSIGNED",
   "IN_PROGRESS",
   "RESOLVED",
-].map((status) => ({
-  name: statusLabels[status],
-  value: issues.filter(
-    (issue) => issue.status === status
-  ).length,
-}));
+];
 
-const priorityData = [
+const priorityOrder = [
   "LOW",
   "MEDIUM",
   "HIGH",
   "CRITICAL",
-].map((priority) => ({
-  name: priority,
-  value: issues.filter(
-    (issue) => issue.priority === priority
-  ).length,
-}));
-
-const trendData = [
-  { day: "Mon", issues: 4 },
-  { day: "Tue", issues: 7 },
-  { day: "Wed", issues: 5 },
-  { day: "Thu", issues: 9 },
-  { day: "Fri", issues: 6 },
-  { day: "Sat", issues: 8 },
-  { day: "Sun", issues: 5 },
-];
-
-const departmentData = [
-  {
-    name: "Road Maintenance",
-    active: issues.filter(
-      (issue) =>
-        issue.department === "Road Maintenance" &&
-        issue.status !== "RESOLVED"
-    ).length,
-    resolved: issues.filter(
-      (issue) =>
-        issue.department === "Road Maintenance" &&
-        issue.status === "RESOLVED"
-    ).length,
-  },
-  {
-    name: "Waste Management",
-    active: issues.filter(
-      (issue) =>
-        issue.department === "Waste Management" &&
-        issue.status !== "RESOLVED"
-    ).length,
-    resolved: issues.filter(
-      (issue) =>
-        issue.department === "Waste Management" &&
-        issue.status === "RESOLVED"
-    ).length,
-  },
-  {
-    name: "Electrical",
-    active: issues.filter(
-      (issue) =>
-        issue.department === "Electrical" &&
-        issue.status !== "RESOLVED"
-    ).length,
-    resolved: issues.filter(
-      (issue) =>
-        issue.department === "Electrical" &&
-        issue.status === "RESOLVED"
-    ).length,
-  },
-  {
-    name: "Water Supply",
-    active: issues.filter(
-      (issue) =>
-        issue.department === "Water Supply" &&
-        issue.status !== "RESOLVED"
-    ).length,
-    resolved: issues.filter(
-      (issue) =>
-        issue.department === "Water Supply" &&
-        issue.status === "RESOLVED"
-    ).length,
-  },
-  {
-    name: "Traffic Department",
-    active: issues.filter(
-      (issue) =>
-        issue.department === "Traffic Department" &&
-        issue.status !== "RESOLVED"
-    ).length,
-    resolved: issues.filter(
-      (issue) =>
-        issue.department === "Traffic Department" &&
-        issue.status === "RESOLVED"
-    ).length,
-  },
 ];
 
 const COLORS = [
@@ -217,38 +79,288 @@ const COLORS = [
   "#64748b",
 ];
 
+
+// ============================================
+// MAIN COMPONENT
+// ============================================
+
 function AdminAnalytics() {
+  const [issues, setIssues] = useState([]);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+
+  // ============================================
+  // FETCH ISSUES
+  // ============================================
+
+  useEffect(() => {
+    const fetchIssues = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const data = await apiRequest("/issues");
+
+        setIssues(data.issues || []);
+      } catch (fetchError) {
+        console.error(
+          "Failed to fetch analytics:",
+          fetchError
+        );
+
+        setError(
+          fetchError.message ||
+            "Unable to load analytics."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchIssues();
+  }, []);
+
+
+  // ============================================
+  // BASIC KPI CALCULATIONS
+  // ============================================
+
   const totalIssues = issues.length;
 
   const resolvedIssues = issues.filter(
-    (issue) => issue.status === "RESOLVED"
+    (issue) =>
+      issue.status === "RESOLVED"
   ).length;
 
-  const activeIssues = totalIssues - resolvedIssues;
+  const activeIssues = issues.filter(
+    (issue) =>
+      issue.status !== "RESOLVED" &&
+      issue.status !== "REJECTED"
+  ).length;
 
   const criticalIssues = issues.filter(
-    (issue) => issue.priority === "CRITICAL"
+    (issue) =>
+      issue.priority === "CRITICAL"
   ).length;
 
-  const resolutionRate = Math.round(
-    (resolvedIssues / totalIssues) * 100
-  );
+  const resolutionRate =
+    totalIssues > 0
+      ? Math.round(
+          (resolvedIssues / totalIssues) * 100
+        )
+      : 0;
+
+
+  // ============================================
+  // CATEGORY DATA
+  // ============================================
+
+  const categoryData = useMemo(() => {
+    return categoryLabels
+      .map((category) => ({
+        name: category,
+        value: issues.filter(
+          (issue) =>
+            issue.category === category
+        ).length,
+      }))
+      .filter((item) => item.value > 0);
+  }, [issues]);
+
+
+  // ============================================
+  // STATUS DATA
+  // ============================================
+
+  const statusData = useMemo(() => {
+    return statusOrder.map((status) => ({
+      name:
+        statusLabels[status] ||
+        status,
+      value: issues.filter(
+        (issue) =>
+          issue.status === status
+      ).length,
+    }));
+  }, [issues]);
+
+
+  // ============================================
+  // PRIORITY DATA
+  // ============================================
+
+  const priorityData = useMemo(() => {
+    return priorityOrder.map((priority) => ({
+      name: priority,
+      value: issues.filter(
+        (issue) =>
+          issue.priority === priority
+      ).length,
+    }));
+  }, [issues]);
+
+
+  // ============================================
+  // 7 DAY TREND
+  // ============================================
+
+  const trendData = useMemo(() => {
+    const today = new Date();
+
+    const days = [];
+
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+
+      date.setHours(0, 0, 0, 0);
+
+      date.setDate(
+        today.getDate() - i
+      );
+
+      days.push(date);
+    }
+
+    return days.map((date) => {
+      const dayIssues = issues.filter(
+        (issue) => {
+          if (!issue.created_at) {
+            return false;
+          }
+
+          const issueDate =
+            new Date(issue.created_at);
+
+          return (
+            issueDate.getFullYear() ===
+              date.getFullYear() &&
+            issueDate.getMonth() ===
+              date.getMonth() &&
+            issueDate.getDate() ===
+              date.getDate()
+          );
+        }
+      ).length;
+
+      return {
+        day: date.toLocaleDateString(
+          "en-IN",
+          {
+            weekday: "short",
+          }
+        ),
+        issues: dayIssues,
+      };
+    });
+  }, [issues]);
+
+
+  // ============================================
+  // DEPARTMENT DATA
+  // ============================================
+
+  const departmentData = useMemo(() => {
+    const departments = {};
+
+    issues.forEach((issue) => {
+      const department =
+        issue.department_name ||
+        issue.department ||
+        "Unassigned";
+
+      if (!departments[department]) {
+        departments[department] = {
+          name: department,
+          active: 0,
+          resolved: 0,
+        };
+      }
+
+      if (issue.status === "RESOLVED") {
+        departments[department].resolved += 1;
+      } else {
+        departments[department].active += 1;
+      }
+    });
+
+    return Object.values(departments);
+  }, [issues]);
+
+
+  // ============================================
+  // MOST REPORTED CATEGORY
+  // ============================================
+
+  const topCategory = useMemo(() => {
+    if (categoryData.length === 0) {
+      return "No data";
+    }
+
+    return [...categoryData].sort(
+      (a, b) =>
+        b.value - a.value
+    )[0]?.name || "No data";
+  }, [categoryData]);
+
+
+  // ============================================
+  // LOADING
+  // ============================================
+
+  if (loading) {
+    return (
+      <div className="analytics-page">
+
+        <div className="admin-issues-loading">
+
+          <LoaderCircle
+            size={26}
+            className="loading-spinner"
+          />
+
+          <strong>
+            Loading analytics...
+          </strong>
+
+          <p>
+            Analyzing civic reports from the database.
+          </p>
+
+        </div>
+
+      </div>
+    );
+  }
+
+
+  // ============================================
+  // PAGE
+  // ============================================
 
   return (
     <div className="analytics-page">
 
-      {/* HEADER */}
+      {/* =====================================
+          HEADER
+      ===================================== */}
 
       <header className="analytics-header">
 
         <div>
 
           <div className="analytics-eyebrow">
+
             <BarChart3 size={13} />
+
             CIVIC OPERATIONS
+
           </div>
 
-          <h1>Analytics</h1>
+          <h1>
+            Analytics
+          </h1>
 
           <p>
             Understand issue patterns, workload and
@@ -258,219 +370,363 @@ function AdminAnalytics() {
         </div>
 
         <div className="analytics-period">
+
           <Activity size={13} />
+
           Last 7 days
+
         </div>
 
       </header>
 
-      {/* KPI CARDS */}
+
+      {/* =====================================
+          ERROR
+      ===================================== */}
+
+      {error && (
+        <div className="admin-issues-error">
+
+          <AlertTriangle size={17} />
+
+          <div>
+
+            <strong>
+              Unable to load analytics
+            </strong>
+
+            <p>
+              {error}
+            </p>
+
+          </div>
+
+        </div>
+      )}
+
+
+      {/* =====================================
+          KPI CARDS
+      ===================================== */}
 
       <section className="analytics-kpis">
+
+        {/* TOTAL */}
 
         <div className="analytics-kpi">
 
           <div className="analytics-kpi-icon">
+
             <FileText size={16} />
+
           </div>
 
           <div>
-            <span>Total issues</span>
-            <strong>{totalIssues}</strong>
+
+            <span>
+              Total issues
+            </span>
+
+            <strong>
+              {totalIssues}
+            </strong>
+
             <small>
               All reported issues
             </small>
+
           </div>
 
         </div>
+
+
+        {/* ACTIVE */}
 
         <div className="analytics-kpi">
 
           <div className="analytics-kpi-icon blue">
+
             <Clock3 size={16} />
+
           </div>
 
           <div>
-            <span>Active issues</span>
-            <strong>{activeIssues}</strong>
+
+            <span>
+              Active issues
+            </span>
+
+            <strong>
+              {activeIssues}
+            </strong>
+
             <small>
               Require attention
             </small>
+
           </div>
 
         </div>
+
+
+        {/* RESOLUTION */}
 
         <div className="analytics-kpi">
 
           <div className="analytics-kpi-icon green">
+
             <CheckCircle2 size={16} />
+
           </div>
 
           <div>
-            <span>Resolution rate</span>
-            <strong>{resolutionRate}%</strong>
+
+            <span>
+              Resolution rate
+            </span>
+
+            <strong>
+              {resolutionRate}%
+            </strong>
+
             <small>
               Successfully resolved
             </small>
+
           </div>
 
         </div>
 
+
+        {/* CRITICAL */}
+
         <div className="analytics-kpi">
 
           <div className="analytics-kpi-icon red">
+
             <AlertTriangle size={16} />
+
           </div>
 
           <div>
-            <span>Critical issues</span>
-            <strong>{criticalIssues}</strong>
+
+            <span>
+              Critical issues
+            </span>
+
+            <strong>
+              {criticalIssues}
+            </strong>
+
             <small>
               Need urgent attention
             </small>
+
           </div>
 
         </div>
 
       </section>
 
-      {/* MAIN GRID */}
+
+      {/* =====================================
+          MAIN GRID
+      ===================================== */}
 
       <section className="analytics-grid">
 
-        {/* CATEGORY */}
+
+        {/* =================================
+            CATEGORY
+        ================================= */}
 
         <div className="analytics-card category-card">
 
           <div className="analytics-card-header">
 
             <div>
-              <h2>Issues by category</h2>
+
+              <h2>
+                Issues by category
+              </h2>
+
               <p>
                 Distribution of reported civic issues
               </p>
+
             </div>
 
           </div>
+
 
           <div className="analytics-chart">
 
-            <ResponsiveContainer
-              width="100%"
-              height="100%"
-            >
+            {categoryData.length === 0 ? (
 
-              <BarChart
-                data={categoryData}
-                margin={{
-                  top: 10,
-                  right: 10,
-                  left: -20,
-                  bottom: 0,
-                }}
-              >
+              <div className="analytics-empty">
+                No category data available.
+              </div>
 
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  vertical={false}
-                />
-
-                <XAxis
-                  dataKey="name"
-                  tick={{
-                    fontSize: 9,
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-
-                <YAxis
-                  allowDecimals={false}
-                  tick={{
-                    fontSize: 9,
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-
-                <Tooltip />
-
-                <Bar
-                  dataKey="value"
-                  fill="#2563eb"
-                  radius={[4, 4, 0, 0]}
-                />
-
-              </BarChart>
-
-            </ResponsiveContainer>
-
-          </div>
-
-        </div>
-
-        {/* STATUS */}
-
-        <div className="analytics-card status-card">
-
-          <div className="analytics-card-header">
-
-            <div>
-              <h2>Issue status</h2>
-              <p>
-                Current lifecycle distribution
-              </p>
-            </div>
-
-          </div>
-
-          <div className="analytics-pie-layout">
-
-            <div className="analytics-pie">
+            ) : (
 
               <ResponsiveContainer
                 width="100%"
                 height="100%"
               >
 
-                <PieChart>
+                <BarChart
+                  data={categoryData}
+                  margin={{
+                    top: 10,
+                    right: 10,
+                    left: -20,
+                    bottom: 0,
+                  }}
+                >
 
-                  <Pie
-                    data={statusData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={58}
-                    outerRadius={85}
-                    paddingAngle={3}
-                  >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                  />
 
-                    {statusData.map(
-                      (_, index) => (
-                        <Cell
-                          key={index}
-                          fill={
-                            COLORS[index]
-                          }
-                        />
-                      )
-                    )}
+                  <XAxis
+                    dataKey="name"
+                    tick={{
+                      fontSize: 9,
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
 
-                  </Pie>
+                  <YAxis
+                    allowDecimals={false}
+                    tick={{
+                      fontSize: 9,
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
 
                   <Tooltip />
 
-                </PieChart>
+                  <Bar
+                    dataKey="value"
+                    fill="#2563eb"
+                    radius={[
+                      4,
+                      4,
+                      0,
+                      0,
+                    ]}
+                  />
+
+                </BarChart>
 
               </ResponsiveContainer>
 
-              <div className="analytics-pie-center">
-                <strong>{totalIssues}</strong>
-                <span>Issues</span>
-              </div>
+            )}
+
+          </div>
+
+        </div>
+
+
+        {/* =================================
+            STATUS
+        ================================= */}
+
+        <div className="analytics-card status-card">
+
+          <div className="analytics-card-header">
+
+            <div>
+
+              <h2>
+                Issue status
+              </h2>
+
+              <p>
+                Current lifecycle distribution
+              </p>
 
             </div>
+
+          </div>
+
+
+          <div className="analytics-pie-layout">
+
+            <div className="analytics-pie">
+
+              {totalIssues === 0 ? (
+
+                <div className="analytics-empty">
+                  No issues
+                </div>
+
+              ) : (
+
+                <>
+
+                  <ResponsiveContainer
+                    width="100%"
+                    height="100%"
+                  >
+
+                    <PieChart>
+
+                      <Pie
+                        data={statusData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={58}
+                        outerRadius={85}
+                        paddingAngle={3}
+                      >
+
+                        {statusData.map(
+                          (_, index) => (
+                            <Cell
+                              key={index}
+                              fill={
+                                COLORS[
+                                  index %
+                                    COLORS.length
+                                ]
+                              }
+                            />
+                          )
+                        )}
+
+                      </Pie>
+
+                      <Tooltip />
+
+                    </PieChart>
+
+                  </ResponsiveContainer>
+
+
+                  <div className="analytics-pie-center">
+
+                    <strong>
+                      {totalIssues}
+                    </strong>
+
+                    <span>
+                      Issues
+                    </span>
+
+                  </div>
+
+                </>
+
+              )}
+
+            </div>
+
 
             <div className="analytics-legend">
 
@@ -485,7 +741,10 @@ function AdminAnalytics() {
                     <span
                       style={{
                         background:
-                          COLORS[index],
+                          COLORS[
+                            index %
+                              COLORS.length
+                          ],
                       }}
                     />
 
@@ -508,25 +767,37 @@ function AdminAnalytics() {
 
         </div>
 
-        {/* TREND */}
+
+        {/* =================================
+            TREND
+        ================================= */}
 
         <div className="analytics-card trend-card">
 
           <div className="analytics-card-header">
 
             <div>
-              <h2>Reported issues</h2>
+
+              <h2>
+                Reported issues
+              </h2>
+
               <p>
                 Number of new issues reported each day
               </p>
+
             </div>
 
             <div className="analytics-trend">
+
               <TrendingUp size={13} />
+
               7 day trend
+
             </div>
 
           </div>
+
 
           <div className="analytics-chart trend-chart">
 
@@ -591,68 +862,84 @@ function AdminAnalytics() {
 
         </div>
 
-        {/* PRIORITY */}
+
+        {/* =================================
+            PRIORITY
+        ================================= */}
 
         <div className="analytics-card priority-card">
 
           <div className="analytics-card-header">
 
             <div>
-              <h2>Priority distribution</h2>
+
+              <h2>
+                Priority distribution
+              </h2>
+
               <p>
                 Severity of current reports
               </p>
+
             </div>
 
           </div>
 
+
           <div className="priority-list">
 
-            {priorityData.map((item) => {
+            {priorityData.map(
+              (item) => {
 
-              const percentage = Math.round(
-                (item.value / totalIssues) *
-                  100
-              );
+                const percentage =
+                  totalIssues > 0
+                    ? Math.round(
+                        (item.value /
+                          totalIssues) *
+                          100
+                      )
+                    : 0;
 
-              return (
+                return (
 
-                <div
-                  className="priority-row"
-                  key={item.name}
-                >
+                  <div
+                    className="priority-row"
+                    key={item.name}
+                  >
 
-                  <div className="priority-label">
+                    <div className="priority-label">
 
-                    <span
-                      className={`priority-dot ${item.name.toLowerCase()}`}
-                    />
+                      <span
+                        className={`priority-dot ${item.name.toLowerCase()}`}
+                      />
 
-                    <span>
-                      {item.name}
-                    </span>
+                      <span>
+                        {item.name}
+                      </span>
 
-                    <strong>
-                      {item.value}
-                    </strong>
+                      <strong>
+                        {item.value}
+                      </strong>
+
+                    </div>
+
+
+                    <div className="priority-bar">
+
+                      <div
+                        className={`priority-bar-fill ${item.name.toLowerCase()}`}
+                        style={{
+                          width: `${percentage}%`,
+                        }}
+                      />
+
+                    </div>
 
                   </div>
 
-                  <div className="priority-bar">
-
-                    <div
-                      className={`priority-bar-fill ${item.name.toLowerCase()}`}
-                      style={{
-                        width: `${percentage}%`,
-                      }}
-                    />
-
-                  </div>
-
-                </div>
-
-              );
-            })}
+                );
+              }
+            )}
 
           </div>
 
@@ -660,96 +947,129 @@ function AdminAnalytics() {
 
       </section>
 
-      {/* DEPARTMENT */}
+
+      {/* =====================================
+          DEPARTMENT
+      ===================================== */}
 
       <section className="analytics-card department-card">
 
         <div className="analytics-card-header">
 
           <div>
-            <h2>Department workload</h2>
+
+            <h2>
+              Department workload
+            </h2>
 
             <p>
               Active and resolved issues by responsible department
             </p>
+
           </div>
 
         </div>
 
+
         <div className="analytics-department-chart">
 
-          <ResponsiveContainer
-            width="100%"
-            height="100%"
-          >
+          {departmentData.length === 0 ? (
 
-            <BarChart
-              data={departmentData}
-              layout="vertical"
-              margin={{
-                top: 0,
-                right: 20,
-                left: 20,
-                bottom: 0,
-              }}
+            <div className="analytics-empty">
+              No department data available.
+            </div>
+
+          ) : (
+
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
             >
 
-              <CartesianGrid
-                strokeDasharray="3 3"
-                horizontal={false}
-              />
-
-              <XAxis
-                type="number"
-                allowDecimals={false}
-                tick={{
-                  fontSize: 9,
+              <BarChart
+                data={departmentData}
+                layout="vertical"
+                margin={{
+                  top: 0,
+                  right: 20,
+                  left: 20,
+                  bottom: 0,
                 }}
-                axisLine={false}
-                tickLine={false}
-              />
+              >
 
-              <YAxis
-                type="category"
-                dataKey="name"
-                width={110}
-                tick={{
-                  fontSize: 8,
-                }}
-                axisLine={false}
-                tickLine={false}
-              />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  horizontal={false}
+                />
 
-              <Tooltip />
+                <XAxis
+                  type="number"
+                  allowDecimals={false}
+                  tick={{
+                    fontSize: 9,
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                />
 
-              <Bar
-                dataKey="active"
-                name="Active"
-                fill="#2563eb"
-                radius={[0, 3, 3, 0]}
-              />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  width={110}
+                  tick={{
+                    fontSize: 8,
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                />
 
-              <Bar
-                dataKey="resolved"
-                name="Resolved"
-                fill="#22c55e"
-                radius={[0, 3, 3, 0]}
-              />
+                <Tooltip />
 
-            </BarChart>
+                <Bar
+                  dataKey="active"
+                  name="Active"
+                  fill="#2563eb"
+                  radius={[
+                    0,
+                    3,
+                    3,
+                    0,
+                  ]}
+                />
 
-          </ResponsiveContainer>
+                <Bar
+                  dataKey="resolved"
+                  name="Resolved"
+                  fill="#22c55e"
+                  radius={[
+                    0,
+                    3,
+                    3,
+                    0,
+                  ]}
+                />
+
+              </BarChart>
+
+            </ResponsiveContainer>
+
+          )}
 
         </div>
 
       </section>
 
-      {/* INSIGHT */}
+
+      {/* =====================================
+          INSIGHT
+      ===================================== */}
 
       <section className="analytics-insight">
 
         <div className="analytics-insight-icon">
+
           <TrendingUp size={16} />
+
         </div>
 
         <div>
@@ -759,10 +1079,23 @@ function AdminAnalytics() {
           </strong>
 
           <p>
-            Road-related issues currently represent
-            the largest category of reports. Critical
-            issues should be reviewed first to reduce
-            public safety risks.
+
+            {totalIssues === 0
+              ? "Analytics insights will appear once civic reports are submitted."
+              : `${topCategory} is currently the most reported issue category. ${
+                  criticalIssues > 0
+                    ? `${criticalIssues} critical issue${
+                        criticalIssues !== 1
+                          ? "s"
+                          : ""
+                      } require${
+                        criticalIssues === 1
+                          ? "s"
+                          : ""
+                      } urgent attention.`
+                    : "No critical issues are currently reported."
+                }`}
+
           </p>
 
         </div>
@@ -772,5 +1105,6 @@ function AdminAnalytics() {
     </div>
   );
 }
+
 
 export default AdminAnalytics;

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Search,
   Filter,
@@ -8,84 +8,14 @@ import {
   AlertTriangle,
   Clock3,
   CheckCircle2,
+  LoaderCircle,
 } from "lucide-react";
 
 import { Link } from "react-router-dom";
 
-import "./AdminIssues.css";
+import { apiRequest } from "../../services/api";
 
-const issues = [
-  {
-    id: "CF-1024",
-    title: "Large pothole near Main Road",
-    category: "Road",
-    location: "Main Road",
-    department: "Road Maintenance",
-    priority: "HIGH",
-    status: "IN_PROGRESS",
-    reported: "Sep 2, 2026",
-  },
-  {
-    id: "CF-1023",
-    title: "Broken streetlight near bus stop",
-    category: "Streetlight",
-    location: "MG Road",
-    department: "Electrical",
-    priority: "MEDIUM",
-    status: "UNDER_REVIEW",
-    reported: "Sep 2, 2026",
-  },
-  {
-    id: "CF-1022",
-    title: "Garbage overflow near residential area",
-    category: "Garbage",
-    location: "Indiranagar",
-    department: "Waste Management",
-    priority: "HIGH",
-    status: "ASSIGNED",
-    reported: "Sep 1, 2026",
-  },
-  {
-    id: "CF-1021",
-    title: "Water leakage on roadside",
-    category: "Water",
-    location: "Whitefield",
-    department: "Water Supply",
-    priority: "CRITICAL",
-    status: "REPORTED",
-    reported: "Sep 1, 2026",
-  },
-  {
-    id: "CF-1020",
-    title: "Damaged footpath",
-    category: "Infrastructure",
-    location: "Koramangala",
-    department: "Road Maintenance",
-    priority: "MEDIUM",
-    status: "IN_PROGRESS",
-    reported: "Aug 31, 2026",
-  },
-  {
-    id: "CF-1019",
-    title: "Traffic signal not working",
-    category: "Traffic",
-    location: "Silk Board",
-    department: "Traffic Department",
-    priority: "CRITICAL",
-    status: "RESOLVED",
-    reported: "Aug 30, 2026",
-  },
-  {
-    id: "CF-1018",
-    title: "Overflowing public dustbin",
-    category: "Garbage",
-    location: "HSR Layout",
-    department: "Waste Management",
-    priority: "LOW",
-    status: "RESOLVED",
-    reported: "Aug 29, 2026",
-  },
-];
+import "./AdminIssues.css";
 
 const statusLabels = {
   ALL: "All statuses",
@@ -113,22 +43,78 @@ const categoryLabels = {
   Water: "Water",
   Traffic: "Traffic",
   Infrastructure: "Infrastructure",
+  "Public Infrastructure": "Public Infrastructure",
+  Other: "Other",
 };
 
 function AdminIssues() {
+  const [issues, setIssues] = useState([]);
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [priorityFilter, setPriorityFilter] = useState("ALL");
   const [categoryFilter, setCategoryFilter] = useState("ALL");
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+
+  // ============================================
+  // FETCH ALL ISSUES
+  // ============================================
+
+  useEffect(() => {
+    const fetchIssues = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const data = await apiRequest("/issues");
+
+        setIssues(data.issues || []);
+
+      } catch (fetchError) {
+        console.error(
+          "Failed to fetch admin issues:",
+          fetchError
+        );
+
+        setError(
+          fetchError.message ||
+            "Unable to load issues."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchIssues();
+  }, []);
+
+
+  // ============================================
+  // FILTER ISSUES
+  // ============================================
+
   const filteredIssues = useMemo(() => {
     return issues.filter((issue) => {
-      const searchValue = search.toLowerCase();
+      const searchValue = search
+        .toLowerCase()
+        .trim();
+
+      const reportId =
+        issue.report_id?.toLowerCase() || "";
+
+      const title =
+        issue.title?.toLowerCase() || "";
+
+      const location =
+        issue.address?.toLowerCase() || "";
 
       const matchesSearch =
-        issue.id.toLowerCase().includes(searchValue) ||
-        issue.title.toLowerCase().includes(searchValue) ||
-        issue.location.toLowerCase().includes(searchValue);
+        reportId.includes(searchValue) ||
+        title.includes(searchValue) ||
+        location.includes(searchValue);
 
       const matchesStatus =
         statusFilter === "ALL" ||
@@ -150,44 +136,143 @@ function AdminIssues() {
       );
     });
   }, [
+    issues,
     search,
     statusFilter,
     priorityFilter,
     categoryFilter,
   ]);
 
+
+  // ============================================
+  // SUMMARY COUNTS
+  // ============================================
+
+  const criticalCount = issues.filter(
+    (issue) =>
+      issue.priority === "CRITICAL"
+  ).length;
+
+  const inProgressCount = issues.filter(
+    (issue) =>
+      issue.status === "IN_PROGRESS"
+  ).length;
+
+  const resolvedCount = issues.filter(
+    (issue) =>
+      issue.status === "RESOLVED"
+  ).length;
+
+
+  // ============================================
+  // LOADING STATE
+  // ============================================
+
+  if (loading) {
+    return (
+      <div className="admin-issues-page">
+
+        <div className="admin-issues-loading">
+
+          <LoaderCircle
+            size={24}
+            className="loading-spinner"
+          />
+
+          <strong>
+            Loading issues...
+          </strong>
+
+          <p>
+            Fetching civic reports from the database.
+          </p>
+
+        </div>
+
+      </div>
+    );
+  }
+
+
+  // ============================================
+  // PAGE
+  // ============================================
+
   return (
     <div className="admin-issues-page">
 
-      {/* HEADER */}
+      {/* =====================================
+          HEADER
+      ===================================== */}
 
       <header className="admin-issues-header">
 
         <div>
+
           <div className="admin-issues-eyebrow">
+
             <Filter size={13} />
+
             ISSUE MANAGEMENT
+
           </div>
 
-          <h1>All Issues</h1>
+          <h1>
+            All Issues
+          </h1>
 
           <p>
             Review, prioritize and manage civic reports.
           </p>
+
         </div>
 
+
         <div className="issue-count">
-          <strong>{filteredIssues.length}</strong>
+
+          <strong>
+            {filteredIssues.length}
+          </strong>
+
           <span>
             {filteredIssues.length === 1
               ? "issue"
               : "issues"}
           </span>
+
         </div>
 
       </header>
 
-      {/* SUMMARY */}
+
+      {/* =====================================
+          ERROR
+      ===================================== */}
+
+      {error && (
+        <div className="admin-issues-error">
+
+          <AlertTriangle size={17} />
+
+          <div>
+
+            <strong>
+              Unable to load issues
+            </strong>
+
+            <p>
+              {error}
+            </p>
+
+          </div>
+
+        </div>
+      )}
+
+
+      {/* =====================================
+          SUMMARY
+      ===================================== */}
 
       <section className="issue-summary-grid">
 
@@ -198,18 +283,19 @@ function AdminIssues() {
           </div>
 
           <div>
-            <span>Critical</span>
+
+            <span>
+              Critical
+            </span>
+
             <strong>
-              {
-                issues.filter(
-                  (issue) =>
-                    issue.priority === "CRITICAL"
-                ).length
-              }
+              {criticalCount}
             </strong>
+
           </div>
 
         </div>
+
 
         <div className="issue-summary-card">
 
@@ -218,18 +304,19 @@ function AdminIssues() {
           </div>
 
           <div>
-            <span>In progress</span>
+
+            <span>
+              In progress
+            </span>
+
             <strong>
-              {
-                issues.filter(
-                  (issue) =>
-                    issue.status === "IN_PROGRESS"
-                ).length
-              }
+              {inProgressCount}
             </strong>
+
           </div>
 
         </div>
+
 
         <div className="issue-summary-card">
 
@@ -238,22 +325,25 @@ function AdminIssues() {
           </div>
 
           <div>
-            <span>Resolved</span>
+
+            <span>
+              Resolved
+            </span>
+
             <strong>
-              {
-                issues.filter(
-                  (issue) =>
-                    issue.status === "RESOLVED"
-                ).length
-              }
+              {resolvedCount}
             </strong>
+
           </div>
 
         </div>
 
       </section>
 
-      {/* FILTER BAR */}
+
+      {/* =====================================
+          FILTER BAR
+      ===================================== */}
 
       <section className="issue-filter-panel">
 
@@ -272,7 +362,10 @@ function AdminIssues() {
 
         </div>
 
+
         <div className="issue-filter-group">
+
+          {/* STATUS */}
 
           <div className="issue-select">
 
@@ -282,6 +375,7 @@ function AdminIssues() {
                 setStatusFilter(event.target.value)
               }
             >
+
               {Object.entries(statusLabels).map(
                 ([value, label]) => (
                   <option
@@ -292,11 +386,15 @@ function AdminIssues() {
                   </option>
                 )
               )}
+
             </select>
 
             <ChevronDown size={13} />
 
           </div>
+
+
+          {/* PRIORITY */}
 
           <div className="issue-select">
 
@@ -306,6 +404,7 @@ function AdminIssues() {
                 setPriorityFilter(event.target.value)
               }
             >
+
               {Object.entries(priorityLabels).map(
                 ([value, label]) => (
                   <option
@@ -316,11 +415,15 @@ function AdminIssues() {
                   </option>
                 )
               )}
+
             </select>
 
             <ChevronDown size={13} />
 
           </div>
+
+
+          {/* CATEGORY */}
 
           <div className="issue-select">
 
@@ -330,6 +433,7 @@ function AdminIssues() {
                 setCategoryFilter(event.target.value)
               }
             >
+
               {Object.entries(categoryLabels).map(
                 ([value, label]) => (
                   <option
@@ -340,6 +444,7 @@ function AdminIssues() {
                   </option>
                 )
               )}
+
             </select>
 
             <ChevronDown size={13} />
@@ -350,20 +455,39 @@ function AdminIssues() {
 
       </section>
 
-      {/* ISSUE TABLE */}
+
+      {/* =====================================
+          ISSUE TABLE
+      ===================================== */}
 
       <section className="issues-table-panel">
 
         <div className="issues-table-header">
 
-          <span>Issue</span>
-          <span>Category</span>
-          <span>Location</span>
-          <span>Priority</span>
-          <span>Status</span>
+          <span>
+            Issue
+          </span>
+
+          <span>
+            Category
+          </span>
+
+          <span>
+            Location
+          </span>
+
+          <span>
+            Priority
+          </span>
+
+          <span>
+            Status
+          </span>
+
           <span></span>
 
         </div>
+
 
         <div className="issues-table-body">
 
@@ -374,11 +498,15 @@ function AdminIssues() {
               <Search size={22} />
 
               <strong>
-                No issues found
+                {issues.length === 0
+                  ? "No issues yet"
+                  : "No issues found"}
               </strong>
 
               <p>
-                Try changing your search or filters.
+                {issues.length === 0
+                  ? "Citizen reports will appear here once submitted."
+                  : "Try changing your search or filters."}
               </p>
 
             </div>
@@ -393,10 +521,13 @@ function AdminIssues() {
                 className="issue-table-row"
               >
 
+                {/* ISSUE */}
+
                 <div className="issue-main-cell">
 
                   <span className="issue-id">
-                    {issue.id}
+                    {issue.report_id ||
+                      `CF-${issue.id}`}
                   </span>
 
                   <strong>
@@ -404,45 +535,85 @@ function AdminIssues() {
                   </strong>
 
                   <small>
-                    Reported {issue.reported}
+                    Reported{" "}
+                    {issue.created_at
+                      ? new Date(
+                          issue.created_at
+                        ).toLocaleDateString(
+                          "en-IN",
+                          {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          }
+                        )
+                      : "Unknown date"}
                   </small>
 
                 </div>
 
+
+                {/* CATEGORY */}
+
                 <div className="issue-category-cell">
-                  {issue.category}
+                  {issue.category || "—"}
                 </div>
+
+
+                {/* LOCATION */}
 
                 <div className="issue-location-cell">
 
                   <MapPin size={12} />
 
-                  {issue.location}
+                  {issue.address ||
+                    "Location not provided"}
 
                 </div>
+
+
+                {/* PRIORITY */}
 
                 <div>
 
                   <span
-                    className={`issue-priority ${issue.priority.toLowerCase()}`}
+                    className={`issue-priority ${
+                      issue.priority?.toLowerCase() ||
+                      ""
+                    }`}
                   >
-                    {issue.priority}
+                    {issue.priority || "NORMAL"}
                   </span>
 
                 </div>
+
+
+                {/* STATUS */}
 
                 <div>
 
                   <span
-                    className={`issue-status ${issue.status.toLowerCase()}`}
+                    className={`issue-status ${
+                      issue.status?.toLowerCase() ||
+                      ""
+                    }`}
                   >
-                    {statusLabels[issue.status]}
+                    {statusLabels[
+                      issue.status
+                    ] ||
+                      issue.status ||
+                      "Unknown"}
                   </span>
 
                 </div>
+
+
+                {/* ARROW */}
 
                 <div className="issue-arrow">
+
                   <ArrowRight size={14} />
+
                 </div>
 
               </Link>

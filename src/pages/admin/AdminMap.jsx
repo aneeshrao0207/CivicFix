@@ -1,305 +1,766 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
-  Clock3,
+  ArrowRight,
+  ChevronDown,
+  Filter,
+  LoaderCircle,
   MapPin,
   Search,
   X,
 } from "lucide-react";
 
+import { Link } from "react-router-dom";
 import {
   MapContainer,
-  TileLayer,
   Marker,
   Popup,
+  TileLayer,
   useMap,
 } from "react-leaflet";
 
 import L from "leaflet";
 
-import { Link } from "react-router-dom";
+import { apiRequest } from "../../services/api";
 
 import "leaflet/dist/leaflet.css";
 import "./AdminMap.css";
 
-const issues = [
-  {
-    id: "CF-1024",
-    title: "Large pothole near Main Road",
-    category: "Road",
-    location: "Main Road",
-    department: "Road Maintenance",
-    priority: "HIGH",
-    status: "IN_PROGRESS",
-    lat: 12.9716,
-    lng: 77.5946,
-  },
-  {
-    id: "CF-1023",
-    title: "Broken streetlight near bus stop",
-    category: "Streetlight",
-    location: "MG Road",
-    department: "Electrical",
-    priority: "MEDIUM",
-    status: "UNDER_REVIEW",
-    lat: 12.975,
-    lng: 77.605,
-  },
-  {
-    id: "CF-1022",
-    title: "Garbage overflow near residential area",
-    category: "Garbage",
-    location: "Indiranagar",
-    department: "Waste Management",
-    priority: "HIGH",
-    status: "ASSIGNED",
-    lat: 12.9784,
-    lng: 77.6408,
-  },
-  {
-    id: "CF-1021",
-    title: "Water leakage on roadside",
-    category: "Water",
-    location: "Whitefield",
-    department: "Water Supply",
-    priority: "CRITICAL",
-    status: "REPORTED",
-    lat: 12.9698,
-    lng: 77.75,
-  },
-  {
-    id: "CF-1020",
-    title: "Damaged footpath",
-    category: "Infrastructure",
-    location: "Koramangala",
-    department: "Road Maintenance",
-    priority: "MEDIUM",
-    status: "IN_PROGRESS",
-    lat: 12.9352,
-    lng: 77.6245,
-  },
-  {
-    id: "CF-1019",
-    title: "Traffic signal not working",
-    category: "Traffic",
-    location: "Silk Board",
-    department: "Traffic Department",
-    priority: "CRITICAL",
-    status: "RESOLVED",
-    lat: 12.917,
-    lng: 77.6227,
-  },
-  {
-    id: "CF-1018",
-    title: "Overflowing public dustbin",
-    category: "Garbage",
-    location: "HSR Layout",
-    department: "Waste Management",
-    priority: "LOW",
-    status: "RESOLVED",
-    lat: 12.9116,
-    lng: 77.6389,
-  },
-];
+// ============================================
+// FIX LEAFLET DEFAULT MARKER ICONS
+// ============================================
+
+delete L.Icon.Default.prototype._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+});
+
+
+// ============================================
+// FILTER OPTIONS
+// ============================================
 
 const statusLabels = {
+  ALL: "All statuses",
   REPORTED: "Reported",
   UNDER_REVIEW: "Under Review",
   ASSIGNED: "Assigned",
   IN_PROGRESS: "In Progress",
   RESOLVED: "Resolved",
+  REJECTED: "Rejected",
 };
 
-const markerColors = {
+const priorityLabels = {
+  ALL: "All priorities",
+  LOW: "Low",
+  MEDIUM: "Medium",
+  HIGH: "High",
+  CRITICAL: "Critical",
+};
+
+const categoryLabels = {
+  ALL: "All categories",
+  Road: "Road",
+  Garbage: "Garbage",
+  Streetlight: "Streetlight",
+  Water: "Water",
+  Traffic: "Traffic",
+  Infrastructure: "Infrastructure",
+  "Public Infrastructure": "Public Infrastructure",
+  Other: "Other",
+};
+
+
+// ============================================
+// STATUS COLORS
+// ============================================
+
+const statusColors = {
   REPORTED: "#64748b",
-  UNDER_REVIEW: "#f97316",
+  UNDER_REVIEW: "#f59e0b",
   ASSIGNED: "#8b5cf6",
-  IN_PROGRESS: "#2563eb",
-  RESOLVED: "#22c55e",
+  IN_PROGRESS: "#3b82f6",
+  RESOLVED: "#10b981",
+  REJECTED: "#ef4444",
 };
 
-function createMarkerIcon(status) {
-  const color = markerColors[status] || "#64748b";
+
+// ============================================
+// CUSTOM MARKER
+// ============================================
+
+const createMarkerIcon = (status = "REPORTED") => {
+  const color =
+    statusColors[status] ||
+    statusColors.REPORTED;
 
   return L.divIcon({
-    className: "civicfix-map-marker-wrapper",
+    className: "civic-map-marker-wrapper",
     html: `
       <div
-        class="civicfix-map-marker"
+        class="civic-map-marker"
         style="--marker-color:${color}"
       >
         <span></span>
       </div>
     `,
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
-    popupAnchor: [0, -14],
+    iconSize: [34, 42],
+    iconAnchor: [17, 42],
+    popupAnchor: [0, -40],
   });
-}
+};
+
+
+// ============================================
+// MAP CONTROLLER
+// ============================================
 
 function MapController({ selectedIssue }) {
   const map = useMap();
 
-  if (selectedIssue) {
-    map.flyTo(
-      [selectedIssue.lat, selectedIssue.lng],
-      14,
-      {
-        duration: 0.8,
-      }
-    );
-  }
+  useEffect(() => {
+    if (!selectedIssue) return;
+
+    const latitude = Number(selectedIssue.latitude);
+    const longitude = Number(selectedIssue.longitude);
+
+    if (
+      Number.isFinite(latitude) &&
+      Number.isFinite(longitude)
+    ) {
+      map.flyTo(
+        [latitude, longitude],
+        16,
+        {
+          duration: 0.7,
+        }
+      );
+    }
+  }, [selectedIssue, map]);
 
   return null;
 }
 
+
+// ============================================
+// MAIN COMPONENT
+// ============================================
+
 function AdminMap() {
+  const [issues, setIssues] = useState([]);
+
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [priorityFilter, setPriorityFilter] = useState("ALL");
+  const [categoryFilter, setCategoryFilter] = useState("ALL");
+
   const [selectedIssue, setSelectedIssue] = useState(null);
-  const [activeFilter, setActiveFilter] = useState("ALL");
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+
+  // ============================================
+  // FETCH ISSUES
+  // ============================================
+
+  useEffect(() => {
+    const fetchIssues = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const data = await apiRequest("/issues");
+
+        setIssues(data.issues || []);
+      } catch (fetchError) {
+        console.error(
+          "Failed to fetch map issues:",
+          fetchError
+        );
+
+        setError(
+          fetchError.message ||
+            "Unable to load issue locations."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchIssues();
+  }, []);
+
+
+  // ============================================
+  // ISSUES WITH VALID COORDINATES
+  // ============================================
+
+  const mappedIssues = useMemo(() => {
+    return issues.filter((issue) => {
+      const latitude = Number(issue.latitude);
+      const longitude = Number(issue.longitude);
+
+      return (
+        Number.isFinite(latitude) &&
+        Number.isFinite(longitude)
+      );
+    });
+  }, [issues]);
+
+
+  // ============================================
+  // FILTER
+  // ============================================
 
   const filteredIssues = useMemo(() => {
-    const query = search.toLowerCase().trim();
+    const searchValue =
+      search.trim().toLowerCase();
 
-    return issues.filter((issue) => {
+    return mappedIssues.filter((issue) => {
+      const reportId =
+        issue.report_id?.toLowerCase() || "";
+
+      const title =
+        issue.title?.toLowerCase() || "";
+
+      const address =
+        issue.address?.toLowerCase() || "";
+
+      const category =
+        issue.category?.toLowerCase() || "";
+
       const matchesSearch =
-        !query ||
-        issue.id.toLowerCase().includes(query) ||
-        issue.title.toLowerCase().includes(query) ||
-        issue.location.toLowerCase().includes(query) ||
-        issue.category.toLowerCase().includes(query);
+        !searchValue ||
+        reportId.includes(searchValue) ||
+        title.includes(searchValue) ||
+        address.includes(searchValue) ||
+        category.includes(searchValue);
 
-      const matchesFilter =
-        activeFilter === "ALL" ||
-        issue.status === activeFilter;
+      const matchesStatus =
+        statusFilter === "ALL" ||
+        issue.status === statusFilter;
 
-      return matchesSearch && matchesFilter;
+      const matchesPriority =
+        priorityFilter === "ALL" ||
+        issue.priority === priorityFilter;
+
+      const matchesCategory =
+        categoryFilter === "ALL" ||
+        issue.category === categoryFilter;
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesPriority &&
+        matchesCategory
+      );
     });
-  }, [search, activeFilter]);
+  }, [
+    mappedIssues,
+    search,
+    statusFilter,
+    priorityFilter,
+    categoryFilter,
+  ]);
 
-  const activeIssues = issues.filter(
-    (issue) => issue.status !== "RESOLVED"
-  );
 
-  const resolvedIssues = issues.filter(
-    (issue) => issue.status === "RESOLVED"
-  );
+  // ============================================
+  // MAP CENTER
+  // ============================================
 
-  const criticalIssues = issues.filter(
-    (issue) => issue.priority === "CRITICAL"
-  );
+  const mapCenter = useMemo(() => {
+    if (filteredIssues.length > 0) {
+      return [
+        Number(filteredIssues[0].latitude),
+        Number(filteredIssues[0].longitude),
+      ];
+    }
+
+    if (mappedIssues.length > 0) {
+      return [
+        Number(mappedIssues[0].latitude),
+        Number(mappedIssues[0].longitude),
+      ];
+    }
+
+    // Bengaluru fallback
+    return [12.9716, 77.5946];
+  }, [filteredIssues, mappedIssues]);
+
+
+  // ============================================
+  // COUNTS
+  // ============================================
+
+  const criticalCount = issues.filter(
+    (issue) =>
+      issue.priority === "CRITICAL"
+  ).length;
+
+  const pendingCount = issues.filter(
+    (issue) =>
+      issue.status === "REPORTED" ||
+      issue.status === "UNDER_REVIEW"
+  ).length;
+
+  const progressCount = issues.filter(
+    (issue) =>
+      issue.status === "ASSIGNED" ||
+      issue.status === "IN_PROGRESS"
+  ).length;
+
+  const resolvedCount = issues.filter(
+    (issue) =>
+      issue.status === "RESOLVED"
+  ).length;
+
+
+  // ============================================
+  // CLEAR FILTERS
+  // ============================================
+
+  const clearFilters = () => {
+    setSearch("");
+    setStatusFilter("ALL");
+    setPriorityFilter("ALL");
+    setCategoryFilter("ALL");
+    setSelectedIssue(null);
+  };
+
+
+  // ============================================
+  // LOADING
+  // ============================================
+
+  if (loading) {
+    return (
+      <div className="admin-map-page">
+
+        <div className="admin-map-loading">
+
+          <LoaderCircle
+            size={26}
+            className="map-loading-spinner"
+          />
+
+          <strong>
+            Loading issue map...
+          </strong>
+
+          <p>
+            Fetching civic issue locations.
+          </p>
+
+        </div>
+
+      </div>
+    );
+  }
+
 
   return (
     <div className="admin-map-page">
 
-      {/* HEADER */}
+      {/* =====================================
+          HEADER
+      ===================================== */}
 
       <header className="admin-map-header">
 
         <div>
+
           <div className="admin-map-eyebrow">
             <MapPin size={13} />
-            GEOSPATIAL MONITORING
+            GEOGRAPHIC MONITORING
           </div>
 
-          <h1>Issue Map</h1>
+          <h1>
+            Issue Map
+          </h1>
 
           <p>
             Monitor reported civic issues across the city.
           </p>
-        </div>
-
-        <div className="admin-map-summary">
-
-          <div>
-            <strong>{activeIssues.length}</strong>
-            <span>Active issues</span>
-          </div>
-
-          <div>
-            <strong>{criticalIssues.length}</strong>
-            <span>Critical</span>
-          </div>
-
-          <div>
-            <strong>{resolvedIssues.length}</strong>
-            <span>Resolved</span>
-          </div>
 
         </div>
+
+        <Link
+          to="/admin/issues"
+          className="admin-map-header-link"
+        >
+          View all issues
+          <ArrowRight size={14} />
+        </Link>
 
       </header>
 
-      {/* TOOLBAR */}
 
-      <section className="admin-map-toolbar">
+      {/* =====================================
+          ERROR
+      ===================================== */}
 
-        <div className="admin-map-search">
+      {error && (
+        <div className="admin-map-error">
 
-          <Search size={14} />
+          <AlertTriangle size={17} />
 
-          <input
-            type="text"
-            placeholder="Search issue, location or category..."
-            value={search}
-            onChange={(event) =>
-              setSearch(event.target.value)
-            }
-          />
+          <div>
+            <strong>
+              Unable to load map data
+            </strong>
 
-          {search && (
-            <button
-              onClick={() => setSearch("")}
-              aria-label="Clear search"
-            >
-              <X size={13} />
-            </button>
-          )}
+            <p>
+              {error}
+            </p>
+          </div>
 
         </div>
+      )}
 
-        <div className="admin-map-filters">
 
-          {[
-            ["ALL", "All"],
-            ["REPORTED", "Reported"],
-            ["UNDER_REVIEW", "Under Review"],
-            ["ASSIGNED", "Assigned"],
-            ["IN_PROGRESS", "In Progress"],
-            ["RESOLVED", "Resolved"],
-          ].map(([value, label]) => (
-            <button
-              key={value}
-              className={
-                activeFilter === value
-                  ? "active"
-                  : ""
-              }
-              onClick={() =>
-                setActiveFilter(value)
-              }
-            >
-              {label}
-            </button>
-          ))}
+      {/* =====================================
+          SUMMARY
+      ===================================== */}
 
+      <section className="admin-map-summary">
+
+        <div>
+          <span className="summary-dot critical" />
+          <span>Critical</span>
+          <strong>{criticalCount}</strong>
+        </div>
+
+        <div>
+          <span className="summary-dot pending" />
+          <span>Pending</span>
+          <strong>{pendingCount}</strong>
+        </div>
+
+        <div>
+          <span className="summary-dot progress" />
+          <span>In progress</span>
+          <strong>{progressCount}</strong>
+        </div>
+
+        <div>
+          <span className="summary-dot resolved" />
+          <span>Resolved</span>
+          <strong>{resolvedCount}</strong>
+        </div>
+
+        <div className="map-summary-total">
+          <span>
+            Mapped issues
+          </span>
+
+          <strong>
+            {filteredIssues.length}
+          </strong>
+
+          <small>
+            of {mappedIssues.length}
+          </small>
         </div>
 
       </section>
 
-      {/* MAP LAYOUT */}
 
-      <section className="admin-map-layout">
+      {/* =====================================
+          MAP WORKSPACE
+      ===================================== */}
 
-        {/* MAP */}
+      <section className="admin-map-workspace">
+
+
+        {/* ===================================
+            FILTER PANEL
+        =================================== */}
+
+        <aside className="admin-map-sidebar">
+
+          <div className="map-sidebar-header">
+
+            <div>
+              <span>
+                <Filter size={14} />
+                FILTERS
+              </span>
+
+              <h2>
+                Find issues
+              </h2>
+            </div>
+
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="clear-map-filters"
+            >
+              Clear
+            </button>
+
+          </div>
+
+
+          {/* SEARCH */}
+
+          <div className="map-search">
+
+            <Search size={15} />
+
+            <input
+              type="text"
+              placeholder="Search issues..."
+              value={search}
+              onChange={(event) =>
+                setSearch(event.target.value)
+              }
+            />
+
+            {search && (
+              <button
+                type="button"
+                onClick={() =>
+                  setSearch("")
+                }
+              >
+                <X size={14} />
+              </button>
+            )}
+
+          </div>
+
+
+          {/* STATUS */}
+
+          <label className="map-filter">
+
+            <span>
+              Status
+            </span>
+
+            <div>
+
+              <select
+                value={statusFilter}
+                onChange={(event) =>
+                  setStatusFilter(
+                    event.target.value
+                  )
+                }
+              >
+
+                {Object.entries(statusLabels).map(
+                  ([value, label]) => (
+                    <option
+                      value={value}
+                      key={value}
+                    >
+                      {label}
+                    </option>
+                  )
+                )}
+
+              </select>
+
+              <ChevronDown size={13} />
+
+            </div>
+
+          </label>
+
+
+          {/* PRIORITY */}
+
+          <label className="map-filter">
+
+            <span>
+              Priority
+            </span>
+
+            <div>
+
+              <select
+                value={priorityFilter}
+                onChange={(event) =>
+                  setPriorityFilter(
+                    event.target.value
+                  )
+                }
+              >
+
+                {Object.entries(priorityLabels).map(
+                  ([value, label]) => (
+                    <option
+                      value={value}
+                      key={value}
+                    >
+                      {label}
+                    </option>
+                  )
+                )}
+
+              </select>
+
+              <ChevronDown size={13} />
+
+            </div>
+
+          </label>
+
+
+          {/* CATEGORY */}
+
+          <label className="map-filter">
+
+            <span>
+              Category
+            </span>
+
+            <div>
+
+              <select
+                value={categoryFilter}
+                onChange={(event) =>
+                  setCategoryFilter(
+                    event.target.value
+                  )
+                }
+              >
+
+                {Object.entries(categoryLabels).map(
+                  ([value, label]) => (
+                    <option
+                      value={value}
+                      key={value}
+                    >
+                      {label}
+                    </option>
+                  )
+                )}
+
+              </select>
+
+              <ChevronDown size={13} />
+
+            </div>
+
+          </label>
+
+
+          {/* ISSUE LIST */}
+
+          <div className="map-issue-list-header">
+
+            <span>
+              Issues on map
+            </span>
+
+            <strong>
+              {filteredIssues.length}
+            </strong>
+
+          </div>
+
+
+          <div className="map-issue-list">
+
+            {filteredIssues.length === 0 ? (
+
+              <div className="map-no-results">
+
+                <MapPin size={19} />
+
+                <strong>
+                  No mapped issues
+                </strong>
+
+                <p>
+                  Try changing your filters.
+                </p>
+
+              </div>
+
+            ) : (
+
+              filteredIssues.map((issue) => {
+
+                const issueId =
+                  issue.id ||
+                  issue.issue_id;
+
+                return (
+                  <button
+                    type="button"
+                    key={issueId}
+                    className={`map-issue-item ${
+                      selectedIssue?.id === issueId
+                        ? "selected"
+                        : ""
+                    }`}
+                    onClick={() =>
+                      setSelectedIssue(issue)
+                    }
+                  >
+
+                    <span
+                      className="map-issue-status-dot"
+                      style={{
+                        background:
+                          statusColors[
+                            issue.status
+                          ] ||
+                          statusColors.REPORTED,
+                      }}
+                    />
+
+                    <span className="map-issue-item-content">
+
+                      <strong>
+                        {issue.title ||
+                          "Civic issue"}
+                      </strong>
+
+                      <small>
+                        {issue.report_id ||
+                          `CF-${issueId}`}
+                        {" · "}
+                        {issue.category ||
+                          "General"}
+                      </small>
+
+                    </span>
+
+                    <ArrowRight size={13} />
+
+                  </button>
+                );
+              })
+            )}
+
+          </div>
+
+        </aside>
+
+
+        {/* ===================================
+            MAP
+        =================================== */}
 
         <div className="admin-map-container">
 
           <MapContainer
-            center={[12.9716, 77.5946]}
-            zoom={12}
+            center={mapCenter}
+            zoom={14}
             scrollWheelZoom={true}
-            className="admin-leaflet-map"
+            className="civic-leaflet-map"
           >
 
             <TileLayer
@@ -311,245 +772,160 @@ function AdminMap() {
               selectedIssue={selectedIssue}
             />
 
-            {filteredIssues.map((issue) => (
+            {filteredIssues.map((issue) => {
 
-              <Marker
-                key={issue.id}
-                position={[
-                  issue.lat,
-                  issue.lng,
-                ]}
-                icon={createMarkerIcon(
-                  issue.status
-                )}
-                eventHandlers={{
-                  click: () =>
-                    setSelectedIssue(issue),
-                }}
-              >
+              const issueId =
+                issue.id ||
+                issue.issue_id;
 
-                <Popup>
+              const latitude =
+                Number(issue.latitude);
 
-                  <div className="map-popup">
+              const longitude =
+                Number(issue.longitude);
 
-                    <span className="map-popup-id">
-                      {issue.id}
-                    </span>
+              return (
+                <Marker
+                  key={issueId}
+                  position={[
+                    latitude,
+                    longitude,
+                  ]}
+                  icon={createMarkerIcon(
+                    issue.status
+                  )}
+                  eventHandlers={{
+                    click: () =>
+                      setSelectedIssue(issue),
+                  }}
+                >
 
-                    <strong>
-                      {issue.title}
-                    </strong>
+                  <Popup>
 
-                    <span>
-                      {issue.location}
-                    </span>
+                    <div className="map-popup">
 
-                    <span
-                      className={`map-popup-status ${issue.status.toLowerCase()}`}
-                    >
-                      {statusLabels[issue.status]}
-                    </span>
+                      <span className="map-popup-id">
+                        {issue.report_id ||
+                          `CF-${issueId}`}
+                      </span>
 
-                    <Link
-                      to={`/admin/issues/${issue.id}`}
-                    >
-                      View issue →
-                    </Link>
+                      <h3>
+                        {issue.title ||
+                          "Civic issue"}
+                      </h3>
 
-                  </div>
+                      <div className="map-popup-meta">
 
-                </Popup>
+                        <span>
+                          {issue.category ||
+                            "General"}
+                        </span>
 
-              </Marker>
+                        <span
+                          className={`popup-status ${
+                            issue.status?.toLowerCase() ||
+                            ""
+                          }`}
+                        >
+                          {statusLabels[
+                            issue.status
+                          ] ||
+                            issue.status ||
+                            "Unknown"}
+                        </span>
 
-            ))}
+                      </div>
+
+                      <div className="map-popup-location">
+
+                        <MapPin size={13} />
+
+                        {issue.address ||
+                          "Location coordinates provided"}
+
+                      </div>
+
+                      <Link
+                        to={`/admin/issues/${issueId}`}
+                        className="map-popup-link"
+                      >
+                        View issue
+                        <ArrowRight size={13} />
+                      </Link>
+
+                    </div>
+
+                  </Popup>
+
+                </Marker>
+              );
+            })}
 
           </MapContainer>
 
+
           {/* MAP LEGEND */}
 
-          <div className="admin-map-legend">
+          <div className="map-legend">
 
-            <strong>Issue status</strong>
+            <strong>
+              Status
+            </strong>
 
-            <div>
-              <span className="legend-dot reported" />
+            <span>
+              <i className="legend-status reported" />
               Reported
-            </div>
+            </span>
 
-            <div>
-              <span className="legend-dot review" />
+            <span>
+              <i className="legend-status review" />
               Under Review
-            </div>
+            </span>
 
-            <div>
-              <span className="legend-dot assigned" />
+            <span>
+              <i className="legend-status assigned" />
               Assigned
-            </div>
+            </span>
 
-            <div>
-              <span className="legend-dot progress" />
+            <span>
+              <i className="legend-status progress" />
               In Progress
-            </div>
+            </span>
 
-            <div>
-              <span className="legend-dot resolved" />
+            <span>
+              <i className="legend-status resolved" />
               Resolved
-            </div>
+            </span>
 
           </div>
+
+
+          {/* NO COORDINATES NOTICE */}
+
+          {issues.length > mappedIssues.length && (
+
+            <div className="map-missing-location">
+
+              <MapPin size={14} />
+
+              <span>
+                {issues.length -
+                  mappedIssues.length}{" "}
+                issue
+                {issues.length -
+                  mappedIssues.length !== 1
+                  ? "s"
+                  : ""}{" "}
+                without map coordinates
+              </span>
+
+            </div>
+
+          )}
 
         </div>
 
-        {/* ISSUE LIST */}
-
-        <aside className="admin-map-sidebar">
-
-          <div className="admin-map-sidebar-header">
-
-            <div>
-              <h2>Mapped issues</h2>
-
-              <p>
-                {filteredIssues.length} issue
-                {filteredIssues.length !== 1
-                  ? "s"
-                  : ""}
-              </p>
-            </div>
-
-          </div>
-
-          <div className="admin-map-issue-list">
-
-            {filteredIssues.length === 0 ? (
-
-              <div className="admin-map-empty">
-
-                <Search size={20} />
-
-                <strong>
-                  No issues found
-                </strong>
-
-                <p>
-                  Try changing your search or filter.
-                </p>
-
-              </div>
-
-            ) : (
-
-              filteredIssues.map((issue) => (
-
-                <button
-                  key={issue.id}
-                  className={`admin-map-issue ${
-                    selectedIssue?.id === issue.id
-                      ? "selected"
-                      : ""
-                  }`}
-                  onClick={() =>
-                    setSelectedIssue(issue)
-                  }
-                >
-
-                  <div className="admin-map-issue-top">
-
-                    <span className="admin-map-issue-id">
-                      {issue.id}
-                    </span>
-
-                    <span
-                      className={`admin-map-priority ${issue.priority.toLowerCase()}`}
-                    >
-                      {issue.priority}
-                    </span>
-
-                  </div>
-
-                  <strong>
-                    {issue.title}
-                  </strong>
-
-                  <div className="admin-map-issue-location">
-
-                    <MapPin size={11} />
-
-                    {issue.location}
-
-                  </div>
-
-                  <div className="admin-map-issue-bottom">
-
-                    <span
-                      className={`admin-map-status ${issue.status.toLowerCase()}`}
-                    >
-                      {statusLabels[issue.status]}
-                    </span>
-
-                    <span>
-                      {issue.category}
-                    </span>
-
-                  </div>
-
-                </button>
-
-              ))
-
-            )}
-
-          </div>
-
-        </aside>
-
       </section>
-
-      {/* SELECTED ISSUE */}
-
-      {selectedIssue && (
-
-        <section className="admin-map-selected">
-
-          <div className="admin-map-selected-icon">
-            <AlertTriangle size={17} />
-          </div>
-
-          <div className="admin-map-selected-content">
-
-            <span>
-              Selected issue · {selectedIssue.id}
-            </span>
-
-            <strong>
-              {selectedIssue.title}
-            </strong>
-
-            <p>
-              {selectedIssue.location} ·{" "}
-              {selectedIssue.department}
-            </p>
-
-          </div>
-
-          <div className="admin-map-selected-status">
-
-            <Clock3 size={13} />
-
-            {statusLabels[selectedIssue.status]}
-
-          </div>
-
-          <Link
-            to={`/admin/issues/${selectedIssue.id}`}
-          >
-            Manage issue
-          </Link>
-
-        </section>
-
-      )}
 
     </div>
   );

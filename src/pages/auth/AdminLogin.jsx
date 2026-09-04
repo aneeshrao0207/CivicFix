@@ -7,20 +7,81 @@ import {
   EyeOff,
   ShieldCheck,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Button from "../../components/ui/Button";
 import "./Auth.css";
+import { apiRequest } from "../../services/api";
 
 function AdminLogin() {
+  const navigate = useNavigate();
+
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = (event) => {
-  event.preventDefault();
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
 
-  console.log("Admin login submitted");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  window.location.href = "/admin/dashboard";
-};
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+
+    setFormData((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+
+    if (error) {
+      setError("");
+    }
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    setError("");
+    setLoading(true);
+
+    try {
+      const data = await apiRequest("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      // Make sure this is an admin account
+      if (data.user?.role !== "admin") {
+        throw new Error(
+          "This account is not authorized as an administrator."
+        );
+      }
+
+      // Save authentication data
+      localStorage.setItem("civicfix_token", data.token);
+
+      localStorage.setItem(
+        "civicfix_user",
+        JSON.stringify(data.user)
+      );
+
+      // Go to admin dashboard
+      navigate("/admin/dashboard");
+
+    } catch (loginError) {
+      console.error("Admin login error:", loginError);
+
+      setError(
+        loginError.message ||
+          "Login failed. Please check your credentials."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="auth-page">
@@ -78,6 +139,14 @@ function AdminLogin() {
 
           </div>
 
+          {/* ERROR */}
+
+          {error && (
+            <div className="auth-error">
+              {error}
+            </div>
+          )}
+
           <form
             className="auth-form"
             onSubmit={handleSubmit}
@@ -104,6 +173,8 @@ function AdminLogin() {
                   type="email"
                   className="auth-input"
                   placeholder="admin@civicfix.gov"
+                  value={formData.email}
+                  onChange={handleChange}
                   required
                 />
 
@@ -132,6 +203,8 @@ function AdminLogin() {
                   type={showPassword ? "text" : "password"}
                   className="auth-input"
                   placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={handleChange}
                   required
                 />
 
@@ -189,9 +262,16 @@ function AdminLogin() {
               <Button
                 type="submit"
                 size="large"
+                disabled={loading}
               >
-                Access dashboard
-                <ArrowRight size={17} />
+                {loading ? (
+                  "Signing in..."
+                ) : (
+                  <>
+                    Access dashboard
+                    <ArrowRight size={17} />
+                  </>
+                )}
               </Button>
 
             </div>
@@ -199,9 +279,11 @@ function AdminLogin() {
           </form>
 
           <div className="auth-switch">
+
             <Link to="/">
               ← Return to CivicFix
             </Link>
+
           </div>
 
         </div>
