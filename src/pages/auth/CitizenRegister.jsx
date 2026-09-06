@@ -36,7 +36,6 @@ function CitizenRegister() {
       [name]: value,
     }));
 
-    // Remove previous error when user starts correcting the form
     if (error) {
       setError("");
     }
@@ -52,15 +51,34 @@ function CitizenRegister() {
       const data = await apiRequest("/auth/register", {
         method: "POST",
         body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
+          name: formData.name.trim(),
+          email: formData.email.trim(),
           password: formData.password,
-          phone: formData.phone,
+          phone: formData.phone.trim(),
         }),
       });
 
-      // Store authentication information
-      localStorage.setItem("civicfix_token", data.token);
+      // Make sure the backend returned authentication data
+      if (!data.token || !data.user) {
+        throw new Error(
+          "Registration was successful, but authentication data was not returned."
+        );
+      }
+
+      // Make sure the new account is a citizen
+      if (data.user.role !== "citizen") {
+        throw new Error(
+          "The registered account is not a citizen account."
+        );
+      }
+
+      // Save JWT token
+      localStorage.setItem(
+        "civicfix_token",
+        data.token
+      );
+
+      // Save user information
       localStorage.setItem(
         "civicfix_user",
         JSON.stringify(data.user)
@@ -70,7 +88,10 @@ function CitizenRegister() {
       navigate("/citizen/dashboard");
 
     } catch (registrationError) {
-      console.error("Registration error:", registrationError);
+      console.error(
+        "Citizen registration error:",
+        registrationError
+      );
 
       setError(
         registrationError.message ||
@@ -169,6 +190,7 @@ function CitizenRegister() {
                   value={formData.name}
                   onChange={handleChange}
                   required
+                  autoComplete="name"
                 />
 
               </div>
@@ -199,6 +221,7 @@ function CitizenRegister() {
                   value={formData.email}
                   onChange={handleChange}
                   required
+                  autoComplete="email"
                 />
 
               </div>
@@ -229,6 +252,7 @@ function CitizenRegister() {
                   value={formData.phone}
                   onChange={handleChange}
                   required
+                  autoComplete="tel"
                 />
 
               </div>
@@ -253,20 +277,27 @@ function CitizenRegister() {
                 <input
                   id="password"
                   name="password"
-                  type={showPassword ? "text" : "password"}
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
                   className="auth-input"
                   placeholder="Create a password"
                   minLength={8}
                   value={formData.password}
                   onChange={handleChange}
                   required
+                  autoComplete="new-password"
                 />
 
                 <button
                   type="button"
                   className="auth-password-toggle"
                   onClick={() =>
-                    setShowPassword(!showPassword)
+                    setShowPassword(
+                      (previous) => !previous
+                    )
                   }
                   aria-label={
                     showPassword

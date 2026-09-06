@@ -8,8 +8,8 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../../components/ui/Button";
-import "./Auth.css";
 import { apiRequest } from "../../services/api";
+import "./Auth.css";
 
 function CitizenLogin() {
   const navigate = useNavigate();
@@ -47,27 +47,31 @@ function CitizenLogin() {
       const data = await apiRequest("/auth/login", {
         method: "POST",
         body: JSON.stringify({
-          email: formData.email,
+          email: formData.email.trim(),
           password: formData.password,
         }),
       });
 
-      // Make sure this is actually a citizen account
+      // Make sure the logged-in account is a citizen
       if (data.user?.role !== "citizen") {
         throw new Error(
           "This account is not registered as a citizen."
         );
       }
 
-      // Save authentication data
-      localStorage.setItem("civicfix_token", data.token);
+      // Save JWT token
+      localStorage.setItem(
+        "civicfix_token",
+        data.token
+      );
 
+      // Save logged-in user information
       localStorage.setItem(
         "civicfix_user",
         JSON.stringify(data.user)
       );
 
-      // Go to citizen dashboard
+      // Redirect to citizen dashboard
       navigate("/citizen/dashboard");
 
     } catch (loginError) {
@@ -86,7 +90,6 @@ function CitizenLogin() {
     <div className="auth-page">
 
       {/* LEFT BRAND PANEL */}
-
       <section className="auth-brand-panel">
 
         <Link to="/" className="auth-brand">
@@ -116,7 +119,6 @@ function CitizenLogin() {
       </section>
 
       {/* FORM PANEL */}
-
       <section className="auth-form-panel">
 
         <div className="auth-form-container">
@@ -132,8 +134,7 @@ function CitizenLogin() {
 
           </div>
 
-          {/* ERROR */}
-
+          {/* ERROR MESSAGE */}
           {error && (
             <div className="auth-error">
               {error}
@@ -146,7 +147,6 @@ function CitizenLogin() {
           >
 
             {/* EMAIL */}
-
             <div className="auth-field">
 
               <label htmlFor="email">
@@ -169,6 +169,7 @@ function CitizenLogin() {
                   value={formData.email}
                   onChange={handleChange}
                   required
+                  autoComplete="email"
                 />
 
               </div>
@@ -176,7 +177,6 @@ function CitizenLogin() {
             </div>
 
             {/* PASSWORD */}
-
             <div className="auth-field">
 
               <label htmlFor="password">
@@ -193,19 +193,24 @@ function CitizenLogin() {
                 <input
                   id="password"
                   name="password"
-                  type={showPassword ? "text" : "password"}
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
                   className="auth-input"
                   placeholder="Enter your password"
                   value={formData.password}
                   onChange={handleChange}
                   required
+                  autoComplete="current-password"
                 />
 
                 <button
                   type="button"
                   className="auth-password-toggle"
                   onClick={() =>
-                    setShowPassword(!showPassword)
+                    setShowPassword((previous) => !previous)
                   }
                   aria-label={
                     showPassword
@@ -225,7 +230,6 @@ function CitizenLogin() {
             </div>
 
             {/* OPTIONS */}
-
             <div className="auth-form-options">
 
               <label className="auth-checkbox">
@@ -249,7 +253,6 @@ function CitizenLogin() {
             </div>
 
             {/* SUBMIT */}
-
             <div className="auth-submit">
 
               <Button
@@ -271,6 +274,7 @@ function CitizenLogin() {
 
           </form>
 
+          {/* REGISTER LINK */}
           <div className="auth-switch">
 
             Don't have an account?{" "}

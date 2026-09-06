@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
 import {
   AlertCircle,
+  ArrowLeft,
   CheckCircle2,
   ChevronRight,
   Clock3,
@@ -21,33 +23,48 @@ const statusConfig = {
     className: "reported",
     icon: FileText,
   },
+
   UNDER_REVIEW: {
     label: "Under Review",
     className: "review",
     icon: Clock3,
   },
+
   ASSIGNED: {
     label: "Assigned",
     className: "assigned",
     icon: AlertCircle,
   },
+
   IN_PROGRESS: {
     label: "In Progress",
     className: "progress",
     icon: Clock3,
   },
+
   RESOLVED: {
     label: "Resolved",
     className: "resolved",
     icon: CheckCircle2,
+  },
+
+  REJECTED: {
+    label: "Rejected",
+    className: "rejected",
+    icon: AlertCircle,
   },
 };
 
 function MyReports() {
   const [reports, setReports] = useState([]);
   const [search, setSearch] = useState("");
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // ============================================
+  // FETCH CITIZEN REPORTS
+  // ============================================
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -57,9 +74,12 @@ function MyReports() {
 
         const data = await apiRequest("/issues/my");
 
-        setReports(data.issues || data || []);
+        setReports(data.issues || []);
       } catch (fetchError) {
-        console.error("Failed to fetch reports:", fetchError);
+        console.error(
+          "Failed to fetch citizen reports:",
+          fetchError
+        );
 
         setError(
           fetchError.message ||
@@ -73,46 +93,110 @@ function MyReports() {
     fetchReports();
   }, []);
 
-  const filteredReports = reports.filter((report) => {
-    const searchText = search.toLowerCase();
+  // ============================================
+  // SEARCH
+  // ============================================
 
-    return (
-      report.title?.toLowerCase().includes(searchText) ||
-      report.category?.toLowerCase().includes(searchText) ||
-      report.location?.toLowerCase().includes(searchText) ||
-      report.id?.toString().toLowerCase().includes(searchText)
-    );
-  });
+  const filteredReports = useMemo(() => {
+    const searchText = search.trim().toLowerCase();
 
-  const inProgressCount = reports.filter(
-    (report) => report.status === "IN_PROGRESS"
-  ).length;
+    if (!searchText) {
+      return reports;
+    }
 
-  const underReviewCount = reports.filter(
-    (report) => report.status === "UNDER_REVIEW"
-  ).length;
+    return reports.filter((report) => {
+      return (
+        report.title
+          ?.toLowerCase()
+          .includes(searchText) ||
 
-  const resolvedCount = reports.filter(
-    (report) => report.status === "RESOLVED"
-  ).length;
+        report.description
+          ?.toLowerCase()
+          .includes(searchText) ||
+
+        report.category
+          ?.toLowerCase()
+          .includes(searchText) ||
+
+        report.address
+          ?.toLowerCase()
+          .includes(searchText) ||
+
+        report.report_id
+          ?.toLowerCase()
+          .includes(searchText) ||
+
+        report.id
+          ?.toString()
+          .toLowerCase()
+          .includes(searchText)
+      );
+    });
+  }, [reports, search]);
+
+  // ============================================
+  // SUMMARY COUNTS
+  // ============================================
+
+  const statistics = useMemo(() => {
+    return {
+      total: reports.length,
+
+      inProgress: reports.filter(
+        (report) =>
+          report.status === "ASSIGNED" ||
+          report.status === "IN_PROGRESS"
+      ).length,
+
+      underReview: reports.filter(
+        (report) =>
+          report.status === "UNDER_REVIEW"
+      ).length,
+
+      resolved: reports.filter(
+        (report) =>
+          report.status === "RESOLVED"
+      ).length,
+    };
+  }, [reports]);
 
   return (
     <div className="my-reports-page">
 
-      {/* HEADER */}
+      {/* =========================================
+          BACK TO DASHBOARD
+      ========================================= */}
+
+      <div className="my-reports-back">
+
+        <Link to="/citizen/dashboard">
+          <ArrowLeft size={15} />
+          Back to Dashboard
+        </Link>
+
+      </div>
+
+
+      {/* =========================================
+          HEADER
+      ========================================= */}
 
       <header className="my-reports-header">
 
         <div>
+
           <p className="my-reports-eyebrow">
             CITIZEN PORTAL
           </p>
 
-          <h1>My Reports</h1>
+          <h1>
+            My Reports
+          </h1>
 
           <p className="my-reports-subtitle">
             Track the civic issues you have reported.
           </p>
+
         </div>
 
         <Link
@@ -125,34 +209,61 @@ function MyReports() {
       </header>
 
 
-      {/* SUMMARY */}
+      {/* =========================================
+          SUMMARY
+      ========================================= */}
 
       <section className="reports-summary">
 
         <div className="summary-item">
-          <span>Total reports</span>
-          <strong>{reports.length}</strong>
+          <span>
+            Total reports
+          </span>
+
+          <strong>
+            {loading ? "—" : statistics.total}
+          </strong>
         </div>
 
-        <div className="summary-item">
-          <span>In progress</span>
-          <strong>{inProgressCount}</strong>
-        </div>
 
         <div className="summary-item">
-          <span>Under review</span>
-          <strong>{underReviewCount}</strong>
+          <span>
+            In progress
+          </span>
+
+          <strong>
+            {loading ? "—" : statistics.inProgress}
+          </strong>
         </div>
 
+
         <div className="summary-item">
-          <span>Resolved</span>
-          <strong>{resolvedCount}</strong>
+          <span>
+            Under review
+          </span>
+
+          <strong>
+            {loading ? "—" : statistics.underReview}
+          </strong>
+        </div>
+
+
+        <div className="summary-item">
+          <span>
+            Resolved
+          </span>
+
+          <strong>
+            {loading ? "—" : statistics.resolved}
+          </strong>
         </div>
 
       </section>
 
 
-      {/* FILTER BAR */}
+      {/* =========================================
+          SEARCH / FILTER
+      ========================================= */}
 
       <section className="reports-toolbar">
 
@@ -171,6 +282,7 @@ function MyReports() {
 
         </div>
 
+
         <button
           type="button"
           className="filter-button"
@@ -182,150 +294,184 @@ function MyReports() {
       </section>
 
 
-      {/* LOADING */}
+      {/* =========================================
+          LOADING
+      ========================================= */}
 
       {loading && (
+
         <div className="reports-empty">
 
           <div className="reports-empty-icon">
             <FileText size={23} />
           </div>
 
-          <h2>Loading reports...</h2>
+          <h2>
+            Loading reports...
+          </h2>
 
           <p>
             Fetching your reports from CivicFix.
           </p>
 
         </div>
+
       )}
 
 
-      {/* ERROR */}
+      {/* =========================================
+          ERROR
+      ========================================= */}
 
       {!loading && error && (
+
         <div className="reports-empty">
 
           <div className="reports-empty-icon">
             <AlertCircle size={23} />
           </div>
 
-          <h2>Unable to load reports</h2>
+          <h2>
+            Unable to load reports
+          </h2>
 
-          <p>{error}</p>
+          <p>
+            {error}
+          </p>
 
         </div>
+
       )}
 
 
-      {/* REPORT LIST */}
+      {/* =========================================
+          REPORT LIST
+      ========================================= */}
 
-      {!loading && !error && filteredReports.length > 0 && (
-        <section className="reports-list">
+      {!loading &&
+        !error &&
+        filteredReports.length > 0 && (
 
-          {filteredReports.map((report) => {
+          <section className="reports-list">
 
-            const status =
-              statusConfig[report.status] ||
-              statusConfig.REPORTED;
+            {filteredReports.map((report) => {
 
-            const StatusIcon = status.icon;
+              const status =
+                statusConfig[report.status] ||
+                statusConfig.REPORTED;
 
-            const reportId =
-              report.id || report.issue_id;
+              const StatusIcon = status.icon;
 
-            return (
-              <Link
-                to={`/citizen/reports/${reportId}`}
-                className="report-list-card"
-                key={reportId}
-              >
+              const reportId =
+                report.id ||
+                report.issue_id;
 
-                <div className="report-card-main">
+              return (
 
-                  <div className="report-status-icon">
-                    <StatusIcon size={18} />
-                  </div>
+                <Link
+                  to={`/citizen/reports/${reportId}`}
+                  className="report-list-card"
+                  key={reportId}
+                >
 
-                  <div className="report-card-content">
+                  <div className="report-card-main">
 
-                    <div className="report-card-top">
+                    <div className="report-status-icon">
+                      <StatusIcon size={18} />
+                    </div>
 
-                      <span className="report-id">
-                        {report.reference_id ||
-                          `CF-${reportId}`}
-                      </span>
 
-                      <span
-                        className={`report-status ${status.className}`}
-                      >
-                        {status.label}
-                      </span>
+                    <div className="report-card-content">
+
+                      <div className="report-card-top">
+
+                        <span className="report-id">
+                          {report.report_id ||
+                            `CF-${reportId}`}
+                        </span>
+
+
+                        <span
+                          className={`report-status ${status.className}`}
+                        >
+                          {status.label}
+                        </span>
+
+                      </div>
+
+
+                      <h2>
+                        {report.title ||
+                          report.description ||
+                          "Civic issue"}
+                      </h2>
+
+
+                      <div className="report-meta">
+
+                        <span>
+                          {report.category ||
+                            "General"}
+                        </span>
+
+                        <span>
+                          •
+                        </span>
+
+                        <span>
+                          {report.address ||
+                            "Location unavailable"}
+                        </span>
+
+                        <span>
+                          •
+                        </span>
+
+                        <span>
+                          {report.created_at
+                            ? new Date(
+                                report.created_at
+                              ).toLocaleDateString(
+                                "en-IN",
+                                {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                }
+                              )
+                            : "Date unavailable"}
+                        </span>
+
+                      </div>
 
                     </div>
 
-                    <h2>
-                      {report.title ||
-                        report.description ||
-                        "Civic issue"}
-                    </h2>
-
-                    <div className="report-meta">
-
-                      <span>
-                        {report.category ||
-                          "General"}
-                      </span>
-
-                      <span>•</span>
-
-                      <span>
-                        {report.location ||
-                          report.address ||
-                          "Location unavailable"}
-                      </span>
-
-                      <span>•</span>
-
-                      <span>
-                        {report.created_at
-                          ? new Date(
-                              report.created_at
-                            ).toLocaleDateString(
-                              "en-IN",
-                              {
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                              }
-                            )
-                          : "Date unavailable"}
-                      </span>
-
-                    </div>
-
                   </div>
 
-                </div>
 
-                <ChevronRight
-                  size={18}
-                  className="report-chevron"
-                />
+                  <ChevronRight
+                    size={18}
+                    className="report-chevron"
+                  />
 
-              </Link>
-            );
-          })}
+                </Link>
 
-        </section>
-      )}
+              );
+            })}
+
+          </section>
+
+        )}
 
 
-      {/* EMPTY STATE */}
+      {/* =========================================
+          EMPTY / NO SEARCH RESULTS
+      ========================================= */}
 
       {!loading &&
         !error &&
         filteredReports.length === 0 && (
+
           <div className="reports-empty">
 
             <div className="reports-empty-icon">
@@ -345,12 +491,15 @@ function MyReports() {
             </p>
 
             {!search && (
+
               <Link to="/citizen/report">
                 Report your first issue
               </Link>
+
             )}
 
           </div>
+
         )}
 
     </div>

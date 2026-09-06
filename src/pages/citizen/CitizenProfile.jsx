@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Bell,
   ChevronRight,
@@ -9,9 +10,62 @@ import {
   User,
 } from "lucide-react";
 
+import { useNavigate } from "react-router-dom";
+
 import "./CitizenProfile.css";
 
 function CitizenProfile() {
+  const navigate = useNavigate();
+
+  const [user, setUser] = useState({
+    name: "Citizen",
+    email: "",
+    phone: "",
+    role: "citizen",
+  });
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("civicfix_user");
+
+    if (!storedUser) {
+      navigate("/citizen/login", { replace: true });
+      return;
+    }
+
+    try {
+      const parsedUser = JSON.parse(storedUser);
+
+      setUser({
+        name: parsedUser.name || "Citizen",
+        email: parsedUser.email || "",
+        phone: parsedUser.phone || "",
+        role: parsedUser.role || "citizen",
+      });
+    } catch (error) {
+      console.error("Unable to read user profile:", error);
+
+      localStorage.removeItem("civicfix_token");
+      localStorage.removeItem("civicfix_user");
+
+      navigate("/citizen/login", { replace: true });
+    }
+  }, [navigate]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("civicfix_token");
+    localStorage.removeItem("civicfix_user");
+
+    navigate("/citizen/login", { replace: true });
+  };
+
+  const initials = user.name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join("");
+
   return (
     <div className="citizen-profile-page">
 
@@ -33,6 +87,7 @@ function CitizenProfile() {
 
       </header>
 
+
       <main className="profile-container">
 
         {/* PROFILE CARD */}
@@ -40,12 +95,14 @@ function CitizenProfile() {
         <section className="profile-card">
 
           <div className="profile-avatar">
-            AR
+            {initials || "C"}
           </div>
 
           <div className="profile-main">
 
-            <h2>Aneesh Rao</h2>
+            <h2>
+              {user.name}
+            </h2>
 
             <span className="profile-role">
               Citizen
@@ -55,23 +112,29 @@ function CitizenProfile() {
 
               <span>
                 <Mail size={13} />
-                aneesh@example.com
+                {user.email || "No email available"}
               </span>
 
               <span>
                 <MapPin size={13} />
-                Bengaluru, Karnataka
+                {user.phone || "Phone not provided"}
               </span>
 
             </div>
 
           </div>
 
-          <button className="edit-profile-button">
+          <button
+            className="edit-profile-button"
+            type="button"
+            disabled
+            title="Profile editing is not available yet"
+          >
             Edit profile
           </button>
 
         </section>
+
 
         {/* ACCOUNT */}
 
@@ -81,6 +144,7 @@ function CitizenProfile() {
 
             <div>
               <h2>Account</h2>
+
               <p>
                 Your basic account information.
               </p>
@@ -90,26 +154,51 @@ function CitizenProfile() {
 
           </div>
 
+
           <div className="profile-fields">
 
             <div className="profile-field">
-              <span>Full name</span>
-              <strong>Aneesh Rao</strong>
+
+              <span>
+                Full name
+              </span>
+
+              <strong>
+                {user.name}
+              </strong>
+
             </div>
 
-            <div className="profile-field">
-              <span>Email address</span>
-              <strong>aneesh@example.com</strong>
-            </div>
 
             <div className="profile-field">
-              <span>Location</span>
-              <strong>Bengaluru, Karnataka</strong>
+
+              <span>
+                Email address
+              </span>
+
+              <strong>
+                {user.email || "Not provided"}
+              </strong>
+
+            </div>
+
+
+            <div className="profile-field">
+
+              <span>
+                Phone number
+              </span>
+
+              <strong>
+                {user.phone || "Not provided"}
+              </strong>
+
             </div>
 
           </div>
 
         </section>
+
 
         {/* SETTINGS */}
 
@@ -119,6 +208,7 @@ function CitizenProfile() {
 
             <div>
               <h2>Preferences</h2>
+
               <p>
                 Manage how CivicFix communicates with you.
               </p>
@@ -128,16 +218,26 @@ function CitizenProfile() {
 
           </div>
 
+
           <div className="settings-list">
 
-            <button className="setting-item">
+            <button
+              className="setting-item"
+              type="button"
+              onClick={() =>
+                navigate("/citizen/notifications")
+              }
+            >
 
               <div className="setting-icon">
                 <Bell size={16} />
               </div>
 
               <div>
-                <strong>Notifications</strong>
+                <strong>
+                  Notifications
+                </strong>
+
                 <span>
                   Receive updates about your reports.
                 </span>
@@ -151,6 +251,7 @@ function CitizenProfile() {
 
         </section>
 
+
         {/* SECURITY */}
 
         <section className="profile-section">
@@ -159,6 +260,7 @@ function CitizenProfile() {
 
             <div>
               <h2>Security</h2>
+
               <p>
                 Keep your account secure.
               </p>
@@ -168,16 +270,25 @@ function CitizenProfile() {
 
           </div>
 
+
           <div className="settings-list">
 
-            <button className="setting-item">
+            <button
+              className="setting-item"
+              type="button"
+              disabled
+              title="Password management will be added later"
+            >
 
               <div className="setting-icon">
                 <Lock size={16} />
               </div>
 
               <div>
-                <strong>Change password</strong>
+                <strong>
+                  Change password
+                </strong>
+
                 <span>
                   Update your account password.
                 </span>
@@ -191,9 +302,14 @@ function CitizenProfile() {
 
         </section>
 
+
         {/* LOGOUT */}
 
-        <button className="logout-button">
+        <button
+          className="logout-button"
+          type="button"
+          onClick={handleLogout}
+        >
           <LogOut size={15} />
           Sign out
         </button>

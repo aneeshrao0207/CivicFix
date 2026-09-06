@@ -63,14 +63,26 @@ function ReportIssue() {
 
     if (!file) return;
 
+    // Validate file size
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Image size must be 10MB or less.");
+      event.target.value = "";
+      return;
+    }
+
     setSelectedFile(file);
 
     const imageUrl = URL.createObjectURL(file);
-
     setPreview(imageUrl);
+
+    setError("");
   };
 
   const removeFile = () => {
+    if (preview) {
+      URL.revokeObjectURL(preview);
+    }
+
     setSelectedFile(null);
     setPreview(null);
 
@@ -81,7 +93,7 @@ function ReportIssue() {
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser.");
+      setError("Geolocation is not supported by your browser.");
       return;
     }
 
@@ -95,7 +107,7 @@ function ReportIssue() {
         setError("");
       },
       () => {
-        alert(
+        setError(
           "Unable to access your location. Please allow location access and try again."
         );
       }
@@ -106,6 +118,23 @@ function ReportIssue() {
     event.preventDefault();
 
     setError("");
+
+    // Basic frontend validation
+    if (!formData.title.trim()) {
+      setError("Please enter an issue title.");
+      return;
+    }
+
+    if (!formData.category) {
+      setError("Please select an issue category.");
+      return;
+    }
+
+    if (!formData.description.trim()) {
+      setError("Please describe the issue.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -116,27 +145,27 @@ function ReportIssue() {
           category: formData.category,
           description: formData.description.trim(),
 
-          latitude: location?.latitude || null,
-          longitude: location?.longitude || null,
+          latitude: location?.latitude ?? null,
+          longitude: location?.longitude ?? null,
 
           address: formData.address.trim() || null,
 
-          // Image upload will be connected separately
-          // when the backend storage/upload system is added.
+          // Image upload will be connected separately.
           imageUrl: null,
         }),
       });
 
       console.log("Issue created successfully:", data);
 
-      const issueId = data.issue?.id;
+      const issueId = data?.issue?.id;
 
       if (!issueId) {
         throw new Error(
-          "Issue was created, but no issue ID was returned."
+          "Your report was submitted, but the server did not return the issue ID."
         );
       }
 
+      // Go directly to the newly created issue
       navigate(`/citizen/reports/${issueId}`);
 
     } catch (submitError) {
@@ -165,7 +194,6 @@ function ReportIssue() {
           className="report-header-back"
         >
           <ArrowLeft size={18} />
-
           <span>Back to dashboard</span>
         </Link>
 
@@ -294,6 +322,7 @@ function ReportIssue() {
                     onChange={handleChange}
                     required
                   >
+
                     <option value="" disabled>
                       Select an issue category
                     </option>

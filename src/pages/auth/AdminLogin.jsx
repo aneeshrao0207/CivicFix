@@ -9,8 +9,8 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../../components/ui/Button";
-import "./Auth.css";
 import { apiRequest } from "../../services/api";
+import "./Auth.css";
 
 function AdminLogin() {
   const navigate = useNavigate();
@@ -48,27 +48,38 @@ function AdminLogin() {
       const data = await apiRequest("/auth/login", {
         method: "POST",
         body: JSON.stringify({
-          email: formData.email,
+          email: formData.email.trim(),
           password: formData.password,
         }),
       });
 
-      // Make sure this is an admin account
+      // Make sure the account is an administrator
       if (data.user?.role !== "admin") {
         throw new Error(
           "This account is not authorized as an administrator."
         );
       }
 
-      // Save authentication data
-      localStorage.setItem("civicfix_token", data.token);
+      // Make sure authentication data was returned
+      if (!data.token || !data.user) {
+        throw new Error(
+          "Login succeeded, but authentication data was not returned."
+        );
+      }
 
+      // Save JWT token
+      localStorage.setItem(
+        "civicfix_token",
+        data.token
+      );
+
+      // Save user information
       localStorage.setItem(
         "civicfix_user",
         JSON.stringify(data.user)
       );
 
-      // Go to admin dashboard
+      // Redirect to admin dashboard
       navigate("/admin/dashboard");
 
     } catch (loginError) {
@@ -176,6 +187,7 @@ function AdminLogin() {
                   value={formData.email}
                   onChange={handleChange}
                   required
+                  autoComplete="email"
                 />
 
               </div>
@@ -200,19 +212,26 @@ function AdminLogin() {
                 <input
                   id="admin-password"
                   name="password"
-                  type={showPassword ? "text" : "password"}
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
                   className="auth-input"
                   placeholder="Enter your password"
                   value={formData.password}
                   onChange={handleChange}
                   required
+                  autoComplete="current-password"
                 />
 
                 <button
                   type="button"
                   className="auth-password-toggle"
                   onClick={() =>
-                    setShowPassword(!showPassword)
+                    setShowPassword(
+                      (previous) => !previous
+                    )
                   }
                   aria-label={
                     showPassword

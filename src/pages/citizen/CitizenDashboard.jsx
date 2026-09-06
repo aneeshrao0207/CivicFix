@@ -41,6 +41,24 @@ function CitizenDashboard() {
   const [profileOpen, setProfileOpen] = useState(false);
 
   // ============================================
+  // GET LOGGED-IN USER
+  // ============================================
+
+  const storedUser = localStorage.getItem("civicfix_user");
+
+  let currentUser = null;
+
+  try {
+    currentUser = storedUser
+      ? JSON.parse(storedUser)
+      : null;
+  } catch {
+    currentUser = null;
+  }
+
+  const userName = currentUser?.name || "Citizen";
+
+  // ============================================
   // FETCH CITIZEN REPORTS
   // ============================================
 
@@ -135,8 +153,8 @@ function CitizenDashboard() {
   // ============================================
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    localStorage.removeItem("civicfix_token");
+    localStorage.removeItem("civicfix_user");
 
     navigate("/citizen/login", {
       replace: true,
@@ -191,13 +209,11 @@ function CitizenDashboard() {
           <span>CivicFix</span>
         </Link>
 
-
         <nav className="dashboard-nav">
 
           <p className="dashboard-nav-label">
             Workspace
           </p>
-
 
           <Link
             to="/citizen/dashboard"
@@ -207,7 +223,6 @@ function CitizenDashboard() {
             Dashboard
           </Link>
 
-
           <Link
             to="/citizen/reports"
             className="dashboard-nav-item"
@@ -215,7 +230,6 @@ function CitizenDashboard() {
             <ClipboardList size={18} />
             My Reports
           </Link>
-
 
           <Link
             to="/citizen/report"
@@ -226,7 +240,6 @@ function CitizenDashboard() {
           </Link>
 
         </nav>
-
 
         <div className="dashboard-sidebar-bottom">
 
@@ -248,7 +261,6 @@ function CitizenDashboard() {
 
           </div>
 
-
           <button
             className="dashboard-logout"
             onClick={handleLogout}
@@ -260,7 +272,6 @@ function CitizenDashboard() {
         </div>
 
       </aside>
-
 
       {/* =========================================
           MAIN
@@ -281,7 +292,6 @@ function CitizenDashboard() {
             <Menu size={21} />
           </button>
 
-
           <div className="topbar-search">
 
             <Search size={17} />
@@ -296,7 +306,6 @@ function CitizenDashboard() {
             />
 
           </div>
-
 
           <div className="topbar-actions">
 
@@ -315,7 +324,6 @@ function CitizenDashboard() {
 
               <span className="notification-dot" />
             </button>
-
 
             {/* PROFILE */}
 
@@ -339,13 +347,15 @@ function CitizenDashboard() {
               >
 
                 <div className="user-avatar">
-                  A
+                  {userName
+                    .charAt(0)
+                    .toUpperCase()}
                 </div>
 
                 <div className="user-info">
 
                   <strong>
-                    Aneesh
+                    {userName}
                   </strong>
 
                   <span>
@@ -364,7 +374,6 @@ function CitizenDashboard() {
                 />
 
               </button>
-
 
               {/* PROFILE DROPDOWN */}
 
@@ -385,7 +394,6 @@ function CitizenDashboard() {
                     </span>
                   </Link>
 
-
                   <Link
                     to="/citizen/notifications"
                     onClick={() =>
@@ -399,9 +407,7 @@ function CitizenDashboard() {
                     </span>
                   </Link>
 
-
                   <div className="profile-dropdown-divider" />
-
 
                   <button
                     type="button"
@@ -424,13 +430,11 @@ function CitizenDashboard() {
 
         </header>
 
-
         {/* =====================================
             CONTENT
         ===================================== */}
 
         <div className="citizen-content">
-
 
           {/* ===================================
               HERO
@@ -445,7 +449,7 @@ function CitizenDashboard() {
               </p>
 
               <h1>
-                Good morning, Aneesh
+                Good morning, {userName}
                 <span>👋</span>
               </h1>
 
@@ -457,7 +461,6 @@ function CitizenDashboard() {
 
             </div>
 
-
             <Link
               to="/citizen/report"
               className="report-button"
@@ -468,20 +471,16 @@ function CitizenDashboard() {
 
           </section>
 
-
           {/* ===================================
               STATISTICS
           =================================== */}
 
           <section className="dashboard-stats">
 
-
             <div className="stat-card">
 
               <div className="stat-icon">
-                <ClipboardList
-                  size={19}
-                />
+                <ClipboardList size={19} />
               </div>
 
               <div>
@@ -498,13 +497,10 @@ function CitizenDashboard() {
 
             </div>
 
-
             <div className="stat-card">
 
               <div className="stat-icon">
-                <FilePlus2
-                  size={19}
-                />
+                <FilePlus2 size={19} />
               </div>
 
               <div>
@@ -521,13 +517,10 @@ function CitizenDashboard() {
 
             </div>
 
-
             <div className="stat-card">
 
               <div className="stat-icon">
-                <MapPin
-                  size={19}
-                />
+                <MapPin size={19} />
               </div>
 
               <div>
@@ -543,7 +536,6 @@ function CitizenDashboard() {
               </div>
 
             </div>
-
 
             <div className="stat-card">
 
@@ -567,7 +559,6 @@ function CitizenDashboard() {
 
           </section>
 
-
           {/* ===================================
               REPORTS
           =================================== */}
@@ -589,7 +580,6 @@ function CitizenDashboard() {
 
               </div>
 
-
               <Link
                 to="/citizen/reports"
               >
@@ -598,7 +588,6 @@ function CitizenDashboard() {
               </Link>
 
             </div>
-
 
             {/* ERROR */}
 
@@ -618,7 +607,6 @@ function CitizenDashboard() {
 
             )}
 
-
             {/* LOADING */}
 
             {loading && !error && (
@@ -637,7 +625,6 @@ function CitizenDashboard() {
               </div>
 
             )}
-
 
             {/* EMPTY */}
 
@@ -665,7 +652,6 @@ function CitizenDashboard() {
                 </div>
 
               )}
-
 
             {/* REPORT TABLE */}
 
@@ -698,7 +684,6 @@ function CitizenDashboard() {
                     </span>
 
                   </div>
-
 
                   {recentReports.map(
                     (report) => {
@@ -736,24 +721,19 @@ function CitizenDashboard() {
 
                           </div>
 
-
                           <span className="report-category">
                             {report.category ||
                               "General"}
                           </span>
 
-
                           <span className="report-location">
 
-                            <MapPin
-                              size={14}
-                            />
+                            <MapPin size={14} />
 
                             {report.address ||
                               "Location unavailable"}
 
                           </span>
-
 
                           <span className="report-date">
 
@@ -771,7 +751,6 @@ function CitizenDashboard() {
                               : "—"}
 
                           </span>
-
 
                           <span
                             className={`status-badge ${
@@ -802,7 +781,6 @@ function CitizenDashboard() {
               )}
 
           </section>
-
 
           {/* ===================================
               INFO CARD

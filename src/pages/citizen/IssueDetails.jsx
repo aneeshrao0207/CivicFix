@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+
 import {
   ArrowLeft,
   CheckCircle2,
@@ -22,6 +23,7 @@ const statusLabels = {
   ASSIGNED: "Assigned",
   IN_PROGRESS: "In Progress",
   RESOLVED: "Resolved",
+  REJECTED: "Rejected",
 };
 
 function IssueDetails() {
@@ -33,6 +35,10 @@ function IssueDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // ============================================
+  // FETCH ISSUE DETAILS
+  // ============================================
+
   useEffect(() => {
     const fetchIssue = async () => {
       try {
@@ -41,10 +47,17 @@ function IssueDetails() {
 
         const data = await apiRequest(`/issues/${id}`);
 
+        if (!data.issue) {
+          throw new Error("Report information was not found.");
+        }
+
         setReport(data.issue);
         setTimeline(data.timeline || []);
       } catch (fetchError) {
-        console.error("Failed to fetch issue:", fetchError);
+        console.error(
+          "Failed to fetch issue:",
+          fetchError
+        );
 
         setError(
           fetchError.message ||
@@ -58,9 +71,9 @@ function IssueDetails() {
     fetchIssue();
   }, [id]);
 
-  /* ================================
-     LOADING
-  ================================= */
+  // ============================================
+  // LOADING
+  // ============================================
 
   if (loading) {
     return (
@@ -86,7 +99,9 @@ function IssueDetails() {
               <FileText size={23} />
             </div>
 
-            <h2>Loading report...</h2>
+            <h2>
+              Loading report...
+            </h2>
 
             <p>
               Fetching the latest report information.
@@ -100,10 +115,9 @@ function IssueDetails() {
     );
   }
 
-
-  /* ================================
-     ERROR
-  ================================= */
+  // ============================================
+  // ERROR
+  // ============================================
 
   if (error || !report) {
     return (
@@ -129,10 +143,13 @@ function IssueDetails() {
               <AlertCircle size={23} />
             </div>
 
-            <h2>Unable to load report</h2>
+            <h2>
+              Unable to load report
+            </h2>
 
             <p>
-              {error || "This report could not be found."}
+              {error ||
+                "This report could not be found."}
             </p>
 
             <Link to="/citizen/reports">
@@ -147,9 +164,14 @@ function IssueDetails() {
     );
   }
 
+  // ============================================
+  // FORMATTED DATA
+  // ============================================
 
   const formattedDate = report.created_at
-    ? new Date(report.created_at).toLocaleDateString(
+    ? new Date(
+        report.created_at
+      ).toLocaleDateString(
         "en-IN",
         {
           day: "numeric",
@@ -159,6 +181,10 @@ function IssueDetails() {
       )
     : "Date unavailable";
 
+  const currentStatus =
+    statusLabels[report.status] ||
+    report.status ||
+    "Reported";
 
   return (
     <div className="citizen-issue-page">
@@ -198,7 +224,8 @@ function IssueDetails() {
             <div className="issue-header-meta">
 
               <span className="issue-category">
-                {report.category || "General"}
+                {report.category ||
+                  "General"}
               </span>
 
               <span className="issue-dot">
@@ -212,11 +239,13 @@ function IssueDetails() {
             </div>
 
             <h1>
-              {report.title}
+              {report.title ||
+                "Civic issue"}
             </h1>
 
             <p>
-              {report.description}
+              {report.description ||
+                "No description provided."}
             </p>
 
           </div>
@@ -229,8 +258,7 @@ function IssueDetails() {
             </span>
 
             <strong>
-              {statusLabels[report.status] ||
-                report.status}
+              {currentStatus}
             </strong>
 
           </div>
@@ -277,73 +305,77 @@ function IssueDetails() {
 
                 {timeline.length > 0 ? (
 
-                  timeline.map((item, index) => {
+                  timeline.map(
+                    (item, index) => {
 
-                    const isLast =
-                      index === timeline.length - 1;
+                      const isLast =
+                        index ===
+                        timeline.length - 1;
 
-                    return (
-                      <div
-                        className={`timeline-item ${
-                          isLast
-                            ? "active"
-                            : ""
-                        }`}
-                        key={
-                          item.id ||
-                          `${item.status}-${index}`
-                        }
-                      >
+                      return (
+                        <div
+                          className={`timeline-item ${
+                            isLast
+                              ? "active"
+                              : ""
+                          }`}
+                          key={
+                            item.id ||
+                            `${item.status}-${index}`
+                          }
+                        >
 
-                        <div className="timeline-marker">
+                          <div className="timeline-marker">
 
-                          <CheckCircle2
-                            size={17}
-                          />
-
-                        </div>
-
-
-                        <div className="timeline-content">
-
-                          <div className="timeline-title-row">
-
-                            <h3>
-                              {statusLabels[
-                                item.status
-                              ] ||
-                                item.status}
-                            </h3>
-
-                            {item.created_at && (
-                              <span>
-                                {new Date(
-                                  item.created_at
-                                ).toLocaleString(
-                                  "en-IN",
-                                  {
-                                    day: "numeric",
-                                    month: "short",
-                                    hour: "numeric",
-                                    minute: "2-digit",
-                                  }
-                                )}
-                              </span>
-                            )}
+                            <CheckCircle2
+                              size={17}
+                            />
 
                           </div>
 
 
-                          <p>
-                            {item.note ||
-                              "Issue status updated."}
-                          </p>
+                          <div className="timeline-content">
+
+                            <div className="timeline-title-row">
+
+                              <h3>
+                                {statusLabels[
+                                  item.status
+                                ] ||
+                                  item.status ||
+                                  "Status updated"}
+                              </h3>
+
+                              {item.created_at && (
+                                <span>
+                                  {new Date(
+                                    item.created_at
+                                  ).toLocaleString(
+                                    "en-IN",
+                                    {
+                                      day: "numeric",
+                                      month: "short",
+                                      hour: "numeric",
+                                      minute: "2-digit",
+                                    }
+                                  )}
+                                </span>
+                              )}
+
+                            </div>
+
+
+                            <p>
+                              {item.note ||
+                                "Issue status updated."}
+                            </p>
+
+                          </div>
 
                         </div>
-
-                      </div>
-                    );
-                  })
+                      );
+                    }
+                  )
 
                 ) : (
 
@@ -415,7 +447,8 @@ function IssueDetails() {
                   </span>
 
                   <p>
-                    {report.description}
+                    {report.description ||
+                      "No description provided."}
                   </p>
 
                 </div>
