@@ -1,20 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 
 import {
-  Bell,
-  ChevronDown,
   ClipboardList,
   FilePlus2,
-  Home,
-  LogOut,
   MapPin,
-  Menu,
   Plus,
   Search,
-  UserRound,
+  X,
+  ArrowUpRight,
+  CheckCircle2,
+  Clock3,
+  AlertCircle,
 } from "lucide-react";
 
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import { apiRequest } from "../../services/api";
 
@@ -30,15 +29,11 @@ const statusLabels = {
 };
 
 function CitizenDashboard() {
-  const navigate = useNavigate();
-
   const [reports, setReports] = useState([]);
   const [search, setSearch] = useState("");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  const [profileOpen, setProfileOpen] = useState(false);
 
   // ============================================
   // GET LOGGED-IN USER
@@ -49,9 +44,7 @@ function CitizenDashboard() {
   let currentUser = null;
 
   try {
-    currentUser = storedUser
-      ? JSON.parse(storedUser)
-      : null;
+    currentUser = storedUser ? JSON.parse(storedUser) : null;
   } catch {
     currentUser = null;
   }
@@ -130,15 +123,12 @@ function CitizenDashboard() {
         report.title
           ?.toLowerCase()
           .includes(searchText) ||
-
         report.category
           ?.toLowerCase()
           .includes(searchText) ||
-
         report.address
           ?.toLowerCase()
           .includes(searchText) ||
-
         report.report_id
           ?.toLowerCase()
           .includes(searchText)
@@ -148,151 +138,225 @@ function CitizenDashboard() {
     return filtered.slice(0, 5);
   }, [reports, search]);
 
-  // ============================================
-  // LOGOUT
-  // ============================================
-
-  const handleLogout = () => {
-    localStorage.removeItem("civicfix_token");
-    localStorage.removeItem("civicfix_user");
-
-    navigate("/citizen/login", {
-      replace: true,
-    });
-  };
-
-  // ============================================
-  // CLOSE PROFILE MENU
-  // ============================================
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        !event.target.closest(
-          ".user-menu-wrapper"
-        )
-      ) {
-        setProfileOpen(false);
-      }
-    };
-
-    document.addEventListener(
-      "click",
-      handleClickOutside
-    );
-
-    return () => {
-      document.removeEventListener(
-        "click",
-        handleClickOutside
-      );
-    };
-  }, []);
-
   return (
     <div className="citizen-dashboard">
 
       {/* =========================================
-          SIDEBAR
+          DASHBOARD CONTENT
       ========================================= */}
 
-      <aside className="citizen-sidebar">
+      <div className="citizen-dashboard-content">
 
-        <Link
-          to="/"
-          className="dashboard-logo"
-        >
-          <span className="dashboard-logo-mark">
-            C
-          </span>
+        {/* ===================================
+            WELCOME
+        =================================== */}
 
-          <span>CivicFix</span>
-        </Link>
+        <section className="dashboard-welcome">
 
-        <nav className="dashboard-nav">
+          <div className="welcome-copy">
 
-          <p className="dashboard-nav-label">
-            Workspace
-          </p>
-
-          <Link
-            to="/citizen/dashboard"
-            className="dashboard-nav-item active"
-          >
-            <Home size={18} />
-            Dashboard
-          </Link>
-
-          <Link
-            to="/citizen/reports"
-            className="dashboard-nav-item"
-          >
-            <ClipboardList size={18} />
-            My Reports
-          </Link>
-
-          <Link
-            to="/citizen/report"
-            className="dashboard-nav-item"
-          >
-            <FilePlus2 size={18} />
-            Report an Issue
-          </Link>
-
-        </nav>
-
-        <div className="dashboard-sidebar-bottom">
-
-          <div className="dashboard-help">
-
-            <div className="dashboard-help-icon">
-              ?
+            <div className="dashboard-eyebrow">
+              CITIZEN DASHBOARD
             </div>
 
-            <div>
-              <strong>
-                Need help?
-              </strong>
+            <h1>
+              Good morning, {userName}
+              <span>👋</span>
+            </h1>
 
-              <span>
-                Contact CivicFix support
-              </span>
-            </div>
+            <p className="dashboard-subtitle">
+              Keep your community moving
+              forward. Report problems and
+              follow their progress.
+            </p>
 
           </div>
 
-          <button
-            className="dashboard-logout"
-            onClick={handleLogout}
+          <Link
+            to="/citizen/report"
+            className="report-button"
           >
-            <LogOut size={17} />
-            Sign out
-          </button>
+            <Plus size={18} />
 
-        </div>
+            <span>
+              Report an issue
+            </span>
 
-      </aside>
+            <ArrowUpRight
+              size={16}
+              className="report-button-arrow"
+            />
+          </Link>
 
-      {/* =========================================
-          MAIN
-      ========================================= */}
+        </section>
 
-      <main className="citizen-main">
 
-        {/* =====================================
-            TOPBAR
-        ===================================== */}
+        {/* ===================================
+            STATISTICS
+        =================================== */}
 
-        <header className="citizen-topbar">
+        <section className="dashboard-stats">
 
-          <button
-            className="mobile-menu"
-            type="button"
-          >
-            <Menu size={21} />
-          </button>
+          {/* TOTAL */}
 
-          <div className="topbar-search">
+          <div className="stat-card">
+
+            <div className="stat-card-top">
+
+              <div className="stat-icon total">
+                <ClipboardList size={19} />
+              </div>
+
+              <span className="stat-label">
+                Total reports
+              </span>
+
+            </div>
+
+            <strong className="stat-value">
+              {loading
+                ? "—"
+                : statistics.total}
+            </strong>
+
+            <span className="stat-description">
+              All issues you've reported
+            </span>
+
+          </div>
+
+
+          {/* PENDING */}
+
+          <div className="stat-card">
+
+            <div className="stat-card-top">
+
+              <div className="stat-icon pending">
+                <Clock3 size={19} />
+              </div>
+
+              <span className="stat-label">
+                Pending
+              </span>
+
+            </div>
+
+            <strong className="stat-value">
+              {loading
+                ? "—"
+                : statistics.pending}
+            </strong>
+
+            <span className="stat-description">
+              Waiting for action
+            </span>
+
+          </div>
+
+
+          {/* IN PROGRESS */}
+
+          <div className="stat-card">
+
+            <div className="stat-card-top">
+
+              <div className="stat-icon progress">
+                <MapPin size={19} />
+              </div>
+
+              <span className="stat-label">
+                In progress
+              </span>
+
+            </div>
+
+            <strong className="stat-value">
+              {loading
+                ? "—"
+                : statistics.inProgress}
+            </strong>
+
+            <span className="stat-description">
+              Currently being handled
+            </span>
+
+          </div>
+
+
+          {/* RESOLVED */}
+
+          <div className="stat-card">
+
+            <div className="stat-card-top">
+
+              <div className="stat-icon resolved">
+                <CheckCircle2 size={19} />
+              </div>
+
+              <span className="stat-label">
+                Resolved
+              </span>
+
+            </div>
+
+            <strong className="stat-value">
+              {loading
+                ? "—"
+                : statistics.resolved}
+            </strong>
+
+            <span className="stat-description">
+              Successfully completed
+            </span>
+
+          </div>
+
+        </section>
+
+
+        {/* ===================================
+            REPORTS
+        =================================== */}
+
+        <section className="reports-section">
+
+          <div className="section-heading">
+
+            <div>
+
+              <div className="section-kicker">
+                ACTIVITY
+              </div>
+
+              <h2>
+                Recent reports
+              </h2>
+
+              <p>
+                Track the civic issues
+                you've reported.
+              </p>
+
+            </div>
+
+            <Link
+              to="/citizen/reports"
+              className="view-all-link"
+            >
+              View all
+
+              <ArrowUpRight size={15} />
+            </Link>
+
+          </div>
+
+
+          {/* ===================================
+              SEARCH
+          =================================== */}
+
+          <div className="dashboard-report-search">
 
             <Search size={17} />
 
@@ -305,408 +369,198 @@ function CitizenDashboard() {
               }
             />
 
-          </div>
-
-          <div className="topbar-actions">
-
-            {/* NOTIFICATIONS */}
-
-            <button
-              className="notification-button"
-              type="button"
-              onClick={() =>
-                navigate(
-                  "/citizen/notifications"
-                )
-              }
-            >
-              <Bell size={19} />
-
-              <span className="notification-dot" />
-            </button>
-
-            {/* PROFILE */}
-
-            <div className="user-menu-wrapper">
-
+            {search && (
               <button
                 type="button"
-                className={`user-menu ${
-                  profileOpen
-                    ? "open"
-                    : ""
-                }`}
-                onClick={(event) => {
-                  event.stopPropagation();
-
-                  setProfileOpen(
-                    (current) =>
-                      !current
-                  );
-                }}
+                onClick={() => setSearch("")}
+                aria-label="Clear search"
               >
-
-                <div className="user-avatar">
-                  {userName
-                    .charAt(0)
-                    .toUpperCase()}
-                </div>
-
-                <div className="user-info">
-
-                  <strong>
-                    {userName}
-                  </strong>
-
-                  <span>
-                    Citizen
-                  </span>
-
-                </div>
-
-                <ChevronDown
-                  size={16}
-                  className={
-                    profileOpen
-                      ? "profile-chevron-open"
-                      : ""
-                  }
-                />
-
+                <X size={15} />
               </button>
-
-              {/* PROFILE DROPDOWN */}
-
-              {profileOpen && (
-
-                <div className="profile-dropdown">
-
-                  <Link
-                    to="/citizen/profile"
-                    onClick={() =>
-                      setProfileOpen(false)
-                    }
-                  >
-                    <UserRound size={16} />
-
-                    <span>
-                      My Profile
-                    </span>
-                  </Link>
-
-                  <Link
-                    to="/citizen/notifications"
-                    onClick={() =>
-                      setProfileOpen(false)
-                    }
-                  >
-                    <Bell size={16} />
-
-                    <span>
-                      Notifications
-                    </span>
-                  </Link>
-
-                  <div className="profile-dropdown-divider" />
-
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                  >
-                    <LogOut size={16} />
-
-                    <span>
-                      Sign out
-                    </span>
-                  </button>
-
-                </div>
-
-              )}
-
-            </div>
+            )}
 
           </div>
 
-        </header>
-
-        {/* =====================================
-            CONTENT
-        ===================================== */}
-
-        <div className="citizen-content">
 
           {/* ===================================
-              HERO
+              ERROR
           =================================== */}
 
-          <section className="dashboard-welcome">
+          {error && (
+            <div className="dashboard-report-message error-state">
 
-            <div>
+              <div className="message-icon">
+                <AlertCircle size={19} />
+              </div>
 
-              <p className="dashboard-eyebrow">
-                CITIZEN DASHBOARD
-              </p>
+              <strong>
+                Unable to load reports
+              </strong>
 
-              <h1>
-                Good morning, {userName}
-                <span>👋</span>
-              </h1>
-
-              <p className="dashboard-subtitle">
-                Keep your community moving
-                forward. Report problems and
-                follow their progress.
-              </p>
+              <span>
+                {error}
+              </span>
 
             </div>
+          )}
 
-            <Link
-              to="/citizen/report"
-              className="report-button"
-            >
-              <Plus size={18} />
-              Report an issue
-            </Link>
-
-          </section>
 
           {/* ===================================
-              STATISTICS
+              LOADING
           =================================== */}
 
-          <section className="dashboard-stats">
+          {loading && !error && (
+            <div className="reports-table reports-loading">
 
-            <div className="stat-card">
+              <div className="reports-table-header">
 
-              <div className="stat-icon">
-                <ClipboardList size={19} />
-              </div>
-
-              <div>
-                <span>
-                  Total reports
-                </span>
-
-                <strong>
-                  {loading
-                    ? "—"
-                    : statistics.total}
-                </strong>
-              </div>
-
-            </div>
-
-            <div className="stat-card">
-
-              <div className="stat-icon">
-                <FilePlus2 size={19} />
-              </div>
-
-              <div>
-                <span>
-                  Pending
-                </span>
-
-                <strong>
-                  {loading
-                    ? "—"
-                    : statistics.pending}
-                </strong>
-              </div>
-
-            </div>
-
-            <div className="stat-card">
-
-              <div className="stat-icon">
-                <MapPin size={19} />
-              </div>
-
-              <div>
-                <span>
-                  In progress
-                </span>
-
-                <strong>
-                  {loading
-                    ? "—"
-                    : statistics.inProgress}
-                </strong>
-              </div>
-
-            </div>
-
-            <div className="stat-card">
-
-              <div className="stat-icon">
-                ✓
-              </div>
-
-              <div>
-                <span>
-                  Resolved
-                </span>
-
-                <strong>
-                  {loading
-                    ? "—"
-                    : statistics.resolved}
-                </strong>
-              </div>
-
-            </div>
-
-          </section>
-
-          {/* ===================================
-              REPORTS
-          =================================== */}
-
-          <section className="reports-section">
-
-            <div className="section-heading">
-
-              <div>
-
-                <h2>
-                  Recent reports
-                </h2>
-
-                <p>
-                  Track the civic issues
-                  you've reported.
-                </p>
+                <span>Report</span>
+                <span>Category</span>
+                <span>Location</span>
+                <span>Date</span>
+                <span>Status</span>
 
               </div>
 
-              <Link
-                to="/citizen/reports"
-              >
-                View all
-                <span>→</span>
-              </Link>
+              {[1, 2, 3].map((item) => (
+                <div
+                  className="report-skeleton-row"
+                  key={item}
+                >
 
-            </div>
+                  <div className="skeleton-report">
 
-            {/* ERROR */}
+                    <span />
 
-            {error && (
-
-              <div className="dashboard-report-message">
-
-                <strong>
-                  Unable to load reports
-                </strong>
-
-                <span>
-                  {error}
-                </span>
-
-              </div>
-
-            )}
-
-            {/* LOADING */}
-
-            {loading && !error && (
-
-              <div className="dashboard-report-message">
-
-                <strong>
-                  Loading reports...
-                </strong>
-
-                <span>
-                  Fetching your latest
-                  CivicFix reports.
-                </span>
-
-              </div>
-
-            )}
-
-            {/* EMPTY */}
-
-            {!loading &&
-              !error &&
-              recentReports.length === 0 && (
-
-                <div className="dashboard-report-message">
-
-                  <strong>
-                    No reports yet
-                  </strong>
-
-                  <span>
-                    Report your first civic
-                    issue to get started.
-                  </span>
-
-                  <Link
-                    to="/citizen/report"
-                  >
-                    Report an issue →
-                  </Link>
-
-                </div>
-
-              )}
-
-            {/* REPORT TABLE */}
-
-            {!loading &&
-              !error &&
-              recentReports.length > 0 && (
-
-                <div className="reports-table">
-
-                  <div className="reports-table-header">
-
-                    <span>
-                      Report
-                    </span>
-
-                    <span>
-                      Category
-                    </span>
-
-                    <span>
-                      Location
-                    </span>
-
-                    <span>
-                      Date
-                    </span>
-
-                    <span>
-                      Status
-                    </span>
+                    <div>
+                      <i />
+                      <i />
+                    </div>
 
                   </div>
 
-                  {recentReports.map(
-                    (report) => {
+                  <i />
 
-                      const reportId =
-                        report.id ||
-                        report.issue_id;
+                  <i />
 
-                      const status =
-                        statusLabels[
-                          report.status
-                        ] ||
-                        "Reported";
+                  <i />
 
-                      return (
+                  <i className="skeleton-status" />
 
-                        <Link
-                          to={`/citizen/reports/${reportId}`}
-                          className="report-row"
-                          key={reportId}
-                        >
+                </div>
+              ))}
 
-                          <div className="report-title">
+            </div>
+          )}
+
+
+          {/* ===================================
+              EMPTY
+          =================================== */}
+
+          {!loading &&
+            !error &&
+            recentReports.length === 0 && (
+              <div className="dashboard-report-message empty-state">
+
+                <div className="message-icon">
+                  <ClipboardList size={19} />
+                </div>
+
+                <strong>
+                  No reports yet
+                </strong>
+
+                <span>
+                  {search
+                    ? "No reports match your search."
+                    : "Report your first civic issue to get started."}
+                </span>
+
+                {!search && (
+                  <Link to="/citizen/report">
+                    Report an issue
+                    <ArrowUpRight size={14} />
+                  </Link>
+                )}
+
+              </div>
+            )}
+
+
+          {/* ===================================
+              REPORT TABLE
+          =================================== */}
+
+          {!loading &&
+            !error &&
+            recentReports.length > 0 && (
+
+              <div className="reports-table">
+
+                <div className="reports-table-header">
+
+                  <span>
+                    Report
+                  </span>
+
+                  <span>
+                    Category
+                  </span>
+
+                  <span>
+                    Location
+                  </span>
+
+                  <span>
+                    Date
+                  </span>
+
+                  <span>
+                    Status
+                  </span>
+
+                </div>
+
+
+                {recentReports.map(
+                  (report) => {
+
+                    const reportId =
+                      report.id ||
+                      report.issue_id;
+
+                    const status =
+                      statusLabels[
+                        report.status
+                      ] ||
+                      "Reported";
+
+                    const statusClass =
+                      report.status
+                        ?.toLowerCase()
+                        .replaceAll(
+                          "_",
+                          "-"
+                        ) ||
+                      "reported";
+
+                    return (
+                      <Link
+                        to={`/citizen/reports/${reportId}`}
+                        className="report-row"
+                        key={reportId}
+                      >
+
+                        {/* REPORT */}
+
+                        <div className="report-title">
+
+                          <div className="report-title-icon">
+                            <FilePlus2 size={15} />
+                          </div>
+
+                          <div>
 
                             <strong>
                               {report.title ||
@@ -721,103 +575,111 @@ function CitizenDashboard() {
 
                           </div>
 
-                          <span className="report-category">
-                            {report.category ||
-                              "General"}
-                          </span>
+                        </div>
 
-                          <span className="report-location">
 
-                            <MapPin size={14} />
+                        {/* CATEGORY */}
 
+                        <span className="report-category">
+                          {report.category ||
+                            "General"}
+                        </span>
+
+
+                        {/* LOCATION */}
+
+                        <span className="report-location">
+
+                          <MapPin size={14} />
+
+                          <span>
                             {report.address ||
                               "Location unavailable"}
-
                           </span>
 
-                          <span className="report-date">
+                        </span>
 
-                            {report.created_at
-                              ? new Date(
-                                  report.created_at
-                                ).toLocaleDateString(
-                                  "en-IN",
-                                  {
-                                    day: "numeric",
-                                    month: "short",
-                                    year: "numeric",
-                                  }
-                                )
-                              : "—"}
 
-                          </span>
+                        {/* DATE */}
 
-                          <span
-                            className={`status-badge ${
-                              report.status
-                                ?.toLowerCase()
-                                .replaceAll(
-                                  "_",
-                                  "-"
-                                ) ||
-                              "reported"
-                            }`}
-                          >
+                        <span className="report-date">
 
-                            <span />
+                          {report.created_at
+                            ? new Date(
+                                report.created_at
+                              ).toLocaleDateString(
+                                "en-IN",
+                                {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                }
+                              )
+                            : "—"}
 
-                            {status}
+                        </span>
 
-                          </span>
 
-                        </Link>
+                        {/* STATUS */}
 
-                      );
-                    }
-                  )}
+                        <span
+                          className={`status-badge ${statusClass}`}
+                        >
 
-                </div>
+                          <span />
 
-              )}
+                          {status}
 
-          </section>
+                        </span>
 
-          {/* ===================================
-              INFO CARD
-          =================================== */}
+                      </Link>
+                    );
+                  }
+                )}
 
-          <section className="dashboard-info">
+              </div>
+            )}
 
-            <div className="dashboard-info-icon">
-              ✓
-            </div>
+        </section>
 
-            <div>
 
-              <strong>
-                Every report helps improve
-                your community.
-              </strong>
+        {/* ===================================
+            INFO CARD
+        =================================== */}
 
-              <p>
-                See something that needs
-                attention? Report it and let
-                the right people know.
-              </p>
+        <section className="dashboard-info">
 
-            </div>
+          <div className="dashboard-info-icon">
+            <CheckCircle2 size={18} />
+          </div>
 
-            <Link
-              to="/citizen/report"
-            >
-              Report an issue →
-            </Link>
+          <div className="dashboard-info-content">
 
-          </section>
+            <strong>
+              Every report helps improve
+              your community.
+            </strong>
 
-        </div>
+            <p>
+              See something that needs
+              attention? Report it and let
+              the right people know.
+            </p>
 
-      </main>
+          </div>
+
+          <Link
+            to="/citizen/report"
+            className="dashboard-info-link"
+          >
+            Report an issue
+
+            <ArrowUpRight size={15} />
+          </Link>
+
+        </section>
+
+      </div>
 
     </div>
   );

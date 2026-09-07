@@ -6,6 +6,7 @@ import CitizenLogin from "./pages/auth/CitizenLogin";
 import CitizenRegister from "./pages/auth/CitizenRegister";
 import AdminLogin from "./pages/auth/AdminLogin";
 
+import CitizenLayout from "./pages/citizen/CitizenLayout";
 import CitizenDashboard from "./pages/citizen/CitizenDashboard";
 import ReportIssue from "./pages/citizen/ReportIssue";
 import MyReports from "./pages/citizen/MyReports";
@@ -26,15 +27,11 @@ function App() {
     <BrowserRouter>
       <Routes>
 
-        {/* =========================
+        {/* =====================================================
             PUBLIC ROUTES
-        ========================== */}
+        ===================================================== */}
 
         <Route path="/" element={<Landing />} />
-
-        {/* =========================
-            AUTHENTICATION
-        ========================== */}
 
         <Route
           path="/citizen/login"
@@ -52,51 +49,56 @@ function App() {
         />
 
 
-        {/* =========================
+        {/* =====================================================
             CITIZEN ROUTES
-        ========================== */}
+            Shared sidebar + navbar
+        ===================================================== */}
 
-        <Route element={<ProtectedRoute allowedRole="citizen"/>}>
+        <Route element={<ProtectedRoute allowedRole="citizen" />}>
+          <Route element={<CitizenLayout />}>
 
-          <Route
-            path="/citizen/dashboard"
-            element={<CitizenDashboard />}
-          />
+            <Route
+              path="/citizen/dashboard"
+              element={<CitizenDashboard />}
+            />
 
-          <Route
-            path="/citizen/report"
-            element={<ReportIssue />}
-          />
+            <Route
+              path="/citizen/report"
+              element={<ReportIssue />}
+            />
 
-          <Route
-            path="/citizen/reports"
-            element={<MyReports />}
-          />
+            <Route
+              path="/citizen/reports"
+              element={<MyReports />}
+            />
 
-          <Route
-            path="/citizen/reports/:id"
-            element={<IssueDetails />}
-          />
+            <Route
+              path="/citizen/reports/:id"
+              element={<IssueDetails />}
+            />
 
-          <Route
-            path="/citizen/notifications"
-            element={<CitizenNotifications />}
-          />
+            <Route
+              path="/citizen/notifications"
+              element={<CitizenNotifications />}
+            />
 
-          <Route
-            path="/citizen/profile"
-            element={<CitizenProfile />}
-          />
+            <Route
+              path="/citizen/profile"
+              element={<CitizenProfile />}
+            />
 
+          </Route>
         </Route>
 
 
-        {/* =========================
+        {/* =====================================================
             ADMIN ROUTES
-        ========================== */}
+        ===================================================== */}
 
-        <Route element={<ProtectedRoute allowedRole="admin"/>}>         
-        <Route path="/admin/dashboard"
+        <Route element={<ProtectedRoute allowedRole="admin" />}>
+
+          <Route
+            path="/admin/dashboard"
             element={<AdminDashboard />}
           />
 
@@ -123,9 +125,9 @@ function App() {
         </Route>
 
 
-        {/* =========================
-            UNKNOWN ROUTES
-        ========================== */}
+        {/* =====================================================
+            FALLBACK
+        ===================================================== */}
 
         <Route
           path="*"
