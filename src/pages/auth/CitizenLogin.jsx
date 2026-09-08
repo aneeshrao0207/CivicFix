@@ -6,6 +6,8 @@ import {
   Eye,
   EyeOff,
   ShieldCheck,
+  MapPin,
+  Activity,
   CheckCircle2,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -17,6 +19,7 @@ function CitizenLogin() {
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -80,303 +83,423 @@ function CitizenLogin() {
     }
   };
 
-  return (
-    <div className="citizen-login-page">
+  const handleRegisterNavigation = (event) => {
+    event.preventDefault();
 
+    if (isLeaving) return;
+
+    setIsLeaving(true);
+
+    setTimeout(() => {
+      navigate("/citizen/register", {
+        state: {
+          fromLogin: true,
+        },
+      });
+    }, 420);
+  };
+
+  return (
+    <div
+      className={`citizen-login-page ${
+        isLeaving ? "is-leaving" : ""
+      }`}
+    >
       {/* =========================================
-          BRAND SIDE
+          BACKGROUND
       ========================================= */}
 
-      <section className="citizen-login-brand">
+      <div className="citizen-login-background">
+        <div className="citizen-login-grid" />
 
-        <div className="citizen-login-brand-grid" />
+        <div className="login-light login-light-one" />
+        <div className="login-light login-light-two" />
 
-        <div className="citizen-login-glow citizen-login-glow-one" />
-        <div className="citizen-login-glow citizen-login-glow-two" />
+        <div className="login-orbit login-orbit-one" />
+        <div className="login-orbit login-orbit-two" />
+      </div>
+
+      {/* =========================================
+          LEFT PANEL
+      ========================================= */}
+
+      <section className="citizen-login-showcase">
 
         <Link to="/" className="citizen-login-logo">
           <span className="citizen-login-logo-mark">C</span>
-
           <span>CivicFix</span>
         </Link>
 
-        <div className="citizen-login-brand-content">
+        <div className="citizen-login-showcase-main">
 
           <div className="citizen-login-kicker">
-            <span className="citizen-login-kicker-dot" />
-            Built for better communities
+            <span className="login-kicker-dot" />
+            Citizen platform
           </div>
 
           <h1>
-            Your city.
+            Make your city
             <br />
-            <span>Your voice.</span>
+            <span>better, together.</span>
           </h1>
 
           <p>
-            Report civic problems, track their progress,
-            and help make your community cleaner, safer,
-            and better.
+            Report local problems, track their progress,
+            and stay connected to the changes happening
+            around you.
           </p>
 
-          <div className="citizen-login-trust-list">
+          <div className="citizen-login-features">
 
-            <div className="citizen-login-trust-item">
-              <CheckCircle2 size={17} />
-              <span>Report issues in your community</span>
+            <div className="citizen-login-feature">
+
+              <div className="feature-icon">
+                <MapPin size={17} />
+              </div>
+
+              <div>
+                <strong>Report</strong>
+                <span>Local issues</span>
+              </div>
+
             </div>
 
-            <div className="citizen-login-trust-item">
-              <CheckCircle2 size={17} />
-              <span>Track every report in one place</span>
+            <div className="citizen-login-feature">
+
+              <div className="feature-icon">
+                <Activity size={17} />
+              </div>
+
+              <div>
+                <strong>Track</strong>
+                <span>Progress</span>
+              </div>
+
             </div>
 
-            <div className="citizen-login-trust-item">
-              <CheckCircle2 size={17} />
-              <span>Stay informed as issues are resolved</span>
+            <div className="citizen-login-feature">
+
+              <div className="feature-icon">
+                <CheckCircle2 size={17} />
+              </div>
+
+              <div>
+                <strong>Improve</strong>
+                <span>Your community</span>
+              </div>
+
             </div>
 
           </div>
 
         </div>
 
-        <div className="citizen-login-brand-footer">
-          <span>Report Problems.</span>
-          <span>Drive Action.</span>
+        {/* Floating information card */}
+
+        <div className="citizen-login-status-card">
+
+          <div className="status-card-header">
+
+            <div className="status-card-title">
+              <span className="status-pulse" />
+              Community activity
+            </div>
+
+            <span className="status-live">
+              Live
+            </span>
+
+          </div>
+
+          <div className="status-card-body">
+
+            <div className="status-avatars">
+              <span>A</span>
+              <span>R</span>
+              <span>K</span>
+              <span>+</span>
+            </div>
+
+            <div className="status-copy">
+
+              <strong>
+                Citizens are taking action
+              </strong>
+
+              <span>
+                Reports are being tracked every day.
+              </span>
+
+            </div>
+
+          </div>
+
+          <div className="status-line">
+            <span />
+          </div>
+
+        </div>
+
+        <div className="citizen-login-showcase-footer">
+          CivicFix
+          <span>/</span>
+          Citizen Portal
         </div>
 
       </section>
 
-
       {/* =========================================
-          FORM SIDE
+          RIGHT PANEL
       ========================================= */}
 
       <section className="citizen-login-form-section">
 
         <div className="citizen-login-form-container">
 
-          {/* Mobile logo */}
-
-          <Link to="/" className="citizen-login-mobile-logo">
-            <span className="citizen-login-logo-mark">C</span>
-            <span>CivicFix</span>
+          <Link
+            to="/"
+            className="citizen-login-mobile-logo"
+          >
+            <span className="citizen-login-logo-mark">
+              C
+            </span>
+            CivicFix
           </Link>
 
+          <div className="citizen-login-card">
 
-          {/* Header */}
+            <div className="citizen-login-card-highlight" />
 
-          <div className="citizen-login-header">
+            {/* HEADER */}
 
-            <div className="citizen-login-welcome-icon">
-              <ShieldCheck size={22} />
-            </div>
+            <div className="citizen-login-header">
 
-            <div>
-              <span className="citizen-login-eyebrow">
-                Citizen Portal
-              </span>
+              <div className="citizen-login-security-icon">
+                <ShieldCheck size={20} />
+              </div>
 
-              <h2>Welcome back</h2>
+              <div>
 
-              <p>
-                Sign in to manage your reports and
-                track their progress.
-              </p>
-            </div>
+                <span className="citizen-login-eyebrow">
+                  Citizen Portal
+                </span>
 
-          </div>
+                <h2>Welcome back</h2>
 
-
-          {/* Error */}
-
-          {error && (
-            <div
-              className="citizen-login-error"
-              role="alert"
-            >
-              <span className="citizen-login-error-icon">
-                !
-              </span>
-
-              <span>{error}</span>
-            </div>
-          )}
-
-
-          {/* Form */}
-
-          <form
-            className="citizen-login-form"
-            onSubmit={handleSubmit}
-          >
-
-            {/* Email */}
-
-            <div className="citizen-login-field">
-
-              <label htmlFor="email">
-                Email address
-              </label>
-
-              <div className="citizen-login-input-wrap">
-
-                <Mail
-                  size={18}
-                  className="citizen-login-input-icon"
-                />
-
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  autoComplete="email"
-                />
+                <p>
+                  Sign in to continue to your CivicFix
+                  dashboard.
+                </p>
 
               </div>
 
             </div>
 
+            {/* ERROR */}
 
-            {/* Password */}
+            {error && (
+              <div
+                className="citizen-login-error"
+                role="alert"
+              >
+                <span>!</span>
+                <p>{error}</p>
+              </div>
+            )}
 
-            <div className="citizen-login-field">
+            {/* FORM */}
 
-              <div className="citizen-login-label-row">
+            <form
+              className="citizen-login-form"
+              onSubmit={handleSubmit}
+            >
 
-                <label htmlFor="password">
-                  Password
+              {/* EMAIL */}
+
+              <div className="citizen-login-field">
+
+                <label htmlFor="email">
+                  Email address
                 </label>
 
-                <Link
-                  to="/citizen/forgot-password"
-                  className="citizen-login-forgot"
-                >
-                  Forgot password?
-                </Link>
+                <div className="citizen-login-input-wrap">
+
+                  <Mail
+                    size={17}
+                    className="citizen-login-input-icon"
+                  />
+
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    autoComplete="email"
+                  />
+
+                </div>
 
               </div>
 
-              <div className="citizen-login-input-wrap">
+              {/* PASSWORD */}
 
-                <LockKeyhole
-                  size={18}
-                  className="citizen-login-input-icon"
-                />
+              <div className="citizen-login-field">
+
+                <div className="citizen-login-label-row">
+
+                  <label htmlFor="password">
+                    Password
+                  </label>
+
+                  <Link
+                    to="/citizen/forgot-password"
+                    className="citizen-login-forgot"
+                  >
+                    Forgot password?
+                  </Link>
+
+                </div>
+
+                <div className="citizen-login-input-wrap">
+
+                  <LockKeyhole
+                    size={17}
+                    className="citizen-login-input-icon"
+                  />
+
+                  <input
+                    id="password"
+                    name="password"
+                    type={
+                      showPassword
+                        ? "text"
+                        : "password"
+                    }
+                    placeholder="Enter your password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    autoComplete="current-password"
+                  />
+
+                  <button
+                    type="button"
+                    className="citizen-login-password-toggle"
+                    onClick={() =>
+                      setShowPassword(
+                        (previous) => !previous
+                      )
+                    }
+                    aria-label={
+                      showPassword
+                        ? "Hide password"
+                        : "Show password"
+                    }
+                  >
+                    {showPassword ? (
+                      <EyeOff size={17} />
+                    ) : (
+                      <Eye size={17} />
+                    )}
+                  </button>
+
+                </div>
+
+              </div>
+
+              {/* REMEMBER */}
+
+              <label className="citizen-login-remember">
 
                 <input
-                  id="password"
-                  name="password"
-                  type={
-                    showPassword
-                      ? "text"
-                      : "password"
-                  }
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  autoComplete="current-password"
+                  type="checkbox"
+                  name="remember"
                 />
 
-                <button
-                  type="button"
-                  className="citizen-login-password-toggle"
-                  onClick={() =>
-                    setShowPassword(
-                      (previous) => !previous
-                    )
-                  }
-                  aria-label={
-                    showPassword
-                      ? "Hide password"
-                      : "Show password"
-                  }
+                <span className="custom-checkbox">
+                  <CheckCircle2 size={11} />
+                </span>
+
+                <span>
+                  Keep me signed in
+                </span>
+
+              </label>
+
+              {/* SUBMIT */}
+
+              <div className="citizen-login-submit">
+
+                <Button
+                  type="submit"
+                  size="large"
+                  disabled={loading}
                 >
-                  {showPassword ? (
-                    <EyeOff size={18} />
+                  {loading ? (
+                    <span className="citizen-login-loading">
+                      <span className="citizen-login-spinner" />
+                      Signing in...
+                    </span>
                   ) : (
-                    <Eye size={18} />
+                    <>
+                      Sign in
+                      <ArrowRight size={17} />
+                    </>
                   )}
-                </button>
+                </Button>
 
               </div>
 
-            </div>
+            </form>
 
+            {/* REGISTER */}
 
-            {/* Remember */}
-
-            <label className="citizen-login-remember">
-
-              <input
-                type="checkbox"
-                name="remember"
-              />
+            <div className="citizen-login-register">
 
               <span>
-                Remember me
+                New to CivicFix?
               </span>
 
-            </label>
-
-
-            {/* Submit */}
-
-            <div className="citizen-login-submit">
-
-              <Button
-                type="submit"
-                size="large"
-                disabled={loading}
+              <a
+                href="/citizen/register"
+                onClick={handleRegisterNavigation}
               >
-                {loading ? (
-                  <span className="citizen-login-loading">
-                    <span className="citizen-login-spinner" />
-                    Signing in...
-                  </span>
-                ) : (
-                  <>
-                    Sign in
-                    <ArrowRight size={17} />
-                  </>
-                )}
-              </Button>
+                Create an account
+              </a>
 
             </div>
 
-          </form>
+            {/* SECURITY */}
 
+            <div className="citizen-login-security">
 
-          {/* Register */}
+              <ShieldCheck size={14} />
 
-          <div className="citizen-login-register">
+              <span>
+                Secure authentication
+              </span>
 
-            <span>
-              Don't have an account?
-            </span>
+              <i />
 
-            <Link to="/citizen/register">
-              Create one
-            </Link>
+              <span>
+                Protected connection
+              </span>
+
+            </div>
 
           </div>
 
-
-          {/* Security */}
-
-          <div className="citizen-login-security">
-
-            <ShieldCheck size={16} />
-
+          <div className="citizen-login-bottom">
             <span>
-              Your account and reports are securely protected.
+              © {new Date().getFullYear()} CivicFix
             </span>
 
+            <span>
+              Better cities start with participation.
+            </span>
           </div>
 
         </div>

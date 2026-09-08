@@ -1,9 +1,9 @@
 /* =========================================================
-   CIVICFIX — CITIZEN LOGIN
-   Premium / Calm / Product-grade
+   CIVICFIX — CITIZEN REGISTER
+   Premium / Calm / Community-focused
 ========================================================= */
 
-.citizen-login-page {
+.citizen-register-page {
   position: relative;
 
   min-height: 100vh;
@@ -25,7 +25,7 @@
    BACKGROUND
 ========================================================= */
 
-.citizen-login-background {
+.citizen-register-background {
   position: absolute;
   inset: 0;
 
@@ -36,11 +36,11 @@
   z-index: -1;
 }
 
-.citizen-login-grid {
+.register-grid {
   position: absolute;
   inset: 0;
 
-  opacity: 0.23;
+  opacity: 0.2;
 
   background-image:
     linear-gradient(
@@ -57,93 +57,96 @@
 
   mask-image:
     radial-gradient(
-      ellipse at 42% 45%,
+      ellipse at 45% 48%,
       black 0%,
       transparent 72%
     );
 }
 
-.login-light {
+.register-glow {
   position: absolute;
 
   border-radius: 50%;
 
-  filter: blur(90px);
+  filter: blur(100px);
 
-  opacity: 0.28;
+  opacity: 0.25;
 
   animation:
-    login-light-move 12s ease-in-out infinite alternate;
+    register-glow-move 13s ease-in-out infinite alternate;
 }
 
-.login-light-one {
+.register-glow-one {
   width: 420px;
   height: 420px;
 
-  top: -220px;
-  left: 25%;
+  top: -210px;
+  left: 24%;
 
-  background: rgba(57,117,255,0.2);
+  background: rgba(65,126,255,0.2);
 }
 
-.login-light-two {
-  width: 360px;
-  height: 360px;
+.register-glow-two {
+  width: 380px;
+  height: 380px;
 
-  bottom: -220px;
-  left: 38%;
+  right: -180px;
+  bottom: -180px;
 
-  background: rgba(26,181,216,0.11);
+  background: rgba(32,190,208,0.1);
 
   animation-delay: -5s;
 }
 
-@keyframes login-light-move {
+@keyframes register-glow-move {
+
   from {
     transform: translate3d(0,0,0);
   }
 
   to {
-    transform: translate3d(35px,25px,0);
+    transform: translate3d(30px,25px,0);
   }
+
 }
 
 
 /* =========================================================
-   ORBITS
+   RINGS
 ========================================================= */
 
-.login-orbit {
+.register-ring {
   position: absolute;
 
-  border: 1px solid rgba(98,153,255,0.08);
+  border: 1px solid rgba(100,155,255,0.07);
 
   border-radius: 50%;
 
   animation:
-    login-orbit-float 16s linear infinite;
+    register-ring-spin 20s linear infinite;
 }
 
-.login-orbit-one {
-  width: 520px;
-  height: 520px;
+.register-ring-one {
+  width: 540px;
+  height: 540px;
 
-  top: -230px;
-  right: 7%;
+  top: -245px;
+  right: 5%;
 }
 
-.login-orbit-two {
-  width: 720px;
-  height: 720px;
+.register-ring-two {
+  width: 760px;
+  height: 760px;
 
-  top: -330px;
-  right: -3%;
+  top: -355px;
+  right: -4%;
 
-  animation-duration: 24s;
+  animation-duration: 27s;
   animation-direction: reverse;
 }
 
-@keyframes login-orbit-float {
+@keyframes register-ring-spin {
+
   from {
     transform: rotate(0deg);
   }
@@ -151,14 +154,15 @@
   to {
     transform: rotate(360deg);
   }
+
 }
 
 
 /* =========================================================
-   SHOWCASE
+   LEFT SHOWCASE
 ========================================================= */
 
-.citizen-login-showcase {
+.citizen-register-showcase {
   position: relative;
 
   min-height: 100vh;
@@ -176,9 +180,10 @@
    LOGO
 ========================================================= */
 
-.citizen-login-logo {
+.citizen-register-logo {
   display: inline-flex;
   align-items: center;
+
   gap: 10px;
 
   width: fit-content;
@@ -193,10 +198,10 @@
   text-decoration: none;
 
   animation:
-    login-enter 0.7s ease both;
+    register-enter 0.7s ease both;
 }
 
-.citizen-login-logo-mark {
+.citizen-register-logo-mark {
   width: 36px;
   height: 36px;
 
@@ -221,8 +226,8 @@
     box-shadow 0.25s ease;
 }
 
-.citizen-login-logo:hover
-.citizen-login-logo-mark {
+.citizen-register-logo:hover
+.citizen-register-logo-mark {
   transform: translateY(-2px);
 
   box-shadow:
@@ -234,16 +239,16 @@
    SHOWCASE MAIN
 ========================================================= */
 
-.citizen-login-showcase-main {
+.citizen-register-showcase-main {
   width: 100%;
   max-width: 650px;
 
   margin: auto 0;
 
-  transform: translateY(-25px);
+  transform: translateY(-17px);
 
   animation:
-    login-enter 0.85s 0.08s ease both;
+    register-enter 0.85s 0.08s ease both;
 }
 
 
@@ -251,9 +256,10 @@
    KICKER
 ========================================================= */
 
-.citizen-login-kicker {
+.citizen-register-kicker {
   display: inline-flex;
   align-items: center;
+
   gap: 8px;
 
   margin-bottom: 21px;
@@ -264,10 +270,11 @@
   font-weight: 700;
 
   letter-spacing: 0.08em;
+
   text-transform: uppercase;
 }
 
-.login-kicker-dot {
+.register-kicker-dot {
   width: 7px;
   height: 7px;
 
@@ -279,10 +286,10 @@
     0 0 0 5px rgba(61,220,151,0.08);
 
   animation:
-    login-kicker-pulse 2.4s ease infinite;
+    register-dot-pulse 2.4s ease infinite;
 }
 
-@keyframes login-kicker-pulse {
+@keyframes register-dot-pulse {
 
   0%,
   100% {
@@ -302,12 +309,12 @@
    HERO
 ========================================================= */
 
-.citizen-login-showcase-main h1 {
+.citizen-register-showcase-main h1 {
   margin: 0 0 22px;
 
   color: #eef3f9;
 
-  font-size: clamp(50px, 5vw, 74px);
+  font-size: clamp(49px, 5vw, 72px);
 
   line-height: 0.99;
 
@@ -316,7 +323,7 @@
   letter-spacing: -4px;
 }
 
-.citizen-login-showcase-main h1 span {
+.citizen-register-showcase-main h1 span {
   background:
     linear-gradient(
       105deg,
@@ -330,8 +337,8 @@
   -webkit-background-clip: text;
 }
 
-.citizen-login-showcase-main p {
-  max-width: 550px;
+.citizen-register-showcase-main p {
+  max-width: 555px;
 
   margin: 0;
 
@@ -344,32 +351,31 @@
 
 
 /* =========================================================
-   FEATURES
+   BENEFITS
 ========================================================= */
 
-.citizen-login-features {
+.citizen-register-benefits {
   display: flex;
+  flex-direction: column;
 
-  gap: 9px;
+  gap: 8px;
 
-  margin-top: 31px;
+  max-width: 470px;
+
+  margin-top: 29px;
 }
 
-.citizen-login-feature {
+.register-benefit {
   display: flex;
   align-items: center;
 
-  gap: 9px;
+  gap: 11px;
 
-  min-width: 138px;
+  padding: 9px 11px;
 
-  padding: 10px 12px;
-
-  border: 1px solid rgba(255,255,255,0.07);
+  border: 1px solid transparent;
 
   border-radius: 10px;
-
-  background: rgba(255,255,255,0.025);
 
   transition:
     transform 0.3s ease,
@@ -377,17 +383,19 @@
     border-color 0.3s ease;
 }
 
-.citizen-login-feature:hover {
-  transform: translateY(-3px);
+.register-benefit:hover {
+  transform: translateX(4px);
 
-  background: rgba(255,255,255,0.045);
+  border-color: rgba(255,255,255,0.07);
 
-  border-color: rgba(98,153,255,0.18);
+  background: rgba(255,255,255,0.025);
 }
 
-.feature-icon {
-  width: 30px;
-  height: 30px;
+.register-benefit-icon {
+  width: 31px;
+  height: 31px;
+
+  flex: 0 0 auto;
 
   display: flex;
   align-items: center;
@@ -395,61 +403,68 @@
 
   border-radius: 8px;
 
-  background: rgba(70,132,255,0.09);
+  background: rgba(71,133,255,0.09);
 
   color: #67a1ff;
 }
 
-.citizen-login-feature strong {
+.register-benefit strong {
   display: block;
 
-  color: #d9e2ee;
+  color: #d8e1ec;
 
-  font-size: 11px;
+  font-size: 10px;
 }
 
-.citizen-login-feature span {
+.register-benefit span {
   display: block;
 
   margin-top: 2px;
 
-  color: #68788e;
+  color: #64748a;
 
   font-size: 9px;
+
+  line-height: 1.4;
 }
 
 
 /* =========================================================
-   STATUS CARD
+   COMMUNITY CARD
 ========================================================= */
 
-.citizen-login-status-card {
+.citizen-register-community-card {
   position: absolute;
 
-  right: 40px;
-  bottom: 105px;
+  right: 42px;
+  bottom: 104px;
 
-  width: 285px;
+  width: 305px;
 
-  padding: 16px;
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  padding: 14px;
 
   border: 1px solid rgba(255,255,255,0.09);
 
   border-radius: 14px;
 
   background:
-    rgba(19,29,43,0.82);
+    rgba(18,29,43,0.82);
 
   box-shadow:
-    0 20px 60px rgba(0,0,0,0.22);
+    0 20px 60px rgba(0,0,0,0.2);
 
   backdrop-filter: blur(20px);
 
   animation:
-    status-card-float 7s ease-in-out infinite;
+    register-card-float 7s ease-in-out infinite;
 }
 
-@keyframes status-card-float {
+@keyframes register-card-float {
 
   0%,
   100% {
@@ -462,150 +477,63 @@
 
 }
 
-.status-card-header {
-  display: flex;
-  align-items: center;
+.register-community-icon {
+  width: 32px;
+  height: 32px;
 
-  justify-content: space-between;
-}
-
-.status-card-title {
-  display: flex;
-  align-items: center;
-
-  gap: 7px;
-
-  color: #8999ae;
-
-  font-size: 9px;
-  font-weight: 700;
-
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.status-pulse {
-  width: 6px;
-  height: 6px;
-
-  border-radius: 50%;
-
-  background: #39d98a;
-}
-
-.status-live {
-  color: #39d98a;
-
-  font-size: 9px;
-  font-weight: 700;
-}
-
-.status-card-body {
-  display: flex;
-  align-items: center;
-
-  gap: 12px;
-
-  margin-top: 14px;
-}
-
-.status-avatars {
-  display: flex;
-}
-
-.status-avatars span {
-  width: 27px;
-  height: 27px;
+  flex: 0 0 auto;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  margin-left: -5px;
+  border-radius: 9px;
 
-  border: 2px solid #142031;
+  background: rgba(63,125,255,0.1);
 
-  border-radius: 50%;
+  color: #6ba3ff;
+}
 
-  background: #26364c;
+.register-community-copy {
+  flex: 1;
+}
 
-  color: #aab9cb;
+.register-community-copy span {
+  display: block;
+
+  margin-bottom: 3px;
+
+  color: #64758a;
 
   font-size: 8px;
+
   font-weight: 700;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.06em;
 }
 
-.status-avatars span:first-child {
-  margin-left: 0;
-}
-
-.status-copy strong {
+.register-community-copy strong {
   display: block;
 
-  color: #d9e2ee;
+  color: #d6e0ec;
 
-  font-size: 10px;
-}
-
-.status-copy span {
-  display: block;
-
-  margin-top: 3px;
-
-  color: #68798f;
-
-  font-size: 8px;
+  font-size: 9px;
 
   line-height: 1.5;
 }
 
-.status-line {
-  height: 2px;
-
-  margin-top: 14px;
-
-  overflow: hidden;
-
-  border-radius: 99px;
-
-  background: rgba(255,255,255,0.06);
-}
-
-.status-line span {
-  display: block;
-
-  width: 58%;
-  height: 100%;
-
-  background:
-    linear-gradient(
-      90deg,
-      #4e8dff,
-      #4bc8e9
-    );
-
-  animation:
-    status-progress 4s ease-in-out infinite alternate;
-}
-
-@keyframes status-progress {
-
-  from {
-    width: 42%;
-  }
-
-  to {
-    width: 76%;
-  }
-
+.register-community-check {
+  color: #3ddc97;
 }
 
 
 /* =========================================================
-   SHOWCASE FOOTER
+   FOOTER
 ========================================================= */
 
-.citizen-login-showcase-footer {
+.citizen-register-showcase-footer {
   display: flex;
   gap: 8px;
 
@@ -615,26 +543,28 @@
   font-weight: 600;
 
   animation:
-    login-enter 0.7s 0.3s ease both;
+    register-enter 0.7s 0.3s ease both;
 }
 
-.citizen-login-showcase-footer span {
+.citizen-register-showcase-footer i {
   color: #344256;
+
+  font-style: normal;
 }
 
 
 /* =========================================================
-   FORM SECTION
+   RIGHT FORM SECTION
 ========================================================= */
 
-.citizen-login-form-section {
+.citizen-register-form-section {
   min-height: 100vh;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  padding: 45px 55px;
+  padding: 40px 55px;
 
   background:
     linear-gradient(
@@ -649,21 +579,21 @@
    FORM CONTAINER
 ========================================================= */
 
-.citizen-login-form-container {
+.citizen-register-form-container {
   width: 100%;
   max-width: 440px;
 
   animation:
-    login-form-enter 0.8s 0.1s ease both;
+    register-form-enter 0.82s 0.08s ease both;
 }
 
-@keyframes login-form-enter {
+@keyframes register-form-enter {
 
   from {
     opacity: 0;
 
     transform:
-      translateY(16px)
+      translateY(18px)
       scale(0.985);
   }
 
@@ -679,15 +609,15 @@
 
 
 /* =========================================================
-   LOGIN CARD
+   CARD
 ========================================================= */
 
-.citizen-login-card {
+.citizen-register-card {
   position: relative;
 
   overflow: hidden;
 
-  padding: 34px;
+  padding: 31px 34px;
 
   border: 1px solid rgba(255,255,255,0.095);
 
@@ -710,14 +640,14 @@
     box-shadow 0.3s ease;
 }
 
-.citizen-login-card:hover {
+.citizen-register-card:hover {
   border-color: rgba(100,153,255,0.16);
 
   box-shadow:
     0 35px 90px rgba(0,0,0,0.3);
 }
 
-.citizen-login-card-highlight {
+.citizen-register-card-line {
   position: absolute;
 
   top: 0;
@@ -740,16 +670,16 @@
    HEADER
 ========================================================= */
 
-.citizen-login-header {
+.citizen-register-header {
   display: flex;
   align-items: flex-start;
 
   gap: 13px;
 
-  margin-bottom: 28px;
+  margin-bottom: 25px;
 }
 
-.citizen-login-security-icon {
+.citizen-register-security-icon {
   width: 42px;
   height: 42px;
 
@@ -768,7 +698,7 @@
   color: #66a0ff;
 }
 
-.citizen-login-eyebrow {
+.citizen-register-eyebrow {
   display: block;
 
   margin-bottom: 5px;
@@ -779,27 +709,28 @@
   font-weight: 800;
 
   letter-spacing: 0.1em;
+
   text-transform: uppercase;
 }
 
-.citizen-login-header h2 {
+.citizen-register-header h2 {
   margin: 0 0 6px;
 
   color: #f0f4f9;
 
-  font-size: 29px;
+  font-size: 28px;
 
   line-height: 1.1;
 
   letter-spacing: -1.2px;
 }
 
-.citizen-login-header p {
+.citizen-register-header p {
   margin: 0;
 
   color: #8190a5;
 
-  font-size: 12px;
+  font-size: 11px;
 
   line-height: 1.55;
 }
@@ -809,13 +740,13 @@
    ERROR
 ========================================================= */
 
-.citizen-login-error {
+.citizen-register-error {
   display: flex;
   align-items: flex-start;
 
   gap: 9px;
 
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 
   padding: 11px 12px;
 
@@ -830,10 +761,10 @@
   font-size: 11px;
 
   animation:
-    error-enter 0.25s ease both;
+    register-error-enter 0.25s ease both;
 }
 
-.citizen-login-error span {
+.citizen-register-error > span {
   width: 17px;
   height: 17px;
 
@@ -851,11 +782,11 @@
   font-weight: 800;
 }
 
-.citizen-login-error p {
+.citizen-register-error p {
   margin: 1px 0 0;
 }
 
-@keyframes error-enter {
+@keyframes register-error-enter {
 
   from {
     opacity: 0;
@@ -874,46 +805,25 @@
    FORM
 ========================================================= */
 
-.citizen-login-form {
+.citizen-register-form {
   display: flex;
   flex-direction: column;
 
-  gap: 19px;
+  gap: 15px;
 }
 
-.citizen-login-field {
+.citizen-register-field {
   display: flex;
   flex-direction: column;
 
-  gap: 7px;
+  gap: 6px;
 }
 
-.citizen-login-field label {
+.citizen-register-field label {
   color: #bac6d6;
-
-  font-size: 11px;
-  font-weight: 650;
-}
-
-.citizen-login-label-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.citizen-login-forgot {
-  color: #619aff;
 
   font-size: 10px;
   font-weight: 650;
-
-  text-decoration: none;
-
-  transition: color 0.2s ease;
-}
-
-.citizen-login-forgot:hover {
-  color: #8bb5ff;
 }
 
 
@@ -921,11 +831,11 @@
    INPUT
 ========================================================= */
 
-.citizen-login-input-wrap {
+.citizen-register-input-wrap {
   position: relative;
 }
 
-.citizen-login-input-icon {
+.citizen-register-input-icon {
   position: absolute;
 
   left: 14px;
@@ -942,8 +852,8 @@
     transform 0.25s ease;
 }
 
-.citizen-login-input-wrap:focus-within
-.citizen-login-input-icon {
+.citizen-register-input-wrap:focus-within
+.citizen-register-input-icon {
   color: #609aff;
 
   transform:
@@ -951,13 +861,13 @@
     scale(1.05);
 }
 
-.citizen-login-input-wrap input {
+.citizen-register-input-wrap input {
   width: 100%;
-  height: 49px;
+  height: 45px;
 
   box-sizing: border-box;
 
-  padding: 0 43px;
+  padding: 0 42px;
 
   border: 1px solid rgba(255,255,255,0.1);
 
@@ -970,20 +880,19 @@
   color: #edf2f8;
 
   font: inherit;
-  font-size: 12px;
+  font-size: 11px;
 
   transition:
     border-color 0.25s ease,
     background 0.25s ease,
-    box-shadow 0.25s ease,
-    transform 0.25s ease;
+    box-shadow 0.25s ease;
 }
 
-.citizen-login-input-wrap input:hover {
+.citizen-register-input-wrap input:hover {
   border-color: rgba(255,255,255,0.16);
 }
 
-.citizen-login-input-wrap input:focus {
+.citizen-register-input-wrap input:focus {
   border-color: rgba(83,143,255,0.55);
 
   background: rgba(69,130,255,0.045);
@@ -992,7 +901,7 @@
     0 0 0 3px rgba(69,130,255,0.07);
 }
 
-.citizen-login-input-wrap input::placeholder {
+.citizen-register-input-wrap input::placeholder {
   color: #59697e;
 }
 
@@ -1001,14 +910,14 @@
    PASSWORD
 ========================================================= */
 
-.citizen-login-password-toggle {
+.citizen-register-password-toggle {
   position: absolute;
 
   right: 9px;
   top: 50%;
 
-  width: 30px;
-  height: 30px;
+  width: 29px;
+  height: 29px;
 
   display: flex;
   align-items: center;
@@ -1030,7 +939,7 @@
     background 0.2s ease;
 }
 
-.citizen-login-password-toggle:hover {
+.citizen-register-password-toggle:hover {
   color: #d5deea;
 
   background: rgba(255,255,255,0.05);
@@ -1038,39 +947,84 @@
 
 
 /* =========================================================
-   REMEMBER
+   PASSWORD STRENGTH
 ========================================================= */
 
-.citizen-login-remember {
-  position: relative;
-
+.citizen-register-password-hint {
   display: flex;
   align-items: center;
 
+  gap: 4px;
+
+  margin-top: 6px;
+}
+
+.citizen-register-password-hint span {
+  width: 24px;
+  height: 3px;
+
+  border-radius: 99px;
+
+  background: #2a3545;
+
+  transition:
+    background 0.25s ease,
+    transform 0.25s ease;
+}
+
+.citizen-register-password-hint span.valid {
+  background: #4e8dff;
+
+  transform: scaleY(1.2);
+}
+
+.citizen-register-password-hint small {
+  margin-left: 5px;
+
+  color: #5f7086;
+
+  font-size: 8px;
+}
+
+
+/* =========================================================
+   TERMS
+========================================================= */
+
+.citizen-register-terms {
+  position: relative;
+
+  display: flex;
+  align-items: flex-start;
+
   gap: 8px;
 
-  width: fit-content;
+  color: #718095;
 
-  color: #718096;
+  font-size: 9px;
 
-  font-size: 10px;
+  line-height: 1.45;
 
   cursor: pointer;
 }
 
-.citizen-login-remember input {
+.citizen-register-terms input {
   position: absolute;
 
   opacity: 0;
 }
 
-.custom-checkbox {
+.register-custom-check {
   width: 15px;
   height: 15px;
+
+  flex: 0 0 auto;
 
   display: flex;
   align-items: center;
   justify-content: center;
+
+  margin-top: 1px;
 
   border: 1px solid #3c4b60;
 
@@ -1084,8 +1038,8 @@
     color 0.2s ease;
 }
 
-.citizen-login-remember input:checked
-+ .custom-checkbox {
+.citizen-register-terms input:checked
++ .register-custom-check {
   border-color: #4f8dff;
 
   background: #4f8dff;
@@ -1098,11 +1052,11 @@
    SUBMIT
 ========================================================= */
 
-.citizen-login-submit {
+.citizen-register-submit {
   margin-top: 2px;
 }
 
-.citizen-login-submit button {
+.citizen-register-submit button {
   position: relative;
 
   width: 100%;
@@ -1114,7 +1068,7 @@
     box-shadow 0.25s ease;
 }
 
-.citizen-login-submit button::after {
+.citizen-register-submit button::after {
   content: "";
 
   position: absolute;
@@ -1139,18 +1093,18 @@
     left 0.65s ease;
 }
 
-.citizen-login-submit button:hover::after {
+.citizen-register-submit button:hover::after {
   left: 130%;
 }
 
-.citizen-login-submit button:hover {
+.citizen-register-submit button:hover {
   transform: translateY(-2px);
 
   box-shadow:
     0 10px 28px rgba(57,124,255,0.2);
 }
 
-.citizen-login-submit button:active {
+.citizen-register-submit button:active {
   transform: translateY(0);
 }
 
@@ -1159,14 +1113,14 @@
    LOADING
 ========================================================= */
 
-.citizen-login-loading {
+.citizen-register-loading {
   display: inline-flex;
   align-items: center;
 
   gap: 8px;
 }
 
-.citizen-login-spinner {
+.citizen-register-spinner {
   width: 13px;
   height: 13px;
 
@@ -1177,10 +1131,10 @@
   border-radius: 50%;
 
   animation:
-    login-spin 0.65s linear infinite;
+    register-spin 0.65s linear infinite;
 }
 
-@keyframes login-spin {
+@keyframes register-spin {
 
   to {
     transform: rotate(360deg);
@@ -1190,24 +1144,24 @@
 
 
 /* =========================================================
-   REGISTER
+   LOGIN LINK
 ========================================================= */
 
-.citizen-login-register {
+.citizen-register-login {
   display: flex;
   align-items: center;
   justify-content: center;
 
   gap: 5px;
 
-  margin-top: 24px;
+  margin-top: 20px;
 
   color: #718095;
 
-  font-size: 11px;
+  font-size: 10px;
 }
 
-.citizen-login-register a {
+.citizen-register-login a {
   color: #679eff;
 
   font-weight: 700;
@@ -1215,11 +1169,10 @@
   text-decoration: none;
 
   transition:
-    color 0.2s ease,
-    transform 0.2s ease;
+    color 0.2s ease;
 }
 
-.citizen-login-register a:hover {
+.citizen-register-login a:hover {
   color: #91b9ff;
 }
 
@@ -1228,15 +1181,15 @@
    SECURITY
 ========================================================= */
 
-.citizen-login-security {
+.citizen-register-security {
   display: flex;
   align-items: center;
   justify-content: center;
 
   gap: 6px;
 
-  margin-top: 22px;
-  padding-top: 17px;
+  margin-top: 18px;
+  padding-top: 15px;
 
   border-top: 1px solid rgba(255,255,255,0.06);
 
@@ -1245,11 +1198,11 @@
   font-size: 8px;
 }
 
-.citizen-login-security svg {
+.citizen-register-security svg {
   color: #39d98a;
 }
 
-.citizen-login-security i {
+.citizen-register-security i {
   width: 3px;
   height: 3px;
 
@@ -1263,16 +1216,16 @@
    BOTTOM
 ========================================================= */
 
-.citizen-login-bottom {
+.citizen-register-bottom {
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  margin-top: 17px;
+  margin-top: 15px;
 
   color: #46546a;
 
-  font-size: 9px;
+  font-size: 8px;
 }
 
 
@@ -1280,16 +1233,16 @@
    MOBILE LOGO
 ========================================================= */
 
-.citizen-login-mobile-logo {
+.citizen-register-mobile-logo {
   display: none;
 }
 
 
 /* =========================================================
-   LOGIN ENTER ANIMATION
+   ENTER ANIMATION
 ========================================================= */
 
-@keyframes login-enter {
+@keyframes register-enter {
 
   from {
     opacity: 0;
@@ -1309,22 +1262,22 @@
 
 
 /* =========================================================
-   REGISTER TRANSITION — EXIT
+   REGISTER → LOGIN EXIT
 ========================================================= */
 
-.citizen-login-page.is-leaving
-.citizen-login-showcase {
+.citizen-register-page.is-leaving
+.citizen-register-showcase {
   animation:
-    login-exit-left 0.42s ease forwards;
+    register-exit-left 0.42s ease forwards;
 }
 
-.citizen-login-page.is-leaving
-.citizen-login-form-section {
+.citizen-register-page.is-leaving
+.citizen-register-form-section {
   animation:
-    login-exit-right 0.42s ease forwards;
+    register-exit-right 0.42s ease forwards;
 }
 
-@keyframes login-exit-left {
+@keyframes register-exit-left {
 
   to {
     opacity: 0;
@@ -1335,7 +1288,7 @@
 
 }
 
-@keyframes login-exit-right {
+@keyframes register-exit-right {
 
   to {
     opacity: 0;
@@ -1353,25 +1306,25 @@
 
 @media (max-width: 1150px) {
 
-  .citizen-login-page {
+  .citizen-register-page {
     grid-template-columns: 52% 48%;
   }
 
-  .citizen-login-showcase {
+  .citizen-register-showcase {
     padding-left: 40px;
     padding-right: 40px;
   }
 
-  .citizen-login-form-section {
+  .citizen-register-form-section {
     padding-left: 35px;
     padding-right: 35px;
   }
 
-  .citizen-login-showcase-main h1 {
-    font-size: clamp(45px, 5vw, 64px);
+  .citizen-register-showcase-main h1 {
+    font-size: clamp(45px, 5vw, 63px);
   }
 
-  .citizen-login-status-card {
+  .citizen-register-community-card {
     right: 25px;
     bottom: 92px;
   }
@@ -1385,7 +1338,7 @@
 
 @media (max-width: 850px) {
 
-  .citizen-login-page {
+  .citizen-register-page {
     display: block;
 
     min-height: 100vh;
@@ -1399,11 +1352,11 @@
       #0d1522;
   }
 
-  .citizen-login-showcase {
+  .citizen-register-showcase {
     display: none;
   }
 
-  .citizen-login-form-section {
+  .citizen-register-form-section {
     min-height: 100vh;
 
     padding: 25px 18px;
@@ -1411,13 +1364,13 @@
     background: transparent;
   }
 
-  .citizen-login-mobile-logo {
+  .citizen-register-mobile-logo {
     display: inline-flex;
     align-items: center;
 
     gap: 10px;
 
-    margin-bottom: 30px;
+    margin-bottom: 28px;
 
     color: white;
 
@@ -1427,14 +1380,14 @@
     text-decoration: none;
   }
 
-  .citizen-login-mobile-logo
-  .citizen-login-logo-mark {
+  .citizen-register-mobile-logo
+  .citizen-register-logo-mark {
     width: 34px;
     height: 34px;
   }
 
-  .citizen-login-card {
-    padding: 28px 22px;
+  .citizen-register-card {
+    padding: 27px 22px;
 
     border-radius: 16px;
   }
@@ -1448,44 +1401,32 @@
 
 @media (max-width: 480px) {
 
-  .citizen-login-form-section {
+  .citizen-register-form-section {
     padding: 20px 14px;
   }
 
-  .citizen-login-mobile-logo {
-    margin-bottom: 25px;
+  .citizen-register-mobile-logo {
+    margin-bottom: 23px;
   }
 
-  .citizen-login-card {
-    padding: 25px 19px;
+  .citizen-register-card {
+    padding: 24px 18px;
   }
 
-  .citizen-login-header {
+  .citizen-register-header {
     gap: 10px;
   }
 
-  .citizen-login-security-icon {
+  .citizen-register-security-icon {
     width: 39px;
     height: 39px;
   }
 
-  .citizen-login-header h2 {
-    font-size: 26px;
+  .citizen-register-header h2 {
+    font-size: 25px;
   }
 
-  .citizen-login-label-row {
-    align-items: flex-start;
-
-    flex-direction: column;
-
-    gap: 5px;
-  }
-
-  .citizen-login-register {
-    flex-wrap: wrap;
-  }
-
-  .citizen-login-bottom {
+  .citizen-register-bottom {
     padding: 0 4px;
   }
 
@@ -1502,6 +1443,7 @@
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+
     animation-iteration-count: 1 !important;
 
     transition-duration: 0.01ms !important;
