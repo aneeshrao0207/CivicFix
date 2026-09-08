@@ -1,17 +1,22 @@
 import { useEffect, useState } from "react";
 import {
   Bell,
+  Check,
   ChevronRight,
+  Eye,
+  EyeOff,
   Lock,
   LogOut,
   Mail,
   MapPin,
   ShieldCheck,
   User,
+  X,
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
 
+import { apiRequest } from "../../services/api";
 import "./CitizenProfile.css";
 
 function CitizenProfile() {
@@ -24,6 +29,32 @@ function CitizenProfile() {
     role: "citizen",
   });
 
+  const [editMode, setEditMode] = useState(false);
+
+  const [profileForm, setProfileForm] = useState({
+    name: "",
+    phone: "",
+  });
+
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  const [profileMessage, setProfileMessage] = useState("");
+  const [profileError, setProfileError] = useState("");
+
+  const [passwordMessage, setPasswordMessage] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+
   useEffect(() => {
     const storedUser = localStorage.getItem("civicfix_user");
 
@@ -35,11 +66,18 @@ function CitizenProfile() {
     try {
       const parsedUser = JSON.parse(storedUser);
 
-      setUser({
+      const currentUser = {
         name: parsedUser.name || "Citizen",
         email: parsedUser.email || "",
         phone: parsedUser.phone || "",
         role: parsedUser.role || "citizen",
+      };
+
+      setUser(currentUser);
+
+      setProfileForm({
+        name: currentUser.name,
+        phone: currentUser.phone,
       });
     } catch (error) {
       console.error("Unable to read user profile:", error);
@@ -50,6 +88,171 @@ function CitizenProfile() {
       navigate("/citizen/login", { replace: true });
     }
   }, [navigate]);
+
+  const handleProfileChange = (event) => {
+    const { name, value } = event.target;
+
+    setProfileForm((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+  };
+
+  const handleEditProfile = () => {
+    setProfileMessage("");
+    setProfileError("");
+
+    setProfileForm({
+      name: user.name,
+      phone: user.phone,
+    });
+
+    setEditMode(true);
+  };
+
+  const handleCancelEdit = () => {
+    setProfileForm({
+      name: user.name,
+      phone: user.phone,
+    });
+
+    setProfileMessage("");
+    setProfileError("");
+    setEditMode(false);
+  };
+
+  const handleSaveProfile = async (event) => {
+    event.preventDefault();
+
+    setProfileMessage("");
+    setProfileError("");
+
+    if (!profileForm.name.trim()) {
+      setProfileError("Full name is required.");
+      return;
+    }
+
+    try {
+      setIsSavingProfile(true);
+
+      const data = await apiRequest("/auth/profile", {
+        method: "PATCH",
+        body: JSON.stringify({
+          name: profileForm.name.trim(),
+          phone: profileForm.phone.trim(),
+        }),
+      });
+
+      const updatedUser = {
+        ...user,
+        name: data.user.name,
+        email: data.user.email,
+        phone: data.user.phone || "",
+        role: data.user.role,
+      };
+
+      setUser(updatedUser);
+
+      localStorage.setItem(
+        "civicfix_user",
+        JSON.stringify(data.user)
+      );
+
+      setProfileForm({
+        name: data.user.name,
+        phone: data.user.phone || "",
+      });
+
+      setEditMode(false);
+      setProfileMessage("Your profile has been updated successfully.");
+    } catch (error) {
+      console.error("Profile update error:", error);
+
+      setProfileError(
+        error.message || "Unable to update your profile."
+      );
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
+  const handlePasswordChange = (event) => {
+    const { name, value } = event.target;
+
+    setPasswordForm((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+  };
+
+  const handleChangePassword = async (event) => {
+    event.preventDefault();
+
+    setPasswordMessage("");
+    setPasswordError("");
+
+    if (
+      !passwordForm.currentPassword ||
+      !passwordForm.newPassword ||
+      !passwordForm.confirmPassword
+    ) {
+      setPasswordError("Please complete all password fields.");
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 8) {
+      setPasswordError(
+        "Your new password must be at least 8 characters long."
+      );
+      return;
+    }
+
+    if (
+      passwordForm.newPassword !== passwordForm.confirmPassword
+    ) {
+      setPasswordError("New passwords do not match.");
+      return;
+    }
+
+    if (
+      passwordForm.currentPassword === passwordForm.newPassword
+    ) {
+      setPasswordError(
+        "Your new password must be different from your current password."
+      );
+      return;
+    }
+
+    try {
+      setIsChangingPassword(true);
+
+      const data = await apiRequest("/auth/password", {
+        method: "PATCH",
+        body: JSON.stringify({
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword,
+        }),
+      });
+
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+
+      setPasswordMessage(
+        data.message || "Password updated successfully."
+      );
+    } catch (error) {
+      console.error("Password update error:", error);
+
+      setPasswordError(
+        error.message || "Unable to update your password."
+      );
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("civicfix_token");
@@ -72,7 +275,6 @@ function CitizenProfile() {
       {/* HEADER */}
 
       <header className="profile-header">
-
         <div>
           <p className="profile-eyebrow">
             CITIZEN PORTAL
@@ -81,10 +283,9 @@ function CitizenProfile() {
           <h1>Profile</h1>
 
           <p>
-            Manage your CivicFix account and preferences.
+            Manage your CivicFix account and security.
           </p>
         </div>
-
       </header>
 
 
@@ -124,16 +325,50 @@ function CitizenProfile() {
 
           </div>
 
-          <button
-            className="edit-profile-button"
-            type="button"
-            disabled
-            title="Profile editing is not available yet"
-          >
-            Edit profile
-          </button>
+          {!editMode && (
+            <button
+              className="edit-profile-button"
+              type="button"
+              onClick={handleEditProfile}
+            >
+              Edit profile
+            </button>
+          )}
 
         </section>
+
+
+        {/* PROFILE MESSAGE */}
+
+        {profileMessage && (
+          <div className="profile-alert profile-alert-success">
+            <Check size={17} />
+            <span>{profileMessage}</span>
+
+            <button
+              type="button"
+              onClick={() => setProfileMessage("")}
+              aria-label="Dismiss message"
+            >
+              <X size={15} />
+            </button>
+          </div>
+        )}
+
+        {profileError && (
+          <div className="profile-alert profile-alert-error">
+            <X size={17} />
+            <span>{profileError}</span>
+
+            <button
+              type="button"
+              onClick={() => setProfileError("")}
+              aria-label="Dismiss error"
+            >
+              <X size={15} />
+            </button>
+          </div>
+        )}
 
 
         {/* ACCOUNT */}
@@ -155,52 +390,127 @@ function CitizenProfile() {
           </div>
 
 
-          <div className="profile-fields">
+          {!editMode ? (
 
-            <div className="profile-field">
+            <div className="profile-fields">
 
-              <span>
-                Full name
-              </span>
+              <div className="profile-field">
+                <span>Full name</span>
+                <strong>{user.name}</strong>
+              </div>
 
-              <strong>
-                {user.name}
-              </strong>
+              <div className="profile-field">
+                <span>Email address</span>
+                <strong>
+                  {user.email || "Not provided"}
+                </strong>
+              </div>
 
-            </div>
-
-
-            <div className="profile-field">
-
-              <span>
-                Email address
-              </span>
-
-              <strong>
-                {user.email || "Not provided"}
-              </strong>
+              <div className="profile-field">
+                <span>Phone number</span>
+                <strong>
+                  {user.phone || "Not provided"}
+                </strong>
+              </div>
 
             </div>
 
+          ) : (
 
-            <div className="profile-field">
+            <form
+              className="profile-edit-form"
+              onSubmit={handleSaveProfile}
+            >
 
-              <span>
-                Phone number
-              </span>
+              <div className="profile-input-group">
 
-              <strong>
-                {user.phone || "Not provided"}
-              </strong>
+                <label htmlFor="profile-name">
+                  Full name
+                </label>
 
-            </div>
+                <input
+                  id="profile-name"
+                  name="name"
+                  type="text"
+                  value={profileForm.name}
+                  onChange={handleProfileChange}
+                  placeholder="Enter your full name"
+                  autoComplete="name"
+                />
 
-          </div>
+              </div>
+
+
+              <div className="profile-input-group">
+
+                <label htmlFor="profile-email">
+                  Email address
+                </label>
+
+                <input
+                  id="profile-email"
+                  type="email"
+                  value={user.email}
+                  disabled
+                />
+
+                <small>
+                  Email address cannot be changed here.
+                </small>
+
+              </div>
+
+
+              <div className="profile-input-group">
+
+                <label htmlFor="profile-phone">
+                  Phone number
+                </label>
+
+                <input
+                  id="profile-phone"
+                  name="phone"
+                  type="tel"
+                  value={profileForm.phone}
+                  onChange={handleProfileChange}
+                  placeholder="Enter your phone number"
+                  autoComplete="tel"
+                />
+
+              </div>
+
+
+              <div className="profile-form-actions">
+
+                <button
+                  type="button"
+                  className="profile-cancel-button"
+                  onClick={handleCancelEdit}
+                  disabled={isSavingProfile}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="profile-save-button"
+                  disabled={isSavingProfile}
+                >
+                  {isSavingProfile
+                    ? "Saving..."
+                    : "Save changes"}
+                </button>
+
+              </div>
+
+            </form>
+
+          )}
 
         </section>
 
 
-        {/* SETTINGS */}
+        {/* PREFERENCES */}
 
         <section className="profile-section">
 
@@ -262,7 +572,7 @@ function CitizenProfile() {
               <h2>Security</h2>
 
               <p>
-                Keep your account secure.
+                Keep your CivicFix account protected.
               </p>
             </div>
 
@@ -271,48 +581,215 @@ function CitizenProfile() {
           </div>
 
 
-          <div className="settings-list">
+          <form
+            className="password-form"
+            onSubmit={handleChangePassword}
+          >
+
+            <div className="password-field">
+
+              <label htmlFor="current-password">
+                Current password
+              </label>
+
+              <div className="password-input-wrapper">
+
+                <input
+                  id="current-password"
+                  name="currentPassword"
+                  type={
+                    showCurrentPassword
+                      ? "text"
+                      : "password"
+                  }
+                  value={passwordForm.currentPassword}
+                  onChange={handlePasswordChange}
+                  placeholder="Enter current password"
+                  autoComplete="current-password"
+                />
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowCurrentPassword(
+                      (previous) => !previous
+                    )
+                  }
+                  aria-label={
+                    showCurrentPassword
+                      ? "Hide current password"
+                      : "Show current password"
+                  }
+                >
+                  {showCurrentPassword ? (
+                    <EyeOff size={17} />
+                  ) : (
+                    <Eye size={17} />
+                  )}
+                </button>
+
+              </div>
+
+            </div>
+
+
+            <div className="password-field">
+
+              <label htmlFor="new-password">
+                New password
+              </label>
+
+              <div className="password-input-wrapper">
+
+                <input
+                  id="new-password"
+                  name="newPassword"
+                  type={
+                    showNewPassword
+                      ? "text"
+                      : "password"
+                  }
+                  value={passwordForm.newPassword}
+                  onChange={handlePasswordChange}
+                  placeholder="Minimum 8 characters"
+                  autoComplete="new-password"
+                />
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowNewPassword(
+                      (previous) => !previous
+                    )
+                  }
+                  aria-label={
+                    showNewPassword
+                      ? "Hide new password"
+                      : "Show new password"
+                  }
+                >
+                  {showNewPassword ? (
+                    <EyeOff size={17} />
+                  ) : (
+                    <Eye size={17} />
+                  )}
+                </button>
+
+              </div>
+
+            </div>
+
+
+            <div className="password-field">
+
+              <label htmlFor="confirm-password">
+                Confirm new password
+              </label>
+
+              <div className="password-input-wrapper">
+
+                <input
+                  id="confirm-password"
+                  name="confirmPassword"
+                  type={
+                    showConfirmPassword
+                      ? "text"
+                      : "password"
+                  }
+                  value={passwordForm.confirmPassword}
+                  onChange={handlePasswordChange}
+                  placeholder="Re-enter your new password"
+                  autoComplete="new-password"
+                />
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowConfirmPassword(
+                      (previous) => !previous
+                    )
+                  }
+                  aria-label={
+                    showConfirmPassword
+                      ? "Hide confirm password"
+                      : "Show confirm password"
+                  }
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff size={17} />
+                  ) : (
+                    <Eye size={17} />
+                  )}
+                </button>
+
+              </div>
+
+            </div>
+
+
+            <div className="password-requirement">
+              <Lock size={15} />
+
+              <span>
+                Use at least 8 characters for your new password.
+              </span>
+            </div>
+
+
+            {passwordMessage && (
+              <div className="password-alert password-alert-success">
+                <Check size={16} />
+                <span>{passwordMessage}</span>
+              </div>
+            )}
+
+            {passwordError && (
+              <div className="password-alert password-alert-error">
+                <X size={16} />
+                <span>{passwordError}</span>
+              </div>
+            )}
+
 
             <button
-              className="setting-item"
-              type="button"
-              disabled
-              title="Password management will be added later"
+              className="change-password-button"
+              type="submit"
+              disabled={isChangingPassword}
             >
-
-              <div className="setting-icon">
-                <Lock size={16} />
-              </div>
-
-              <div>
-                <strong>
-                  Change password
-                </strong>
-
-                <span>
-                  Update your account password.
-                </span>
-              </div>
-
-              <ChevronRight size={16} />
-
+              {isChangingPassword
+                ? "Updating password..."
+                : "Update password"}
             </button>
 
-          </div>
+          </form>
 
         </section>
 
 
         {/* LOGOUT */}
 
-        <button
-          className="logout-button"
-          type="button"
-          onClick={handleLogout}
-        >
-          <LogOut size={15} />
-          Sign out
-        </button>
+        <section className="logout-section">
+
+          <div>
+            <strong>
+              Sign out of CivicFix
+            </strong>
+
+            <span>
+              You'll need to sign in again to access your account.
+            </span>
+          </div>
+
+          <button
+            className="logout-button"
+            type="button"
+            onClick={handleLogout}
+          >
+            <LogOut size={15} />
+            Sign out
+          </button>
+
+        </section>
 
       </main>
 

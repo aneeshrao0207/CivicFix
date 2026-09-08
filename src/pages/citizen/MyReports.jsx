@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 
 import {
   AlertCircle,
-  ArrowLeft,
   CheckCircle2,
   ChevronRight,
   Clock3,
@@ -164,30 +163,12 @@ function MyReports() {
     <div className="my-reports-page">
 
       {/* =========================================
-          BACK TO DASHBOARD
-      ========================================= */}
-
-      <div className="my-reports-back">
-
-        <Link to="/citizen/dashboard">
-          <ArrowLeft size={15} />
-          Back to Dashboard
-        </Link>
-
-      </div>
-
-
-      {/* =========================================
           HEADER
       ========================================= */}
 
       <header className="my-reports-header">
 
         <div>
-
-          <p className="my-reports-eyebrow">
-            CITIZEN PORTAL
-          </p>
 
           <h1>
             My Reports

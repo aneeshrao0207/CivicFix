@@ -5,11 +5,13 @@ import {
   Mail,
   Eye,
   EyeOff,
+  ShieldCheck,
+  CheckCircle2,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../../components/ui/Button";
 import { apiRequest } from "../../services/api";
-import "./Auth.css";
+import "./CitizenLogin.css";
 
 function CitizenLogin() {
   const navigate = useNavigate();
@@ -52,28 +54,20 @@ function CitizenLogin() {
         }),
       });
 
-      // Make sure the logged-in account is a citizen
       if (data.user?.role !== "citizen") {
         throw new Error(
           "This account is not registered as a citizen."
         );
       }
 
-      // Save JWT token
-      localStorage.setItem(
-        "civicfix_token",
-        data.token
-      );
+      localStorage.setItem("civicfix_token", data.token);
 
-      // Save logged-in user information
       localStorage.setItem(
         "civicfix_user",
         JSON.stringify(data.user)
       );
 
-      // Redirect to citizen dashboard
       navigate("/citizen/dashboard");
-
     } catch (loginError) {
       console.error("Citizen login error:", loginError);
 
@@ -87,17 +81,31 @@ function CitizenLogin() {
   };
 
   return (
-    <div className="auth-page">
+    <div className="citizen-login-page">
 
-      {/* LEFT BRAND PANEL */}
-      <section className="auth-brand-panel">
+      {/* =========================================
+          BRAND SIDE
+      ========================================= */}
 
-        <Link to="/" className="auth-brand">
-          <span className="auth-brand-mark">C</span>
-          CivicFix
+      <section className="citizen-login-brand">
+
+        <div className="citizen-login-brand-grid" />
+
+        <div className="citizen-login-glow citizen-login-glow-one" />
+        <div className="citizen-login-glow citizen-login-glow-two" />
+
+        <Link to="/" className="citizen-login-logo">
+          <span className="citizen-login-logo-mark">C</span>
+
+          <span>CivicFix</span>
         </Link>
 
-        <div className="auth-brand-content">
+        <div className="citizen-login-brand-content">
+
+          <div className="citizen-login-kicker">
+            <span className="citizen-login-kicker-dot" />
+            Built for better communities
+          </div>
 
           <h1>
             Your city.
@@ -106,65 +114,122 @@ function CitizenLogin() {
           </h1>
 
           <p>
-            Report problems around you, follow their progress
-            and stay informed as your community gets better.
+            Report civic problems, track their progress,
+            and help make your community cleaner, safer,
+            and better.
           </p>
+
+          <div className="citizen-login-trust-list">
+
+            <div className="citizen-login-trust-item">
+              <CheckCircle2 size={17} />
+              <span>Report issues in your community</span>
+            </div>
+
+            <div className="citizen-login-trust-item">
+              <CheckCircle2 size={17} />
+              <span>Track every report in one place</span>
+            </div>
+
+            <div className="citizen-login-trust-item">
+              <CheckCircle2 size={17} />
+              <span>Stay informed as issues are resolved</span>
+            </div>
+
+          </div>
 
         </div>
 
-        <div className="auth-brand-footer">
-          Report Problems. Drive Action.
+        <div className="citizen-login-brand-footer">
+          <span>Report Problems.</span>
+          <span>Drive Action.</span>
         </div>
 
       </section>
 
-      {/* FORM PANEL */}
-      <section className="auth-form-panel">
 
-        <div className="auth-form-container">
+      {/* =========================================
+          FORM SIDE
+      ========================================= */}
 
-          <div className="auth-form-header">
+      <section className="citizen-login-form-section">
 
-            <h2>Welcome back</h2>
+        <div className="citizen-login-form-container">
 
-            <p>
-              Sign in to view your reports and track
-              their progress.
-            </p>
+          {/* Mobile logo */}
+
+          <Link to="/" className="citizen-login-mobile-logo">
+            <span className="citizen-login-logo-mark">C</span>
+            <span>CivicFix</span>
+          </Link>
+
+
+          {/* Header */}
+
+          <div className="citizen-login-header">
+
+            <div className="citizen-login-welcome-icon">
+              <ShieldCheck size={22} />
+            </div>
+
+            <div>
+              <span className="citizen-login-eyebrow">
+                Citizen Portal
+              </span>
+
+              <h2>Welcome back</h2>
+
+              <p>
+                Sign in to manage your reports and
+                track their progress.
+              </p>
+            </div>
 
           </div>
 
-          {/* ERROR MESSAGE */}
+
+          {/* Error */}
+
           {error && (
-            <div className="auth-error">
-              {error}
+            <div
+              className="citizen-login-error"
+              role="alert"
+            >
+              <span className="citizen-login-error-icon">
+                !
+              </span>
+
+              <span>{error}</span>
             </div>
           )}
 
+
+          {/* Form */}
+
           <form
-            className="auth-form"
+            className="citizen-login-form"
             onSubmit={handleSubmit}
           >
 
-            {/* EMAIL */}
-            <div className="auth-field">
+            {/* Email */}
+
+            <div className="citizen-login-field">
 
               <label htmlFor="email">
                 Email address
               </label>
 
-              <div className="auth-input-wrapper">
+              <div className="citizen-login-input-wrap">
 
                 <Mail
                   size={18}
-                  className="auth-input-icon"
+                  className="citizen-login-input-icon"
                 />
 
                 <input
                   id="email"
                   name="email"
                   type="email"
-                  className="auth-input"
                   placeholder="you@example.com"
                   value={formData.email}
                   onChange={handleChange}
@@ -176,18 +241,31 @@ function CitizenLogin() {
 
             </div>
 
-            {/* PASSWORD */}
-            <div className="auth-field">
 
-              <label htmlFor="password">
-                Password
-              </label>
+            {/* Password */}
 
-              <div className="auth-input-wrapper">
+            <div className="citizen-login-field">
+
+              <div className="citizen-login-label-row">
+
+                <label htmlFor="password">
+                  Password
+                </label>
+
+                <Link
+                  to="/citizen/forgot-password"
+                  className="citizen-login-forgot"
+                >
+                  Forgot password?
+                </Link>
+
+              </div>
+
+              <div className="citizen-login-input-wrap">
 
                 <LockKeyhole
                   size={18}
-                  className="auth-input-icon"
+                  className="citizen-login-input-icon"
                 />
 
                 <input
@@ -198,7 +276,6 @@ function CitizenLogin() {
                       ? "text"
                       : "password"
                   }
-                  className="auth-input"
                   placeholder="Enter your password"
                   value={formData.password}
                   onChange={handleChange}
@@ -208,9 +285,11 @@ function CitizenLogin() {
 
                 <button
                   type="button"
-                  className="auth-password-toggle"
+                  className="citizen-login-password-toggle"
                   onClick={() =>
-                    setShowPassword((previous) => !previous)
+                    setShowPassword(
+                      (previous) => !previous
+                    )
                   }
                   aria-label={
                     showPassword
@@ -229,31 +308,26 @@ function CitizenLogin() {
 
             </div>
 
-            {/* OPTIONS */}
-            <div className="auth-form-options">
 
-              <label className="auth-checkbox">
+            {/* Remember */}
 
-                <input
-                  type="checkbox"
-                  name="remember"
-                />
+            <label className="citizen-login-remember">
 
+              <input
+                type="checkbox"
+                name="remember"
+              />
+
+              <span>
                 Remember me
+              </span>
 
-              </label>
+            </label>
 
-              <Link
-                to="/citizen/forgot-password"
-                className="auth-link"
-              >
-                Forgot password?
-              </Link>
 
-            </div>
+            {/* Submit */}
 
-            {/* SUBMIT */}
-            <div className="auth-submit">
+            <div className="citizen-login-submit">
 
               <Button
                 type="submit"
@@ -261,7 +335,10 @@ function CitizenLogin() {
                 disabled={loading}
               >
                 {loading ? (
-                  "Signing in..."
+                  <span className="citizen-login-loading">
+                    <span className="citizen-login-spinner" />
+                    Signing in...
+                  </span>
                 ) : (
                   <>
                     Sign in
@@ -274,14 +351,31 @@ function CitizenLogin() {
 
           </form>
 
-          {/* REGISTER LINK */}
-          <div className="auth-switch">
 
-            Don't have an account?{" "}
+          {/* Register */}
+
+          <div className="citizen-login-register">
+
+            <span>
+              Don't have an account?
+            </span>
 
             <Link to="/citizen/register">
               Create one
             </Link>
+
+          </div>
+
+
+          {/* Security */}
+
+          <div className="citizen-login-security">
+
+            <ShieldCheck size={16} />
+
+            <span>
+              Your account and reports are securely protected.
+            </span>
 
           </div>
 

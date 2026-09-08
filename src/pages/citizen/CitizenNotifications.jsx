@@ -1,380 +1,463 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Bell,
-  CheckCircle2,
+  Check,
+  CheckCheck,
+  ChevronRight,
   Clock3,
   FileText,
-  Info,
+  RefreshCw,
+  ShieldCheck,
+  XCircle,
 } from "lucide-react";
 
 import { apiRequest } from "../../services/api";
-
 import "./CitizenNotifications.css";
+
+const getNotificationIcon = (notification) => {
+  const text = `${notification.title || ""} ${
+    notification.message || notification.body || ""
+  }`.toLowerCase();
+
+  if (
+    text.includes("resolved") ||
+    text.includes("complete") ||
+    text.includes("completed")
+  ) {
+    return Check;
+  }
+
+  if (
+    text.includes("reject") ||
+    text.includes("rejected")
+  ) {
+    return XCircle;
+  }
+
+  if (
+    text.includes("progress") ||
+    text.includes("update") ||
+    text.includes("assigned")
+  ) {
+    return RefreshCw;
+  }
+
+  return FileText;
+};
+
+const formatNotificationTime = (date) => {
+  if (!date) return "";
+
+  const notificationDate = new Date(date);
+  const now = new Date();
+
+  const difference = now.getTime() - notificationDate.getTime();
+
+  const minutes = Math.floor(difference / (1000 * 60));
+  const hours = Math.floor(difference / (1000 * 60 * 60));
+  const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days < 7) return `${days}d ago`;
+
+  return notificationDate.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+const getNotificationDate = (notification) =>
+  notification.created_at ||
+  notification.createdAt ||
+  notification.timestamp ||
+  notification.date;
+
+const getNotificationMessage = (notification) =>
+  notification.message ||
+  notification.body ||
+  notification.description ||
+  "You have a new update regarding your CivicFix activity.";
+
+const getNotificationIssueId = (notification) =>
+  notification.issue_id ||
+  notification.issueId ||
+  notification.report_id ||
+  notification.reportId ||
+  null;
+
+const isUnread = (notification) =>
+  notification.is_read === false ||
+  notification.isRead === false ||
+  notification.read === false ||
+  notification.read_at === null ||
+  notification.readAt === null;
 
 function CitizenNotifications() {
   const [notifications, setNotifications] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [isMarkingAll, setIsMarkingAll] = useState(false);
-
-  const getNotificationIcon = (type) => {
-    switch (type) {
-      case "status":
-        return Clock3;
-
-      case "review":
-        return FileText;
-
-      case "resolved":
-        return CheckCircle2;
-
-      default:
-        return Info;
-    }
-  };
-
-  const getNotificationType = (notification) => {
-    const type = String(
-      notification.type ||
-        notification.notification_type ||
-        "info"
-    ).toLowerCase();
-
-    if (type.includes("status")) {
-      return "status";
-    }
-
-    if (type.includes("review")) {
-      return "review";
-    }
-
-    if (type.includes("resolv")) {
-      return "resolved";
-    }
-
-    return "info";
-  };
-
-  const formatTime = (dateValue) => {
-    if (!dateValue) {
-      return "Recently";
-    }
-
-    const date = new Date(dateValue);
-
-    if (Number.isNaN(date.getTime())) {
-      return "Recently";
-    }
-
-    return date.toLocaleString("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
-  };
-
-  const loadNotifications = async () => {
-    try {
-      setIsLoading(true);
-      setError("");
-
-      const data = await apiRequest("/notifications");
-
-      setNotifications(data.notifications || []);
-    } catch (loadError) {
-      console.error(
-        "Notification loading error:",
-        loadError
-      );
-
-      setError(
-        loadError.message ||
-          "Unable to load notifications."
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const [markingAll, setMarkingAll] = useState(false);
 
   useEffect(() => {
-    loadNotifications();
+    const fetchNotifications = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const data = await apiRequest("/notifications");
+
+        setNotifications(
+          Array.isArray(data)
+            ? data
+            : data.notifications || []
+        );
+      } catch (err) {
+        setError(
+          err.message || "Unable to load your notifications."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotifications();
   }, []);
 
-  const markAsRead = async (notificationId) => {
-    try {
-      await apiRequest(
-        `/notifications/${notificationId}/read`,
-        {
-          method: "PATCH",
-        }
-      );
+  const unreadCount = useMemo(
+    () => notifications.filter(isUnread).length,
+    [notifications]
+  );
 
-      setNotifications((previous) =>
-        previous.map((notification) =>
-          notification.id === notificationId
-            ? {
-                ...notification,
-                is_read: true,
-                read: true,
-                unread: false,
-              }
-            : notification
-        )
-      );
-    } catch (readError) {
-      console.error(
-        "Mark notification as read error:",
-        readError
-      );
+  const markAsRead = async (notification) => {
+    const notificationId =
+      notification.id ||
+      notification.notification_id ||
+      notification.notificationId;
 
-      setError(
-        readError.message ||
-          "Unable to mark notification as read."
-      );
-    }
-  };
-
-  const markAllAsRead = async () => {
-    const unreadNotifications = notifications.filter(
-      (notification) =>
-        !notification.is_read &&
-        !notification.read
-    );
-
-    if (unreadNotifications.length === 0) {
+    if (!notificationId || !isUnread(notification)) {
       return;
     }
 
     try {
-      setIsMarkingAll(true);
-      setError("");
+      await apiRequest(`/notifications/${notificationId}/read`, {
+        method: "PATCH",
+      });
 
-      await Promise.all(
-        unreadNotifications.map((notification) =>
-          apiRequest(
-            `/notifications/${notification.id}/read`,
-            {
-              method: "PATCH",
-            }
-          )
-        )
-      );
+      setNotifications((current) =>
+        current.map((item) => {
+          const itemId =
+            item.id ||
+            item.notification_id ||
+            item.notificationId;
 
-      setNotifications((previous) =>
-        previous.map((notification) => ({
-          ...notification,
-          is_read: true,
-          read: true,
-          unread: false,
-        }))
-      );
-    } catch (readError) {
-      console.error(
-        "Mark all notifications error:",
-        readError
-      );
+          if (itemId !== notificationId) {
+            return item;
+          }
 
-      setError(
-        readError.message ||
-          "Unable to mark all notifications as read."
+          return {
+            ...item,
+            is_read: true,
+            isRead: true,
+            read: true,
+          };
+        })
       );
-    } finally {
-      setIsMarkingAll(false);
+    } catch (err) {
+      console.error("Unable to mark notification as read:", err);
     }
   };
 
-  const unreadCount = notifications.filter(
-    (notification) =>
-      !notification.is_read &&
-      !notification.read
-  ).length;
+  const markAllAsRead = async () => {
+    const unreadNotifications =
+      notifications.filter(isUnread);
 
-  return (
-    <div className="citizen-notifications-page">
+    if (!unreadNotifications.length) {
+      return;
+    }
 
-      {/* HEADER */}
+    try {
+      setMarkingAll(true);
 
-      <header className="notifications-header">
+      await Promise.all(
+        unreadNotifications.map((notification) => {
+          const notificationId =
+            notification.id ||
+            notification.notification_id ||
+            notification.notificationId;
 
-        <div>
-          <p className="notifications-eyebrow">
-            CITIZEN PORTAL
-          </p>
-
-          <h1>Notifications</h1>
-
-          <p>
-            Stay updated on your reported issues.
-          </p>
-        </div>
-
-        <button
-          className="mark-read-button"
-          onClick={markAllAsRead}
-          disabled={
-            isMarkingAll ||
-            unreadCount === 0
+          if (!notificationId) {
+            return Promise.resolve();
           }
-        >
-          {isMarkingAll
-            ? "Marking..."
-            : "Mark all as read"}
-        </button>
 
-      </header>
+          return apiRequest(
+            `/notifications/${notificationId}/read`,
+            {
+              method: "PATCH",
+            }
+          );
+        })
+      );
 
+      setNotifications((current) =>
+        current.map((notification) => ({
+          ...notification,
+          is_read: true,
+          isRead: true,
+          read: true,
+        }))
+      );
+    } catch (err) {
+      setError(
+        err.message || "Some notifications could not be updated."
+      );
+    } finally {
+      setMarkingAll(false);
+    }
+  };
 
-      {/* ERROR */}
+  const renderNotificationContent = (notification) => {
+    const NotificationIcon = getNotificationIcon(notification);
 
-      {error && (
-        <div className="auth-error">
-          {error}
+    const issueId = getNotificationIssueId(notification);
+
+    const notificationContent = (
+      <>
+        <div className="notification-icon">
+          <NotificationIcon size={18} />
         </div>
-      )}
 
+        <div className="notification-content">
+          <div className="notification-heading">
+            <h3>
+              {notification.title ||
+                notification.subject ||
+                "CivicFix update"}
+            </h3>
 
-      {/* LOADING */}
-
-      {isLoading ? (
-
-        <div className="notifications-empty">
-
-          <Bell size={22} />
-
-          <h2>Loading notifications...</h2>
-
-          <p>
-            Please wait while we load your updates.
-          </p>
-
-        </div>
-
-      ) : (
-
-        <>
-
-          {/* SUMMARY */}
-
-          <div className="notification-summary">
-
-            <div>
-              <strong>
-                {unreadCount}
-              </strong>
-
-              <span>
-                Unread notifications
-              </span>
-            </div>
-
-            <div>
-              <strong>
-                {notifications.length}
-              </strong>
-
-              <span>
-                Total notifications
-              </span>
-            </div>
-
+            {isUnread(notification) && (
+              <span className="unread-dot" />
+            )}
           </div>
 
+          <p>{getNotificationMessage(notification)}</p>
 
-          {/* NOTIFICATIONS */}
+          <div className="notification-meta">
+            <span>
+              <Clock3 size={12} />
+              {formatNotificationTime(
+                getNotificationDate(notification)
+              )}
+            </span>
 
-          {notifications.length > 0 ? (
+            {issueId && (
+              <span className="notification-report-id">
+                Report #{issueId}
+              </span>
+            )}
+          </div>
+        </div>
 
-            <section className="notifications-list">
+        {issueId && (
+          <div className="notification-arrow">
+            <ChevronRight size={18} />
+          </div>
+        )}
+      </>
+    );
 
-              {notifications.map((notification) => {
+    if (issueId) {
+      return (
+        <Link
+          to={`/citizen/reports/${issueId}`}
+          className="notification-link"
+          onClick={() => markAsRead(notification)}
+        >
+          {notificationContent}
+        </Link>
+      );
+    }
 
-                const type =
-                  getNotificationType(notification);
+    return (
+      <button
+        type="button"
+        className="notification-button"
+        onClick={() => markAsRead(notification)}
+      >
+        {notificationContent}
+      </button>
+    );
+  };
 
-                const Icon =
-                  getNotificationIcon(type);
+  if (loading) {
+    return (
+      <main className="notifications-page">
+        <div className="notifications-container">
+          <div className="notifications-loading">
+            <div className="notifications-loading-spinner" />
 
-                const isUnread =
-                  !notification.is_read &&
-                  !notification.read;
+            <h2>Loading notifications</h2>
+
+            <p>
+              We're checking for the latest updates on your reports.
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="notifications-page">
+      <div className="notifications-container">
+
+        {/* HEADER */}
+        <header className="notifications-header">
+          <div>
+            <div className="notifications-eyebrow">
+              <Bell size={14} />
+              NOTIFICATION CENTER
+            </div>
+
+            <h1>Notifications</h1>
+
+            <p>
+              Stay updated with changes and important activity
+              related to your civic reports.
+            </p>
+          </div>
+
+          <div className="notifications-header-actions">
+            {unreadCount > 0 && (
+              <span className="unread-count">
+                {unreadCount} unread
+              </span>
+            )}
+
+            <button
+              type="button"
+              className="mark-all-button"
+              onClick={markAllAsRead}
+              disabled={!unreadCount || markingAll}
+            >
+              <CheckCheck size={16} />
+
+              {markingAll
+                ? "Updating..."
+                : "Mark all as read"}
+            </button>
+          </div>
+        </header>
+
+        {/* ERROR */}
+        {error && (
+          <div className="notifications-error">
+            <XCircle size={18} />
+
+            <span>{error}</span>
+
+            <button
+              type="button"
+              onClick={() => setError("")}
+              aria-label="Dismiss error"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        {/* NOTIFICATION LIST */}
+        {notifications.length > 0 ? (
+          <section className="notifications-card">
+
+            <div className="notifications-card-header">
+              <div>
+                <span className="section-label">
+                  RECENT ACTIVITY
+                </span>
+
+                <h2>Your updates</h2>
+              </div>
+
+              <div className="notification-total">
+                {notifications.length}{" "}
+                {notifications.length === 1
+                  ? "notification"
+                  : "notifications"}
+              </div>
+            </div>
+
+            <div className="notification-list">
+              {notifications.map((notification, index) => {
+                const notificationId =
+                  notification.id ||
+                  notification.notification_id ||
+                  notification.notificationId ||
+                  index;
 
                 return (
                   <article
-                    className={`notification-card ${
-                      isUnread ? "unread" : ""
+                    key={notificationId}
+                    className={`notification-item ${
+                      isUnread(notification)
+                        ? "notification-unread"
+                        : "notification-read"
                     }`}
-                    key={notification.id}
-                    onClick={() => {
-                      if (isUnread) {
-                        markAsRead(notification.id);
-                      }
-                    }}
                   >
-
-                    <div
-                      className={`notification-icon ${type}`}
-                    >
-                      <Icon size={18} />
-                    </div>
-
-
-                    <div className="notification-content">
-
-                      <div className="notification-title-row">
-
-                        <h2>
-                          {notification.title ||
-                            "CivicFix Update"}
-                        </h2>
-
-                        {isUnread && (
-                          <span className="unread-dot" />
-                        )}
-
-                      </div>
-
-
-                      <p>
-                        {notification.message ||
-                          "You have a new update regarding your CivicFix report."}
-                      </p>
-
-
-                      <span className="notification-time">
-                        {formatTime(
-                          notification.created_at ||
-                            notification.createdAt
-                        )}
-                      </span>
-
-                    </div>
-
+                    {renderNotificationContent(notification)}
                   </article>
                 );
               })}
-
-            </section>
-
-          ) : (
-
-            <div className="notifications-empty">
-
-              <Bell size={22} />
-
-              <h2>No notifications</h2>
-
-              <p>
-                Updates about your reports will appear here.
-              </p>
-
+            </div>
+          </section>
+        ) : (
+          /* EMPTY STATE */
+          <section className="notifications-empty">
+            <div className="empty-notification-icon">
+              <Bell size={25} />
             </div>
 
-          )}
+            <span className="section-label">
+              ALL CAUGHT UP
+            </span>
 
-        </>
+            <h2>No notifications yet</h2>
 
-      )}
+            <p>
+              When there is an important update on your reports,
+              you'll find it here.
+            </p>
 
-    </div>
+            <Link
+              to="/citizen/reports"
+              className="notifications-empty-link"
+            >
+              <FileText size={16} />
+              View my reports
+            </Link>
+          </section>
+        )}
+
+        {/* FOOTER TRUST MESSAGE */}
+        <div className="notifications-trust">
+          <div className="notifications-trust-icon">
+            <ShieldCheck size={17} />
+          </div>
+
+          <div>
+            <strong>Stay informed</strong>
+            <p>
+              CivicFix notifications help you follow the progress
+              of your reported issues.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </main>
   );
 }
 

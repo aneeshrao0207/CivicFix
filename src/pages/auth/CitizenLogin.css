@@ -1,0 +1,851 @@
+/* =========================================================
+   CIVICFIX — CITIZEN LOGIN
+   Premium Authentication Experience
+========================================================= */
+
+.citizen-login-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(480px, 0.92fr);
+  background: var(--color-background);
+}
+
+
+/* =========================================================
+   BRAND PANEL
+========================================================= */
+
+.citizen-login-brand {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  padding: 42px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: #0b1424;
+  color: #ffffff;
+}
+
+.citizen-login-brand-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.32;
+  background-image:
+    linear-gradient(
+      rgba(255, 255, 255, 0.045) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.045) 1px,
+      transparent 1px
+    );
+  background-size: 56px 56px;
+  mask-image: linear-gradient(
+    to bottom right,
+    black,
+    transparent 82%
+  );
+}
+
+.citizen-login-brand::before {
+  content: "";
+  position: absolute;
+  width: 620px;
+  height: 620px;
+  border-radius: 50%;
+  top: -270px;
+  right: -220px;
+  border: 1px solid rgba(77, 141, 255, 0.14);
+  box-shadow:
+    0 0 0 80px rgba(77, 141, 255, 0.025),
+    0 0 0 160px rgba(77, 141, 255, 0.018);
+}
+
+.citizen-login-brand::after {
+  content: "";
+  position: absolute;
+  width: 440px;
+  height: 440px;
+  border-radius: 50%;
+  bottom: -300px;
+  left: -180px;
+  border: 1px solid rgba(77, 141, 255, 0.12);
+}
+
+.citizen-login-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  pointer-events: none;
+}
+
+.citizen-login-glow-one {
+  width: 280px;
+  height: 280px;
+  top: 25%;
+  right: 15%;
+  background: rgba(30, 100, 255, 0.13);
+}
+
+.citizen-login-glow-two {
+  width: 220px;
+  height: 220px;
+  bottom: 12%;
+  left: 15%;
+  background: rgba(0, 198, 255, 0.07);
+}
+
+
+/* =========================================================
+   BRAND LOGO
+========================================================= */
+
+.citizen-login-logo {
+  position: relative;
+  z-index: 2;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+
+  width: fit-content;
+
+  color: #ffffff;
+
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+
+  text-decoration: none;
+}
+
+.citizen-login-logo-mark {
+  width: 36px;
+  height: 36px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  background: #4d8dff;
+
+  color: #ffffff;
+
+  font-size: 15px;
+  font-weight: 800;
+
+  box-shadow:
+    0 8px 24px rgba(77, 141, 255, 0.22);
+}
+
+
+/* =========================================================
+   BRAND CONTENT
+========================================================= */
+
+.citizen-login-brand-content {
+  position: relative;
+  z-index: 2;
+
+  width: 100%;
+  max-width: 650px;
+
+  margin: auto 0;
+}
+
+.citizen-login-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+
+  margin-bottom: 22px;
+
+  color: #9fb4d1;
+
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.citizen-login-kicker-dot {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: #4d8dff;
+
+  box-shadow:
+    0 0 0 5px rgba(77, 141, 255, 0.1);
+}
+
+.citizen-login-brand-content h1 {
+  margin: 0 0 26px;
+
+  color: #ffffff;
+
+  font-size: clamp(52px, 5.6vw, 78px);
+  line-height: 0.98;
+
+  font-weight: 800;
+
+  letter-spacing: -4px;
+}
+
+.citizen-login-brand-content h1 span {
+  color: #4d8dff;
+}
+
+.citizen-login-brand-content p {
+  max-width: 540px;
+
+  margin: 0;
+
+  color: #aebbd0;
+
+  font-size: 17px;
+  line-height: 1.75;
+}
+
+
+/* =========================================================
+   TRUST LIST
+========================================================= */
+
+.citizen-login-trust-list {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+
+  margin-top: 34px;
+}
+
+.citizen-login-trust-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+
+  color: #c7d3e5;
+
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.citizen-login-trust-item svg {
+  flex: 0 0 auto;
+
+  color: #4d8dff;
+}
+
+
+/* =========================================================
+   BRAND FOOTER
+========================================================= */
+
+.citizen-login-brand-footer {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  gap: 6px;
+
+  color: #66758c;
+
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.citizen-login-brand-footer span:last-child {
+  color: #8999af;
+}
+
+
+/* =========================================================
+   FORM SECTION
+========================================================= */
+
+.citizen-login-form-section {
+  min-height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 48px 64px;
+
+  background: var(--color-surface);
+
+  border-left: 1px solid var(--color-border);
+}
+
+.citizen-login-form-container {
+  width: 100%;
+  max-width: 430px;
+}
+
+
+/* =========================================================
+   MOBILE LOGO
+========================================================= */
+
+.citizen-login-mobile-logo {
+  display: none;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.citizen-login-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+
+  margin-bottom: 30px;
+}
+
+.citizen-login-welcome-icon {
+  width: 44px;
+  height: 44px;
+
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid var(--color-border);
+
+  border-radius: 12px;
+
+  background: var(--color-primary-soft);
+
+  color: var(--color-primary);
+}
+
+.citizen-login-eyebrow {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color: var(--color-primary);
+
+  font-size: 11px;
+  font-weight: 800;
+
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.citizen-login-header h2 {
+  margin: 0 0 7px;
+
+  color: var(--color-text-primary);
+
+  font-size: 32px;
+  line-height: 1.1;
+
+  letter-spacing: -1.3px;
+}
+
+.citizen-login-header p {
+  margin: 0;
+
+  color: var(--color-text-secondary);
+
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+.citizen-login-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  margin-bottom: 22px;
+  padding: 12px 13px;
+
+  border: 1px solid rgba(249, 112, 102, 0.28);
+  border-radius: 10px;
+
+  background: var(--color-danger-bg);
+
+  color: var(--color-danger);
+
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.citizen-login-error-icon {
+  width: 19px;
+  height: 19px;
+
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: rgba(249, 112, 102, 0.14);
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.citizen-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 21px;
+}
+
+.citizen-login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.citizen-login-field label {
+  color: var(--color-text-primary);
+
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.citizen-login-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.citizen-login-forgot {
+  color: var(--color-primary);
+
+  font-size: 12px;
+  font-weight: 650;
+
+  text-decoration: none;
+}
+
+.citizen-login-forgot:hover {
+  text-decoration: underline;
+}
+
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+.citizen-login-input-wrap {
+  position: relative;
+}
+
+.citizen-login-input-icon {
+  position: absolute;
+
+  left: 14px;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  color: var(--color-text-muted);
+
+  pointer-events: none;
+
+  transition: color 0.2s ease;
+}
+
+.citizen-login-input-wrap:focus-within
+  .citizen-login-input-icon {
+  color: var(--color-primary);
+}
+
+.citizen-login-input-wrap input {
+  width: 100%;
+  height: 50px;
+
+  box-sizing: border-box;
+
+  padding: 0 44px 0 43px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+
+  outline: none;
+
+  background: var(--color-background);
+
+  color: var(--color-text-primary);
+
+  font: inherit;
+  font-size: 14px;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.citizen-login-input-wrap input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.citizen-login-input-wrap input:hover {
+  border-color: var(--color-border-dark);
+}
+
+.citizen-login-input-wrap input:focus {
+  border-color: var(--color-primary);
+
+  background: var(--color-surface);
+
+  box-shadow:
+    0 0 0 3px rgba(77, 141, 255, 0.1);
+}
+
+
+/* =========================================================
+   PASSWORD TOGGLE
+========================================================= */
+
+.citizen-login-password-toggle {
+  position: absolute;
+
+  right: 11px;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 7px;
+
+  background: transparent;
+
+  color: var(--color-text-muted);
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.citizen-login-password-toggle:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text-primary);
+}
+
+
+/* =========================================================
+   REMEMBER
+========================================================= */
+
+.citizen-login-remember {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  width: fit-content;
+
+  color: var(--color-text-secondary);
+
+  font-size: 13px;
+
+  cursor: pointer;
+}
+
+.citizen-login-remember input {
+  width: 15px;
+  height: 15px;
+
+  margin: 0;
+
+  accent-color: var(--color-primary);
+
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   SUBMIT
+========================================================= */
+
+.citizen-login-submit {
+  width: 100%;
+  margin-top: 2px;
+}
+
+.citizen-login-submit button {
+  width: 100%;
+}
+
+.citizen-login-loading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+}
+
+.citizen-login-spinner {
+  width: 14px;
+  height: 14px;
+
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+
+  border-radius: 50%;
+
+  animation: citizen-login-spin 0.7s linear infinite;
+}
+
+@keyframes citizen-login-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* =========================================================
+   REGISTER
+========================================================= */
+
+.citizen-login-register {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+
+  margin-top: 27px;
+
+  color: var(--color-text-secondary);
+
+  font-size: 13px;
+}
+
+.citizen-login-register a {
+  color: var(--color-primary);
+
+  font-weight: 700;
+
+  text-decoration: none;
+}
+
+.citizen-login-register a:hover {
+  text-decoration: underline;
+}
+
+
+/* =========================================================
+   SECURITY
+========================================================= */
+
+.citizen-login-security {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  margin-top: 28px;
+  padding-top: 20px;
+
+  border-top: 1px solid var(--color-border);
+
+  color: var(--color-text-muted);
+
+  font-size: 11px;
+  line-height: 1.5;
+
+  text-align: center;
+}
+
+.citizen-login-security svg {
+  flex: 0 0 auto;
+  color: var(--color-success);
+}
+
+
+/* =========================================================
+   RESPONSIVE — TABLET
+========================================================= */
+
+@media (max-width: 1050px) {
+
+  .citizen-login-page {
+    grid-template-columns: minmax(0, 1fr) minmax(420px, 0.85fr);
+  }
+
+  .citizen-login-brand {
+    padding: 38px 38px;
+  }
+
+  .citizen-login-form-section {
+    padding: 42px 38px;
+  }
+
+  .citizen-login-brand-content h1 {
+    font-size: clamp(48px, 5vw, 64px);
+  }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE — MOBILE
+========================================================= */
+
+@media (max-width: 850px) {
+
+  .citizen-login-page {
+    display: block;
+    min-height: 100vh;
+  }
+
+  .citizen-login-brand {
+    display: none;
+  }
+
+  .citizen-login-form-section {
+    min-height: 100vh;
+
+    padding: 34px 24px;
+
+    border-left: 0;
+  }
+
+  .citizen-login-mobile-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+
+    margin-bottom: 48px;
+
+    color: var(--color-text-primary);
+
+    font-size: 20px;
+    font-weight: 800;
+
+    letter-spacing: -0.5px;
+
+    text-decoration: none;
+  }
+
+  .citizen-login-mobile-logo .citizen-login-logo-mark {
+    width: 34px;
+    height: 34px;
+
+    font-size: 14px;
+  }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE — SMALL MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+
+  .citizen-login-form-section {
+    padding: 26px 18px;
+  }
+
+  .citizen-login-mobile-logo {
+    margin-bottom: 38px;
+  }
+
+  .citizen-login-header {
+    gap: 12px;
+
+    margin-bottom: 27px;
+  }
+
+  .citizen-login-welcome-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .citizen-login-header h2 {
+    font-size: 28px;
+  }
+
+  .citizen-login-header p {
+    font-size: 13px;
+  }
+
+  .citizen-login-form {
+    gap: 18px;
+  }
+
+  .citizen-login-label-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .citizen-login-register {
+    flex-wrap: wrap;
+  }
+
+}
+
+
+/* =========================================================
+   ACCESSIBILITY
+========================================================= */
+
+.citizen-login-page button:focus-visible,
+.citizen-login-page a:focus-visible,
+.citizen-login-page input:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+
+/* =========================================================
+   DARK MODE
+========================================================= */
+
+[data-theme="dark"] .citizen-login-brand {
+  background: #080d15;
+}
+
+[data-theme="dark"] .citizen-login-form-section {
+  background: var(--color-background);
+}
+
+[data-theme="dark"] .citizen-login-input-wrap input {
+  background: var(--color-surface);
+}
+
+[data-theme="dark"]
+.citizen-login-input-wrap input:focus {
+  background: var(--color-surface);
+}

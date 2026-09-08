@@ -764,3 +764,456 @@
     animation: none;
   }
 }
+/* =========================================================
+   HELP CENTER MODAL
+========================================================= */
+
+.citizen-help-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background: rgba(15, 23, 42, 0.45);
+
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+}
+
+.citizen-help-modal {
+  width: min(560px, 100%);
+  max-height: calc(100vh - 48px);
+
+  overflow-y: auto;
+
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+
+  box-shadow: var(--shadow-xl);
+
+  animation: citizenHelpModalIn 0.2s ease-out;
+}
+
+@keyframes citizenHelpModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* =========================================================
+   MODAL HEADER
+========================================================= */
+
+.citizen-help-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding: 28px 28px 22px;
+
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.citizen-help-modal-header > div:first-child {
+  min-width: 0;
+}
+
+.citizen-help-modal-eyebrow {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: var(--color-primary);
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.citizen-help-modal-header h2 {
+  margin: 0;
+
+  color: var(--color-text-primary);
+
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.25;
+
+  letter-spacing: -0.025em;
+}
+
+.citizen-help-modal-header p {
+  max-width: 430px;
+
+  margin: 8px 0 0;
+
+  color: var(--color-text-secondary);
+
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* =========================================================
+   BACK BUTTON
+========================================================= */
+
+.citizen-help-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  margin-bottom: 14px;
+  padding: 0;
+
+  border: 0;
+  background: transparent;
+
+  color: var(--color-text-secondary);
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.citizen-help-back:hover {
+  color: var(--color-primary);
+  transform: translateX(-2px);
+}
+
+/* =========================================================
+   CLOSE BUTTON
+========================================================= */
+
+.citizen-help-modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  width: 36px;
+  height: 36px;
+
+  padding: 0;
+
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+
+  background: var(--color-surface-muted);
+
+  color: var(--color-text-secondary);
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.citizen-help-modal-close:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+
+  border-color: var(--color-border-dark);
+
+  transform: rotate(2deg);
+}
+
+/* =========================================================
+   FAQ OPTIONS
+========================================================= */
+
+.citizen-help-options {
+  display: grid;
+  gap: 10px;
+
+  padding: 22px 28px;
+}
+
+.citizen-help-options button {
+  position: relative;
+
+  width: 100%;
+
+  padding: 16px 18px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+
+  background: transparent;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.citizen-help-options button:hover {
+  background: var(--color-surface-hover);
+
+  border-color: var(--color-border-dark);
+
+  transform: translateY(-1px);
+
+  box-shadow: var(--shadow-xs);
+}
+
+.citizen-help-options button:active {
+  transform: translateY(0);
+}
+
+.citizen-help-options strong {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: var(--color-text-primary);
+
+  font-size: 14px;
+  font-weight: 650;
+
+  line-height: 1.4;
+}
+
+.citizen-help-options span {
+  display: block;
+
+  color: var(--color-text-secondary);
+
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   FAQ ANSWER
+========================================================= */
+
+.citizen-help-answer {
+  padding: 26px 28px 28px;
+}
+
+.citizen-help-answer p {
+  margin: 0;
+
+  padding: 18px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+
+  background: var(--color-surface-muted);
+
+  color: var(--color-text-secondary);
+
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.citizen-help-answer-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-top: 18px;
+
+  padding: 10px 16px;
+
+  border: 1px solid var(--color-primary);
+  border-radius: 9px;
+
+  background: var(--color-primary);
+
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 650;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.citizen-help-answer-action:hover {
+  background: var(--color-primary-dark);
+
+  transform: translateY(-1px);
+
+  box-shadow: var(--shadow-sm);
+}
+
+/* =========================================================
+   MODAL FOOTER
+========================================================= */
+
+.citizen-help-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  padding: 18px 28px 24px;
+
+  border-top: 1px solid var(--color-border-light);
+}
+
+.citizen-help-modal-footer > span {
+  color: var(--color-text-secondary);
+
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   CONTACT SUPPORT
+========================================================= */
+
+.citizen-help-contact {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  flex-shrink: 0;
+
+  padding: 9px 14px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+
+  background: var(--color-surface-muted);
+
+  color: var(--color-text-primary);
+
+  font-size: 13px;
+  font-weight: 600;
+
+  text-decoration: none;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.citizen-help-contact:hover {
+  background: var(--color-surface-hover);
+
+  border-color: var(--color-border-dark);
+
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+   FOCUS STATES
+========================================================= */
+
+.citizen-help-options button:focus-visible,
+.citizen-help-modal-close:focus-visible,
+.citizen-help-back:focus-visible,
+.citizen-help-answer-action:focus-visible,
+.citizen-help-contact:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+  .citizen-help-modal-overlay {
+    align-items: flex-end;
+
+    padding: 12px;
+  }
+
+  .citizen-help-modal {
+    width: 100%;
+    max-height: calc(100vh - 24px);
+
+    border-radius: 16px;
+  }
+
+  .citizen-help-modal-header {
+    padding: 22px 20px 18px;
+  }
+
+  .citizen-help-modal-header h2 {
+    font-size: 21px;
+  }
+
+  .citizen-help-modal-header p {
+    font-size: 13px;
+  }
+
+  .citizen-help-modal-close {
+    width: 34px;
+    height: 34px;
+  }
+
+  .citizen-help-options {
+    padding: 18px 20px;
+  }
+
+  .citizen-help-options button {
+    padding: 15px 16px;
+  }
+
+  .citizen-help-answer {
+    padding: 20px;
+  }
+
+  .citizen-help-answer p {
+    padding: 16px;
+
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .citizen-help-answer-action {
+    width: 100%;
+  }
+
+  .citizen-help-modal-footer {
+    align-items: flex-start;
+    flex-direction: column;
+
+    padding: 16px 20px 20px;
+  }
+
+  .citizen-help-contact {
+    width: 100%;
+  }
+}
