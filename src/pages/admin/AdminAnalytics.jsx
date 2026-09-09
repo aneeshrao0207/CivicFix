@@ -9,6 +9,7 @@ import {
   FileText,
   LoaderCircle,
   TrendingUp,
+  Building2,
 } from "lucide-react";
 
 import {
@@ -35,7 +36,7 @@ import "./AdminAnalytics.css";
 // CONSTANTS
 // ============================================
 
-const statusLabels = {
+const STATUS_LABELS = {
   REPORTED: "Reported",
   UNDER_REVIEW: "Under Review",
   ASSIGNED: "Assigned",
@@ -44,7 +45,16 @@ const statusLabels = {
   REJECTED: "Rejected",
 };
 
-const categoryLabels = [
+const STATUS_ORDER = [
+  "REPORTED",
+  "UNDER_REVIEW",
+  "ASSIGNED",
+  "IN_PROGRESS",
+  "RESOLVED",
+  "REJECTED",
+];
+
+const CATEGORY_ORDER = [
   "Road",
   "Garbage",
   "Streetlight",
@@ -55,22 +65,14 @@ const categoryLabels = [
   "Other",
 ];
 
-const statusOrder = [
-  "REPORTED",
-  "UNDER_REVIEW",
-  "ASSIGNED",
-  "IN_PROGRESS",
-  "RESOLVED",
-];
-
-const priorityOrder = [
+const PRIORITY_ORDER = [
   "LOW",
   "MEDIUM",
   "HIGH",
   "CRITICAL",
 ];
 
-const COLORS = [
+const CHART_COLORS = [
   "#2563eb",
   "#8b5cf6",
   "#f97316",
@@ -78,6 +80,46 @@ const COLORS = [
   "#ef4444",
   "#64748b",
 ];
+
+
+// ============================================
+// HELPERS
+// ============================================
+
+const formatDate = (date) => {
+  return date.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+  });
+};
+
+const normalizeCategory = (category) => {
+  if (!category) return "Other";
+
+  const value = String(category).trim();
+
+  if (
+    value.toLowerCase() === "public infrastructure"
+  ) {
+    return "Public Infrastructure";
+  }
+
+  const match = CATEGORY_ORDER.find(
+    (item) =>
+      item.toLowerCase() === value.toLowerCase()
+  );
+
+  return match || "Other";
+};
+
+const getDepartmentName = (issue) => {
+  return (
+    issue.department_name ||
+    issue.department ||
+    issue.assigned_department ||
+    "Unassigned"
+  );
+};
 
 
 // ============================================
@@ -95,43 +137,46 @@ function AdminAnalytics() {
   // FETCH ISSUES
   // ============================================
 
+  const fetchAnalytics = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const data = await apiRequest("/issues");
+
+      setIssues(data.issues || []);
+    } catch (fetchError) {
+      console.error(
+        "Failed to fetch analytics:",
+        fetchError
+      );
+
+      setError(
+        fetchError.message ||
+          "Unable to load analytics."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchIssues = async () => {
-      try {
-        setLoading(true);
-        setError("");
-
-        const data = await apiRequest("/issues");
-
-        setIssues(data.issues || []);
-      } catch (fetchError) {
-        console.error(
-          "Failed to fetch analytics:",
-          fetchError
-        );
-
-        setError(
-          fetchError.message ||
-            "Unable to load analytics."
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchIssues();
+    fetchAnalytics();
   }, []);
 
 
   // ============================================
-  // BASIC KPI CALCULATIONS
+  // KPI CALCULATIONS
   // ============================================
 
   const totalIssues = issues.length;
 
   const resolvedIssues = issues.filter(
-    (issue) =>
-      issue.status === "RESOLVED"
+    (issue) => issue.status === "RESOLVED"
+  ).length;
+
+  const rejectedIssues = issues.filter(
+    (issue) => issue.status === "REJECTED"
   ).length;
 
   const activeIssues = issues.filter(
@@ -141,8 +186,7 @@ function AdminAnalytics() {
   ).length;
 
   const criticalIssues = issues.filter(
-    (issue) =>
-      issue.priority === "CRITICAL"
+    (issue) => issue.priority === "CRITICAL"
   ).length;
 
   const resolutionRate =
@@ -158,12 +202,13 @@ function AdminAnalytics() {
   // ============================================
 
   const categoryData = useMemo(() => {
-    return categoryLabels
+    return CATEGORY_ORDER
       .map((category) => ({
         name: category,
         value: issues.filter(
           (issue) =>
-            issue.category === category
+            normalizeCategory(issue.category) ===
+            category
         ).length,
       }))
       .filter((item) => item.value > 0);
@@ -175,13 +220,10 @@ function AdminAnalytics() {
   // ============================================
 
   const statusData = useMemo(() => {
-    return statusOrder.map((status) => ({
-      name:
-        statusLabels[status] ||
-        status,
+    return STATUS_ORDER.map((status) => ({
+      name: STATUS_LABELS[status],
       value: issues.filter(
-        (issue) =>
-          issue.status === status
+        (issue) => issue.status === status
       ).length,
     }));
   }, [issues]);
@@ -192,18 +234,17 @@ function AdminAnalytics() {
   // ============================================
 
   const priorityData = useMemo(() => {
-    return priorityOrder.map((priority) => ({
+    return PRIORITY_ORDER.map((priority) => ({
       name: priority,
       value: issues.filter(
-        (issue) =>
-          issue.priority === priority
+        (issue) => issue.priority === priority
       ).length,
     }));
   }, [issues]);
 
 
   // ============================================
-  // 7 DAY TREND
+  // LAST 7 DAYS TREND
   // ============================================
 
   const trendData = useMemo(() => {
@@ -211,11 +252,10 @@ function AdminAnalytics() {
 
     const days = [];
 
-    for (let i = 6; i >= 0; i--) {
+    for (let i = 6; i >= 0; i -= 1) {
       const date = new Date(today);
 
       date.setHours(0, 0, 0, 0);
-
       date.setDate(
         today.getDate() - i
       );
@@ -224,34 +264,27 @@ function AdminAnalytics() {
     }
 
     return days.map((date) => {
-      const dayIssues = issues.filter(
-        (issue) => {
-          if (!issue.created_at) {
-            return false;
-          }
-
-          const issueDate =
-            new Date(issue.created_at);
-
-          return (
-            issueDate.getFullYear() ===
-              date.getFullYear() &&
-            issueDate.getMonth() ===
-              date.getMonth() &&
-            issueDate.getDate() ===
-              date.getDate()
-          );
+      const count = issues.filter((issue) => {
+        if (!issue.created_at) {
+          return false;
         }
-      ).length;
+
+        const issueDate =
+          new Date(issue.created_at);
+
+        return (
+          issueDate.getFullYear() ===
+            date.getFullYear() &&
+          issueDate.getMonth() ===
+            date.getMonth() &&
+          issueDate.getDate() ===
+            date.getDate()
+        );
+      }).length;
 
       return {
-        day: date.toLocaleDateString(
-          "en-IN",
-          {
-            weekday: "short",
-          }
-        ),
-        issues: dayIssues,
+        day: formatDate(date),
+        issues: count,
       };
     });
   }, [issues]);
@@ -266,17 +299,18 @@ function AdminAnalytics() {
 
     issues.forEach((issue) => {
       const department =
-        issue.department_name ||
-        issue.department ||
-        "Unassigned";
+        getDepartmentName(issue);
 
       if (!departments[department]) {
         departments[department] = {
           name: department,
           active: 0,
           resolved: 0,
+          total: 0,
         };
       }
+
+      departments[department].total += 1;
 
       if (issue.status === "RESOLVED") {
         departments[department].resolved += 1;
@@ -285,24 +319,50 @@ function AdminAnalytics() {
       }
     });
 
-    return Object.values(departments);
+    return Object.values(departments).sort(
+      (a, b) => b.total - a.total
+    );
   }, [issues]);
 
 
   // ============================================
-  // MOST REPORTED CATEGORY
+  // TOP CATEGORY
   // ============================================
 
   const topCategory = useMemo(() => {
-    if (categoryData.length === 0) {
+    if (!categoryData.length) {
       return "No data";
     }
 
     return [...categoryData].sort(
-      (a, b) =>
-        b.value - a.value
+      (a, b) => b.value - a.value
     )[0]?.name || "No data";
   }, [categoryData]);
+
+
+  // ============================================
+  // HIGHEST PRIORITY
+  // ============================================
+
+  const highestPriority = useMemo(() => {
+    const critical = priorityData.find(
+      (item) => item.name === "CRITICAL"
+    );
+
+    if (critical?.value > 0) {
+      return "Critical";
+    }
+
+    const high = priorityData.find(
+      (item) => item.name === "HIGH"
+    );
+
+    if (high?.value > 0) {
+      return "High";
+    }
+
+    return "Normal";
+  }, [priorityData]);
 
 
   // ============================================
@@ -313,15 +373,15 @@ function AdminAnalytics() {
     return (
       <div className="analytics-page">
 
-        <div className="admin-issues-loading">
+        <div className="analytics-loading">
 
           <LoaderCircle
-            size={26}
-            className="loading-spinner"
+            size={28}
+            className="analytics-loading-spinner"
           />
 
           <strong>
-            Loading analytics...
+            Loading analytics
           </strong>
 
           <p>
@@ -342,9 +402,9 @@ function AdminAnalytics() {
   return (
     <div className="analytics-page">
 
-      {/* =====================================
+      {/* ======================================
           HEADER
-      ===================================== */}
+      ====================================== */}
 
       <header className="analytics-header">
 
@@ -352,7 +412,7 @@ function AdminAnalytics() {
 
           <div className="analytics-eyebrow">
 
-            <BarChart3 size={13} />
+            <BarChart3 size={14} />
 
             CIVIC OPERATIONS
 
@@ -363,31 +423,37 @@ function AdminAnalytics() {
           </h1>
 
           <p>
-            Understand issue patterns, workload and
-            resolution performance.
+            Monitor civic issue patterns,
+            workload and resolution performance.
           </p>
 
         </div>
 
-        <div className="analytics-period">
 
-          <Activity size={13} />
+        <button
+          type="button"
+          className="analytics-refresh"
+          onClick={fetchAnalytics}
+        >
 
-          Last 7 days
+          <Activity size={14} />
 
-        </div>
+          Refresh data
+
+        </button>
 
       </header>
 
 
-      {/* =====================================
+      {/* ======================================
           ERROR
-      ===================================== */}
+      ====================================== */}
 
       {error && (
-        <div className="admin-issues-error">
 
-          <AlertTriangle size={17} />
+        <div className="analytics-error">
+
+          <AlertTriangle size={18} />
 
           <div>
 
@@ -399,29 +465,35 @@ function AdminAnalytics() {
               {error}
             </p>
 
+            <button
+              type="button"
+              onClick={fetchAnalytics}
+            >
+              Try again
+            </button>
+
           </div>
 
         </div>
+
       )}
 
 
-      {/* =====================================
-          KPI CARDS
-      ===================================== */}
+      {/* ======================================
+          KPI SECTION
+      ====================================== */}
 
       <section className="analytics-kpis">
-
-        {/* TOTAL */}
 
         <div className="analytics-kpi">
 
           <div className="analytics-kpi-icon">
 
-            <FileText size={16} />
+            <FileText size={17} />
 
           </div>
 
-          <div>
+          <div className="analytics-kpi-content">
 
             <span>
               Total issues
@@ -432,7 +504,7 @@ function AdminAnalytics() {
             </strong>
 
             <small>
-              All reported issues
+              All submitted reports
             </small>
 
           </div>
@@ -440,17 +512,15 @@ function AdminAnalytics() {
         </div>
 
 
-        {/* ACTIVE */}
-
         <div className="analytics-kpi">
 
           <div className="analytics-kpi-icon blue">
 
-            <Clock3 size={16} />
+            <Clock3 size={17} />
 
           </div>
 
-          <div>
+          <div className="analytics-kpi-content">
 
             <span>
               Active issues
@@ -469,17 +539,15 @@ function AdminAnalytics() {
         </div>
 
 
-        {/* RESOLUTION */}
-
         <div className="analytics-kpi">
 
           <div className="analytics-kpi-icon green">
 
-            <CheckCircle2 size={16} />
+            <CheckCircle2 size={17} />
 
           </div>
 
-          <div>
+          <div className="analytics-kpi-content">
 
             <span>
               Resolution rate
@@ -490,7 +558,7 @@ function AdminAnalytics() {
             </strong>
 
             <small>
-              Successfully resolved
+              {resolvedIssues} resolved
             </small>
 
           </div>
@@ -498,17 +566,15 @@ function AdminAnalytics() {
         </div>
 
 
-        {/* CRITICAL */}
-
         <div className="analytics-kpi">
 
           <div className="analytics-kpi-icon red">
 
-            <AlertTriangle size={16} />
+            <AlertTriangle size={17} />
 
           </div>
 
-          <div>
+          <div className="analytics-kpi-content">
 
             <span>
               Critical issues
@@ -519,7 +585,9 @@ function AdminAnalytics() {
             </strong>
 
             <small>
-              Need urgent attention
+              {criticalIssues > 0
+                ? "Require urgent attention"
+                : "No critical reports"}
             </small>
 
           </div>
@@ -529,16 +597,114 @@ function AdminAnalytics() {
       </section>
 
 
-      {/* =====================================
-          MAIN GRID
-      ===================================== */}
+      {/* ======================================
+          QUICK INSIGHTS
+      ====================================== */}
+
+      <section className="analytics-insight-grid">
+
+        <div className="analytics-mini-card">
+
+          <div className="analytics-mini-icon blue">
+
+            <TrendingUp size={15} />
+
+          </div>
+
+          <div>
+
+            <span>
+              Most reported category
+            </span>
+
+            <strong>
+              {topCategory}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <div className="analytics-mini-card">
+
+          <div className="analytics-mini-icon orange">
+
+            <AlertTriangle size={15} />
+
+          </div>
+
+          <div>
+
+            <span>
+              Highest active priority
+            </span>
+
+            <strong>
+              {highestPriority}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <div className="analytics-mini-card">
+
+          <div className="analytics-mini-icon green">
+
+            <CheckCircle2 size={15} />
+
+          </div>
+
+          <div>
+
+            <span>
+              Resolved reports
+            </span>
+
+            <strong>
+              {resolvedIssues}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <div className="analytics-mini-card">
+
+          <div className="analytics-mini-icon purple">
+
+            <Activity size={15} />
+
+          </div>
+
+          <div>
+
+            <span>
+              Rejected reports
+            </span>
+
+            <strong>
+              {rejectedIssues}
+            </strong>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      {/* ======================================
+          MAIN ANALYTICS GRID
+      ====================================== */}
 
       <section className="analytics-grid">
 
 
-        {/* =================================
-            CATEGORY
-        ================================= */}
+        {/* CATEGORY */}
 
         <div className="analytics-card category-card">
 
@@ -580,28 +746,32 @@ function AdminAnalytics() {
                     top: 10,
                     right: 10,
                     left: -20,
-                    bottom: 0,
+                    bottom: 5,
                   }}
                 >
 
                   <CartesianGrid
                     strokeDasharray="3 3"
                     vertical={false}
+                    stroke="var(--chart-grid)"
                   />
 
                   <XAxis
                     dataKey="name"
                     tick={{
-                      fontSize: 9,
+                      fontSize: 10,
+                      fill: "var(--chart-text)",
                     }}
                     axisLine={false}
                     tickLine={false}
+                    interval={0}
                   />
 
                   <YAxis
                     allowDecimals={false}
                     tick={{
-                      fontSize: 9,
+                      fontSize: 10,
+                      fill: "var(--chart-text)",
                     }}
                     axisLine={false}
                     tickLine={false}
@@ -611,10 +781,11 @@ function AdminAnalytics() {
 
                   <Bar
                     dataKey="value"
+                    name="Issues"
                     fill="#2563eb"
                     radius={[
-                      4,
-                      4,
+                      5,
+                      5,
                       0,
                       0,
                     ]}
@@ -631,9 +802,7 @@ function AdminAnalytics() {
         </div>
 
 
-        {/* =================================
-            STATUS
-        ================================= */}
+        {/* STATUS */}
 
         <div className="analytics-card status-card">
 
@@ -682,7 +851,7 @@ function AdminAnalytics() {
                         cx="50%"
                         cy="50%"
                         innerRadius={58}
-                        outerRadius={85}
+                        outerRadius={82}
                         paddingAngle={3}
                       >
 
@@ -691,9 +860,9 @@ function AdminAnalytics() {
                             <Cell
                               key={index}
                               fill={
-                                COLORS[
+                                CHART_COLORS[
                                   index %
-                                    COLORS.length
+                                    CHART_COLORS.length
                                 ]
                               }
                             />
@@ -741,9 +910,9 @@ function AdminAnalytics() {
                     <span
                       style={{
                         background:
-                          COLORS[
+                          CHART_COLORS[
                             index %
-                              COLORS.length
+                              CHART_COLORS.length
                           ],
                       }}
                     />
@@ -768,9 +937,7 @@ function AdminAnalytics() {
         </div>
 
 
-        {/* =================================
-            TREND
-        ================================= */}
+        {/* TREND */}
 
         <div className="analytics-card trend-card">
 
@@ -779,11 +946,11 @@ function AdminAnalytics() {
             <div>
 
               <h2>
-                Reported issues
+                Reporting trend
               </h2>
 
               <p>
-                Number of new issues reported each day
+                New civic reports received over the last 7 days
               </p>
 
             </div>
@@ -792,7 +959,7 @@ function AdminAnalytics() {
 
               <TrendingUp size={13} />
 
-              7 day trend
+              7 days
 
             </div>
 
@@ -812,19 +979,21 @@ function AdminAnalytics() {
                   top: 10,
                   right: 10,
                   left: -20,
-                  bottom: 0,
+                  bottom: 5,
                 }}
               >
 
                 <CartesianGrid
                   strokeDasharray="3 3"
                   vertical={false}
+                  stroke="var(--chart-grid)"
                 />
 
                 <XAxis
                   dataKey="day"
                   tick={{
-                    fontSize: 9,
+                    fontSize: 10,
+                    fill: "var(--chart-text)",
                   }}
                   axisLine={false}
                   tickLine={false}
@@ -833,7 +1002,8 @@ function AdminAnalytics() {
                 <YAxis
                   allowDecimals={false}
                   tick={{
-                    fontSize: 9,
+                    fontSize: 10,
+                    fill: "var(--chart-text)",
                   }}
                   axisLine={false}
                   tickLine={false}
@@ -844,8 +1014,9 @@ function AdminAnalytics() {
                 <Line
                   type="monotone"
                   dataKey="issues"
+                  name="Reports"
                   stroke="#2563eb"
-                  strokeWidth={2}
+                  strokeWidth={2.5}
                   dot={{
                     r: 3,
                   }}
@@ -863,9 +1034,7 @@ function AdminAnalytics() {
         </div>
 
 
-        {/* =================================
-            PRIORITY
-        ================================= */}
+        {/* PRIORITY */}
 
         <div className="analytics-card priority-card">
 
@@ -878,7 +1047,7 @@ function AdminAnalytics() {
               </h2>
 
               <p>
-                Severity of current reports
+                Severity across all current reports
               </p>
 
             </div>
@@ -909,13 +1078,17 @@ function AdminAnalytics() {
 
                     <div className="priority-label">
 
-                      <span
-                        className={`priority-dot ${item.name.toLowerCase()}`}
-                      />
+                      <div className="priority-name">
 
-                      <span>
-                        {item.name}
-                      </span>
+                        <span
+                          className={`priority-dot ${item.name.toLowerCase()}`}
+                        />
+
+                        <span>
+                          {item.name}
+                        </span>
+
+                      </div>
 
                       <strong>
                         {item.value}
@@ -935,6 +1108,11 @@ function AdminAnalytics() {
 
                     </div>
 
+
+                    <small>
+                      {percentage}% of reports
+                    </small>
+
                   </div>
 
                 );
@@ -948,15 +1126,23 @@ function AdminAnalytics() {
       </section>
 
 
-      {/* =====================================
-          DEPARTMENT
-      ===================================== */}
+      {/* ======================================
+          DEPARTMENT PERFORMANCE
+      ====================================== */}
 
       <section className="analytics-card department-card">
 
         <div className="analytics-card-header">
 
           <div>
+
+            <div className="analytics-section-label">
+
+              <Building2 size={13} />
+
+              DEPARTMENT PERFORMANCE
+
+            </div>
 
             <h2>
               Department workload
@@ -971,104 +1157,150 @@ function AdminAnalytics() {
         </div>
 
 
-        <div className="analytics-department-chart">
+        {departmentData.length === 0 ? (
 
-          {departmentData.length === 0 ? (
+          <div className="analytics-empty department-empty">
+            No department data available.
+          </div>
 
-            <div className="analytics-empty">
-              No department data available.
-            </div>
+        ) : (
 
-          ) : (
+          <div className="department-table-wrapper">
 
-            <ResponsiveContainer
-              width="100%"
-              height="100%"
-            >
+            <table className="department-table">
 
-              <BarChart
-                data={departmentData}
-                layout="vertical"
-                margin={{
-                  top: 0,
-                  right: 20,
-                  left: 20,
-                  bottom: 0,
-                }}
-              >
+              <thead>
 
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  horizontal={false}
-                />
+                <tr>
 
-                <XAxis
-                  type="number"
-                  allowDecimals={false}
-                  tick={{
-                    fontSize: 9,
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                />
+                  <th>
+                    Department
+                  </th>
 
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  width={110}
-                  tick={{
-                    fontSize: 8,
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                />
+                  <th>
+                    Total
+                  </th>
 
-                <Tooltip />
+                  <th>
+                    Active
+                  </th>
 
-                <Bar
-                  dataKey="active"
-                  name="Active"
-                  fill="#2563eb"
-                  radius={[
-                    0,
-                    3,
-                    3,
-                    0,
-                  ]}
-                />
+                  <th>
+                    Resolved
+                  </th>
 
-                <Bar
-                  dataKey="resolved"
-                  name="Resolved"
-                  fill="#22c55e"
-                  radius={[
-                    0,
-                    3,
-                    3,
-                    0,
-                  ]}
-                />
+                  <th>
+                    Resolution
+                  </th>
 
-              </BarChart>
+                </tr>
 
-            </ResponsiveContainer>
+              </thead>
 
-          )}
 
-        </div>
+              <tbody>
+
+                {departmentData.map(
+                  (department) => {
+
+                    const departmentRate =
+                      department.total > 0
+                        ? Math.round(
+                            (department.resolved /
+                              department.total) *
+                              100
+                          )
+                        : 0;
+
+                    return (
+
+                      <tr
+                        key={department.name}
+                      >
+
+                        <td>
+
+                          <div className="department-name">
+
+                            <div className="department-avatar">
+
+                              <Building2 size={13} />
+
+                            </div>
+
+                            <strong>
+                              {department.name}
+                            </strong>
+
+                          </div>
+
+                        </td>
+
+                        <td>
+                          {department.total}
+                        </td>
+
+                        <td>
+                          <span className="department-active">
+                            {department.active}
+                          </span>
+                        </td>
+
+                        <td>
+                          <span className="department-resolved">
+                            {department.resolved}
+                          </span>
+                        </td>
+
+                        <td>
+
+                          <div className="department-rate">
+
+                            <div className="department-rate-track">
+
+                              <div
+                                className="department-rate-fill"
+                                style={{
+                                  width: `${departmentRate}%`,
+                                }}
+                              />
+
+                            </div>
+
+                            <span>
+                              {departmentRate}%
+                            </span>
+
+                          </div>
+
+                        </td>
+
+                      </tr>
+
+                    );
+                  }
+                )}
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        )}
 
       </section>
 
 
-      {/* =====================================
-          INSIGHT
-      ===================================== */}
+      {/* ======================================
+          OPERATIONAL INSIGHT
+      ====================================== */}
 
       <section className="analytics-insight">
 
         <div className="analytics-insight-icon">
 
-          <TrendingUp size={16} />
+          <TrendingUp size={17} />
 
         </div>
 
@@ -1084,16 +1316,12 @@ function AdminAnalytics() {
               ? "Analytics insights will appear once civic reports are submitted."
               : `${topCategory} is currently the most reported issue category. ${
                   criticalIssues > 0
-                    ? `${criticalIssues} critical issue${
-                        criticalIssues !== 1
-                          ? "s"
-                          : ""
-                      } require${
+                    ? `${criticalIssues} critical ${
                         criticalIssues === 1
-                          ? "s"
-                          : ""
+                          ? "issue requires"
+                          : "issues require"
                       } urgent attention.`
-                    : "No critical issues are currently reported."
+                    : "There are currently no critical issues requiring immediate attention."
                 }`}
 
           </p>

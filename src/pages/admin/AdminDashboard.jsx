@@ -6,7 +6,9 @@ import {
   BarChart3,
   CheckCircle2,
   Clock3,
+  FileWarning,
   MapPin,
+  RefreshCw,
   ShieldAlert,
   TrendingUp,
 } from "lucide-react";
@@ -26,52 +28,64 @@ const statusLabels = {
   REJECTED: "Rejected",
 };
 
+const formatDate = (dateValue) => {
+  if (!dateValue) return "Unknown date";
+
+  const date = new Date(dateValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Unknown date";
+  }
+
+  return date.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
 function AdminDashboard() {
   const [issues, setIssues] = useState([]);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // ============================================
-  // FETCH ALL ISSUES
-  // ============================================
+  const fetchIssues = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const data = await apiRequest("/issues");
+
+      setIssues(Array.isArray(data.issues) ? data.issues : []);
+    } catch (fetchError) {
+      console.error("Failed to fetch admin issues:", fetchError);
+
+      setError(
+        fetchError.message ||
+          "Unable to load dashboard data."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchIssues = async () => {
-      try {
-        setLoading(true);
-        setError("");
-
-        const data = await apiRequest("/issues");
-
-        setIssues(data.issues || []);
-      } catch (fetchError) {
-        console.error(
-          "Failed to fetch admin issues:",
-          fetchError
-        );
-
-        setError(
-          fetchError.message ||
-            "Unable to load dashboard data."
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchIssues();
   }, []);
 
-  // ============================================
-  // DASHBOARD STATISTICS
-  // ============================================
+  /* ============================================
+     DASHBOARD STATISTICS
+  ============================================ */
 
   const statistics = useMemo(() => {
     const total = issues.length;
 
     const reported = issues.filter(
       (issue) => issue.status === "REPORTED"
+    ).length;
+
+    const underReview = issues.filter(
+      (issue) => issue.status === "UNDER_REVIEW"
     ).length;
 
     const inProgress = issues.filter(
@@ -84,8 +98,16 @@ function AdminDashboard() {
       (issue) => issue.status === "RESOLVED"
     ).length;
 
+    const rejected = issues.filter(
+      (issue) => issue.status === "REJECTED"
+    ).length;
+
     const critical = issues.filter(
       (issue) => issue.priority === "CRITICAL"
+    ).length;
+
+    const high = issues.filter(
+      (issue) => issue.priority === "HIGH"
     ).length;
 
     const resolutionRate =
@@ -96,23 +118,25 @@ function AdminDashboard() {
     return {
       total,
       reported,
+      underReview,
       inProgress,
       resolved,
+      rejected,
       critical,
+      high,
       resolutionRate,
     };
   }, [issues]);
 
-  // ============================================
-  // CATEGORY DATA
-  // ============================================
+  /* ============================================
+     CATEGORY DATA
+  ============================================ */
 
   const categoryData = useMemo(() => {
     const categoryCounts = {};
 
     issues.forEach((issue) => {
-      const category =
-        issue.category || "Other";
+      const category = issue.category || "Other";
 
       categoryCounts[category] =
         (categoryCounts[category] || 0) + 1;
@@ -124,7 +148,7 @@ function AdminDashboard() {
         value,
       }))
       .sort((a, b) => b.value - a.value)
-      .slice(0, 5);
+      .slice(0, 6);
   }, [issues]);
 
   const maxCategoryValue =
@@ -136,9 +160,9 @@ function AdminDashboard() {
         )
       : 1;
 
-  // ============================================
-  // RECENT ISSUES
-  // ============================================
+  /* ============================================
+     RECENT ISSUES
+  ============================================ */
 
   const recentIssues = useMemo(() => {
     return [...issues]
@@ -147,54 +171,154 @@ function AdminDashboard() {
           new Date(b.created_at) -
           new Date(a.created_at)
       )
-      .slice(0, 5);
+      .slice(0, 6);
   }, [issues]);
 
-  // ============================================
-  // LOADING STATE
-  // ============================================
+  /* ============================================
+     PRIORITY SUMMARY
+  ============================================ */
+
+  const priorityData = useMemo(() => {
+    return [
+      {
+        label: "Critical",
+        value: statistics.critical,
+        className: "critical",
+      },
+      {
+        label: "High",
+        value: statistics.high,
+        className: "high",
+      },
+      {
+        label: "Medium",
+        value: issues.filter(
+          (issue) => issue.priority === "MEDIUM"
+        ).length,
+        className: "medium",
+      },
+      {
+        label: "Low",
+        value: issues.filter(
+          (issue) => issue.priority === "LOW"
+        ).length,
+        className: "low",
+      },
+    ];
+  }, [issues, statistics.critical, statistics.high]);
+
+  /* ============================================
+     LOADING
+  ============================================ */
 
   if (loading) {
     return (
       <div className="admin-dashboard-page">
+        <div className="admin-dashboard-shell">
+          <header className="admin-dashboard-header">
+            <div>
+              <div className="admin-dashboard-eyebrow">
+                <ShieldAlert size={14} />
+                AUTHORITY COMMAND CENTER
+              </div>
 
-        <div className="admin-dashboard-header">
-          <div>
-            <div className="admin-dashboard-eyebrow">
-              <ShieldAlert size={13} />
-              AUTHORITY COMMAND CENTER
+              <h1>Admin Dashboard</h1>
+
+              <p>
+                Monitor, prioritize and manage civic
+                issues across the city.
+              </p>
+            </div>
+          </header>
+
+          <div className="admin-dashboard-loading-panel">
+            <div className="admin-loading-spinner">
+              <RefreshCw size={20} />
             </div>
 
-            <h1>Admin Dashboard</h1>
+            <strong>
+              Loading dashboard data
+            </strong>
 
-            <p>
-              Loading CivicFix issue data...
-            </p>
+            <span>
+              Connecting to CivicFix services...
+            </span>
           </div>
         </div>
-
-        <div className="admin-dashboard-panel">
-          <div className="admin-dashboard-loading">
-            Loading dashboard...
-          </div>
-        </div>
-
       </div>
     );
   }
 
-  // ============================================
-  // ERROR STATE
-  // ============================================
+  /* ============================================
+     ERROR
+  ============================================ */
 
   if (error) {
     return (
       <div className="admin-dashboard-page">
+        <div className="admin-dashboard-shell">
+          <header className="admin-dashboard-header">
+            <div>
+              <div className="admin-dashboard-eyebrow">
+                <ShieldAlert size={14} />
+                AUTHORITY COMMAND CENTER
+              </div>
 
-        <div className="admin-dashboard-header">
+              <h1>Admin Dashboard</h1>
+
+              <p>
+                Monitor, prioritize and manage civic
+                issues across the city.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              className="admin-dashboard-refresh"
+              onClick={fetchIssues}
+            >
+              <RefreshCw size={15} />
+              Retry
+            </button>
+          </header>
+
+          <div className="admin-dashboard-error-panel">
+            <div className="admin-error-icon">
+              <AlertTriangle size={21} />
+            </div>
+
+            <div>
+              <strong>
+                Unable to load dashboard
+              </strong>
+
+              <span>{error}</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={fetchIssues}
+            >
+              Try again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="admin-dashboard-page">
+      <div className="admin-dashboard-shell">
+
+        {/* ============================================
+            HEADER
+        ============================================ */}
+
+        <header className="admin-dashboard-header">
           <div>
             <div className="admin-dashboard-eyebrow">
-              <ShieldAlert size={13} />
+              <ShieldAlert size={14} />
               AUTHORITY COMMAND CENTER
             </div>
 
@@ -206,548 +330,643 @@ function AdminDashboard() {
             </p>
           </div>
 
-          <Link
-            to="/admin/issues"
-            className="admin-view-all-button"
-          >
-            View all issues
-            <ArrowRight size={14} />
-          </Link>
+          <div className="admin-dashboard-header-actions">
+            <button
+              type="button"
+              className="admin-dashboard-refresh"
+              onClick={fetchIssues}
+              title="Refresh dashboard"
+            >
+              <RefreshCw size={15} />
+              Refresh
+            </button>
+
+            <Link
+              to="/admin/issues"
+              className="admin-view-all-button"
+            >
+              View all issues
+              <ArrowRight size={15} />
+            </Link>
+          </div>
+        </header>
+
+        {/* ============================================
+            OPERATIONAL SUMMARY
+        ============================================ */}
+
+        <div className="admin-dashboard-status-strip">
+          <div className="admin-status-indicator">
+            <span />
+            <strong>System operational</strong>
+          </div>
+
+          <div className="admin-status-divider" />
+
+          <span>
+            {statistics.total} total issue
+            {statistics.total === 1 ? "" : "s"} tracked
+          </span>
+
+          <div className="admin-status-divider" />
+
+          <span>
+            {statistics.critical} critical requiring
+            attention
+          </span>
         </div>
 
-        <div className="admin-dashboard-panel">
-          <div className="admin-dashboard-error">
-            <AlertTriangle size={20} />
+        {/* ============================================
+            STATISTICS
+        ============================================ */}
+
+        <section className="admin-stat-grid">
+
+          <div className="admin-stat-card">
+            <div className="admin-stat-top">
+              <div className="admin-stat-icon">
+                <BarChart3 size={18} />
+              </div>
+
+              <span className="admin-stat-label">
+                TOTAL ISSUES
+              </span>
+            </div>
+
+            <strong>{statistics.total}</strong>
+
+            <p>
+              All reported civic issues
+            </p>
+          </div>
+
+          <div className="admin-stat-card">
+            <div className="admin-stat-top">
+              <div className="admin-stat-icon">
+                <Clock3 size={18} />
+              </div>
+
+              <span className="admin-stat-label">
+                PENDING REVIEW
+              </span>
+            </div>
+
+            <strong>{statistics.reported}</strong>
+
+            <p>
+              Awaiting administrative review
+            </p>
+          </div>
+
+          <div className="admin-stat-card">
+            <div className="admin-stat-top">
+              <div className="admin-stat-icon">
+                <TrendingUp size={18} />
+              </div>
+
+              <span className="admin-stat-label">
+                IN PROGRESS
+              </span>
+            </div>
+
+            <strong>{statistics.inProgress}</strong>
+
+            <p>
+              Currently being handled
+            </p>
+          </div>
+
+          <div className="admin-stat-card">
+            <div className="admin-stat-top">
+              <div className="admin-stat-icon success">
+                <CheckCircle2 size={18} />
+              </div>
+
+              <span className="admin-stat-label">
+                RESOLVED
+              </span>
+            </div>
+
+            <strong>{statistics.resolved}</strong>
+
+            <p>
+              Successfully completed
+            </p>
+          </div>
+
+          <div className="admin-stat-card critical">
+            <div className="admin-stat-top">
+              <div className="admin-stat-icon danger">
+                <AlertTriangle size={18} />
+              </div>
+
+              <span className="admin-stat-label">
+                CRITICAL
+              </span>
+            </div>
+
+            <strong>{statistics.critical}</strong>
+
+            <p>
+              Requires immediate attention
+            </p>
+          </div>
+
+          <div className="admin-stat-card">
+            <div className="admin-stat-top">
+              <div className="admin-stat-icon success">
+                <TrendingUp size={18} />
+              </div>
+
+              <span className="admin-stat-label">
+                RESOLUTION RATE
+              </span>
+            </div>
 
             <strong>
-              Unable to load dashboard
+              {statistics.resolutionRate}%
             </strong>
 
-            <span>{error}</span>
-          </div>
-        </div>
-
-      </div>
-    );
-  }
-
-  return (
-    <div className="admin-dashboard-page">
-
-      {/* ============================================
-          HEADER
-      ============================================ */}
-
-      <header className="admin-dashboard-header">
-
-        <div>
-          <div className="admin-dashboard-eyebrow">
-            <ShieldAlert size={13} />
-            AUTHORITY COMMAND CENTER
+            <p>
+              Overall resolution performance
+            </p>
           </div>
 
-          <h1>Admin Dashboard</h1>
+        </section>
 
-          <p>
-            Monitor, prioritize and manage civic
-            issues across the city.
-          </p>
-        </div>
+        {/* ============================================
+            ANALYTICS GRID
+        ============================================ */}
 
-        <Link
-          to="/admin/issues"
-          className="admin-view-all-button"
-        >
-          View all issues
-          <ArrowRight size={14} />
-        </Link>
+        <section className="admin-dashboard-grid">
 
-      </header>
+          {/* CATEGORY */}
 
+          <div className="admin-dashboard-panel category-panel">
 
-      {/* ============================================
-          STAT CARDS
-      ============================================ */}
+            <div className="admin-panel-header">
+              <div>
+                <span className="admin-panel-kicker">
+                  ISSUE DISTRIBUTION
+                </span>
 
-      <section className="admin-stat-grid">
+                <h2>Issues by category</h2>
 
-        <div className="admin-stat-card">
+                <p>
+                  Most frequently reported civic
+                  problems.
+                </p>
+              </div>
 
-          <div className="admin-stat-icon">
-            <BarChart3 size={17} />
+              <div className="admin-panel-header-icon">
+                <BarChart3 size={18} />
+              </div>
+            </div>
+
+            <div className="category-chart">
+              {categoryData.length === 0 ? (
+                <div className="admin-dashboard-empty">
+                  <FileWarning size={22} />
+
+                  <strong>
+                    No category data
+                  </strong>
+
+                  <span>
+                    Category statistics will appear
+                    when issues are reported.
+                  </span>
+                </div>
+              ) : (
+                categoryData.map((category) => (
+                  <div
+                    className="category-row"
+                    key={category.name}
+                  >
+                    <div className="category-row-top">
+                      <span>
+                        {category.name}
+                      </span>
+
+                      <strong>
+                        {category.value}
+                      </strong>
+                    </div>
+
+                    <div className="category-bar">
+                      <div
+                        className="category-bar-fill"
+                        style={{
+                          width: `${(
+                            (category.value /
+                              maxCategoryValue) *
+                            100
+                          ).toFixed(0)}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
           </div>
 
-          <span>Total issues</span>
+          {/* RESOLUTION */}
 
-          <strong>
-            {statistics.total}
-          </strong>
+          <div className="admin-dashboard-panel resolution-panel">
 
-          <small>
-            All reported issues
-          </small>
+            <div className="admin-panel-header">
+              <div>
+                <span className="admin-panel-kicker">
+                  PERFORMANCE
+                </span>
 
-        </div>
+                <h2>Resolution overview</h2>
 
+                <p>
+                  Current issue lifecycle status.
+                </p>
+              </div>
 
-        <div className="admin-stat-card">
+              <div className="admin-panel-header-icon">
+                <TrendingUp size={18} />
+              </div>
+            </div>
 
-          <div className="admin-stat-icon">
-            <Clock3 size={17} />
+            <div className="resolution-content">
+
+              <div
+                className="resolution-circle"
+                style={{
+                  "--resolution-progress": `${statistics.resolutionRate * 3.6}deg`,
+                }}
+              >
+                <div>
+                  <strong>
+                    {statistics.resolutionRate}%
+                  </strong>
+
+                  <span>
+                    Resolved
+                  </span>
+                </div>
+              </div>
+
+              <div className="resolution-legend">
+
+                <div>
+                  <span className="legend-dot resolved" />
+                  <span>Resolved</span>
+                  <strong>
+                    {statistics.resolved}
+                  </strong>
+                </div>
+
+                <div>
+                  <span className="legend-dot progress" />
+                  <span>In progress</span>
+                  <strong>
+                    {statistics.inProgress}
+                  </strong>
+                </div>
+
+                <div>
+                  <span className="legend-dot pending" />
+                  <span>Pending</span>
+                  <strong>
+                    {statistics.reported +
+                      statistics.underReview}
+                  </strong>
+                </div>
+
+                <div>
+                  <span className="legend-dot critical" />
+                  <span>Critical</span>
+                  <strong>
+                    {statistics.critical}
+                  </strong>
+                </div>
+
+              </div>
+            </div>
+
+            <div className="resolution-footer">
+              <span>
+                {statistics.resolved} of{" "}
+                {statistics.total} issues resolved
+              </span>
+
+              <Link to="/admin/issues">
+                Manage issues
+                <ArrowRight size={13} />
+              </Link>
+            </div>
+
           </div>
 
-          <span>Reported</span>
+        </section>
 
-          <strong>
-            {statistics.reported}
-          </strong>
+        {/* ============================================
+            PRIORITY OVERVIEW
+        ============================================ */}
 
-          <small>
-            Awaiting review
-          </small>
-
-        </div>
-
-
-        <div className="admin-stat-card">
-
-          <div className="admin-stat-icon">
-            <TrendingUp size={17} />
-          </div>
-
-          <span>In progress</span>
-
-          <strong>
-            {statistics.inProgress}
-          </strong>
-
-          <small>
-            Currently being handled
-          </small>
-
-        </div>
-
-
-        <div className="admin-stat-card">
-
-          <div className="admin-stat-icon">
-            <CheckCircle2 size={17} />
-          </div>
-
-          <span>Resolved</span>
-
-          <strong>
-            {statistics.resolved}
-          </strong>
-
-          <small>
-            Successfully completed
-          </small>
-
-        </div>
-
-
-        <div className="admin-stat-card critical-card">
-
-          <div className="admin-stat-icon">
-            <AlertTriangle size={17} />
-          </div>
-
-          <span>Critical</span>
-
-          <strong>
-            {statistics.critical}
-          </strong>
-
-          <small>
-            Requires attention
-          </small>
-
-        </div>
-
-
-        <div className="admin-stat-card">
-
-          <div className="admin-stat-icon">
-            <CheckCircle2 size={17} />
-          </div>
-
-          <span>Resolution rate</span>
-
-          <strong>
-            {statistics.resolutionRate}%
-          </strong>
-
-          <small>
-            Overall resolution
-          </small>
-
-        </div>
-
-      </section>
-
-
-      {/* ============================================
-          MAIN CONTENT
-      ============================================ */}
-
-      <section className="admin-dashboard-grid">
-
-        {/* CATEGORY ANALYTICS */}
-
-        <div className="admin-dashboard-panel">
+        <section className="admin-dashboard-panel priority-panel">
 
           <div className="admin-panel-header">
-
             <div>
-              <h2>Issues by category</h2>
+              <span className="admin-panel-kicker">
+                ATTENTION LEVEL
+              </span>
+
+              <h2>Priority overview</h2>
 
               <p>
-                Distribution of reported civic
-                problems.
+                Distribution of issue priority across
+                the system.
               </p>
             </div>
 
-            <BarChart3 size={17} />
-
+            <div className="admin-panel-header-icon">
+              <AlertTriangle size={18} />
+            </div>
           </div>
 
+          <div className="priority-grid">
+            {priorityData.map((item) => (
+              <div
+                className="priority-item"
+                key={item.label}
+              >
+                <div className="priority-item-heading">
+                  <span
+                    className={`priority-dot ${item.className}`}
+                  />
 
-          <div className="category-chart">
+                  <span>{item.label}</span>
 
-            {categoryData.length === 0 ? (
-
-              <div className="admin-dashboard-empty">
-                No category data available.
-              </div>
-
-            ) : (
-
-              categoryData.map((category) => (
-
-                <div
-                  className="category-row"
-                  key={category.name}
-                >
-
-                  <div className="category-row-top">
-
-                    <span>
-                      {category.name}
-                    </span>
-
-                    <strong>
-                      {category.value}
-                    </strong>
-
-                  </div>
-
-                  <div className="category-bar">
-
-                    <div
-                      className="category-bar-fill"
-                      style={{
-                        width: `${(
-                          (category.value /
-                            maxCategoryValue) *
-                          100
-                        ).toFixed(0)}%`,
-                      }}
-                    />
-
-                  </div>
-
+                  <strong>{item.value}</strong>
                 </div>
 
-              ))
+                <div className="priority-track">
+                  <div
+                    className={`priority-fill ${item.className}`}
+                    style={{
+                      width:
+                        statistics.total > 0
+                          ? `${Math.round(
+                              (item.value /
+                                statistics.total) *
+                                100
+                            )}%`
+                          : "0%",
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
 
+        </section>
+
+        {/* ============================================
+            RECENT ISSUES
+        ============================================ */}
+
+        <section className="admin-dashboard-panel recent-panel">
+
+          <div className="admin-panel-header">
+            <div>
+              <span className="admin-panel-kicker">
+                LATEST ACTIVITY
+              </span>
+
+              <h2>Recent issues</h2>
+
+              <p>
+                Latest reports requiring
+                administrative attention.
+              </p>
+            </div>
+
+            <Link
+              to="/admin/issues"
+              className="admin-panel-action"
+            >
+              View all
+              <ArrowRight size={13} />
+            </Link>
+          </div>
+
+          <div className="recent-issues-list">
+
+            {recentIssues.length === 0 ? (
+              <div className="admin-dashboard-empty recent-empty">
+                <FileWarning size={23} />
+
+                <strong>
+                  No issues reported yet
+                </strong>
+
+                <span>
+                  New citizen reports will appear
+                  here.
+                </span>
+              </div>
+            ) : (
+              recentIssues.map((issue) => {
+                const status =
+                  statusLabels[
+                    issue.status
+                  ] || "Reported";
+
+                const priority =
+                  issue.priority || "MEDIUM";
+
+                return (
+                  <Link
+                    key={issue.id}
+                    to={`/admin/issues/${issue.id}`}
+                    className="recent-issue-row"
+                  >
+
+                    <div className="recent-issue-main">
+
+                      <div className="recent-issue-marker">
+                        <FileWarning size={16} />
+                      </div>
+
+                      <div className="recent-issue-copy">
+
+                        <div className="recent-issue-meta">
+                          <span className="recent-issue-id">
+                            {issue.report_id ||
+                              `CF-${issue.id}`}
+                          </span>
+
+                          <span>
+                            {formatDate(
+                              issue.created_at
+                            )}
+                          </span>
+                        </div>
+
+                        <strong>
+                          {issue.title ||
+                            "Civic issue"}
+                        </strong>
+
+                        <span>
+                          {issue.category ||
+                            "Other"}
+                        </span>
+
+                      </div>
+
+                    </div>
+
+                    <div className="recent-issue-right">
+
+                      <span
+                        className={`priority-badge ${priority.toLowerCase()}`}
+                      >
+                        {priority}
+                      </span>
+
+                      <span
+                        className={`status-badge ${
+                          (
+                            issue.status ||
+                            "REPORTED"
+                          ).toLowerCase()
+                        }`}
+                      >
+                        {status}
+                      </span>
+
+                      <ArrowRight
+                        size={15}
+                        className="recent-row-arrow"
+                      />
+
+                    </div>
+
+                  </Link>
+                );
+              })
             )}
 
           </div>
 
-        </div>
+        </section>
 
+        {/* ============================================
+            MAP PREVIEW
+        ============================================ */}
 
-        {/* RESOLUTION */}
-
-        <div className="admin-dashboard-panel">
+        <section className="admin-dashboard-panel map-panel">
 
           <div className="admin-panel-header">
-
             <div>
-              <h2>Resolution overview</h2>
+              <span className="admin-panel-kicker">
+                GEOGRAPHIC MONITORING
+              </span>
+
+              <h2>Issue map</h2>
 
               <p>
-                Current issue distribution.
+                Geographic overview of reported civic
+                issues.
               </p>
             </div>
 
-            <TrendingUp size={17} />
-
+            <Link
+              to="/admin/map"
+              className="admin-panel-action"
+            >
+              Open full map
+              <ArrowRight size={13} />
+            </Link>
           </div>
 
+          <div className="dashboard-map">
 
-          <div className="resolution-content">
+            <div className="map-grid-pattern" />
 
-            <div className="resolution-circle">
+            <div className="map-road map-road-one" />
+            <div className="map-road map-road-two" />
+            <div className="map-road map-road-three" />
 
-              <div>
-
-                <strong>
-                  {statistics.resolutionRate}%
-                </strong>
-
-                <span>
-                  Resolved
-                </span>
-
-              </div>
-
-            </div>
-
-
-            <div className="resolution-legend">
-
-              <div>
-                <span className="legend-dot resolved" />
-                <span>Resolved</span>
-                <strong>
-                  {statistics.resolved}
-                </strong>
-              </div>
-
-              <div>
-                <span className="legend-dot progress" />
-                <span>In Progress</span>
-                <strong>
-                  {statistics.inProgress}
-                </strong>
-              </div>
-
-              <div>
-                <span className="legend-dot pending" />
-                <span>Pending</span>
-                <strong>
-                  {statistics.reported}
-                </strong>
-              </div>
-
-              <div>
-                <span className="legend-dot critical" />
-                <span>Critical</span>
-                <strong>
-                  {statistics.critical}
-                </strong>
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-      {/* ============================================
-          RECENT ISSUES
-      ============================================ */}
-
-      <section className="admin-dashboard-panel recent-panel">
-
-        <div className="admin-panel-header">
-
-          <div>
-            <h2>Recent issues</h2>
-
-            <p>
-              Latest reports requiring administrative
-              attention.
-            </p>
-          </div>
-
-          <Link to="/admin/issues">
-            View all
-            <ArrowRight size={13} />
-          </Link>
-
-        </div>
-
-
-        <div className="recent-issues-list">
-
-          {recentIssues.length === 0 ? (
-
-            <div className="admin-dashboard-empty">
-              No issues have been reported yet.
-            </div>
-
-          ) : (
-
-            recentIssues.map((issue) => {
-
-              const status =
-                statusLabels[
-                  issue.status
-                ] || "Reported";
-
-              const issueIdentifier =
-                issue.id;
-
-              return (
-
-                <Link
-                  key={issueIdentifier}
-                  to={`/admin/issues/${issueIdentifier}`}
-                  className="recent-issue-row"
+            {issues
+              .filter(
+                (issue) =>
+                  issue.latitude &&
+                  issue.longitude
+              )
+              .slice(0, 6)
+              .map((issue, index) => (
+                <div
+                  key={issue.id}
+                  className={`map-marker marker-${
+                    index + 1
+                  }`}
+                  title={
+                    issue.title ||
+                    "Civic issue"
+                  }
                 >
+                  <MapPin size={17} />
+                </div>
+              ))}
 
-                  <div className="recent-issue-main">
-
-                    <span className="recent-issue-id">
-                      {issue.report_id ||
-                        `CF-${issue.id}`}
-                    </span>
-
-                    <strong>
-                      {issue.title ||
-                        "Civic issue"}
-                    </strong>
-
-                    <span className="recent-issue-category">
-                      {issue.category ||
-                        "Other"}
-                    </span>
-
-                  </div>
-
-
-                  <div className="recent-issue-right">
-
-                    <span
-                      className={`priority-badge ${
-                        (
-                          issue.priority ||
-                          "MEDIUM"
-                        ).toLowerCase()
-                      }`}
-                    >
-                      {issue.priority ||
-                        "MEDIUM"}
-                    </span>
-
-
-                    <span
-                      className={`status-badge ${
-                        (
-                          issue.status ||
-                          "REPORTED"
-                        ).toLowerCase()
-                      }`}
-                    >
-                      {status}
-                    </span>
-
-
-                    <ArrowRight size={14} />
-
-                  </div>
-
-                </Link>
-
-              );
-
-            })
-
-          )}
-
-        </div>
-
-      </section>
-
-
-      {/* ============================================
-          MAP
-      ============================================ */}
-
-      <section className="admin-dashboard-panel map-panel">
-
-        <div className="admin-panel-header">
-
-          <div>
-            <h2>Issue map</h2>
-
-            <p>
-              Geographic overview of reported civic
-              issues.
-            </p>
-          </div>
-
-          <Link to="/admin/map">
-            Open map
-            <ArrowRight size={13} />
-          </Link>
-
-        </div>
-
-
-        <div className="dashboard-map">
-
-          <div className="map-grid-pattern" />
-
-          {issues
-            .filter(
+            {issues.filter(
               (issue) =>
                 issue.latitude &&
                 issue.longitude
-            )
-            .slice(0, 5)
-            .map((issue, index) => (
+            ).length === 0 && (
+              <div className="map-empty-state">
+                <MapPin size={22} />
 
-              <div
-                key={issue.id}
-                className={`map-marker marker-${
-                  index + 1
-                }`}
-                title={
-                  issue.title ||
-                  "Civic issue"
-                }
-              >
-                <MapPin size={18} />
+                <strong>
+                  No mapped issues yet
+                </strong>
+
+                <span>
+                  Issue locations will appear here
+                  when available.
+                </span>
               </div>
+            )}
 
-            ))}
+            <div className="dashboard-map-overlay">
 
+              <span>
+                <i className="map-dot critical-dot" />
+                Critical
+              </span>
 
-          <div className="dashboard-map-overlay">
+              <span>
+                <i className="map-dot pending-dot" />
+                Pending
+              </span>
 
-            <span>
-              <i className="map-dot critical-dot" />
-              Critical
-            </span>
+              <span>
+                <i className="map-dot progress-dot" />
+                In progress
+              </span>
 
-            <span>
-              <i className="map-dot pending-dot" />
-              Pending
-            </span>
+              <span>
+                <i className="map-dot resolved-dot" />
+                Resolved
+              </span>
 
-            <span>
-              <i className="map-dot progress-dot" />
-              In Progress
-            </span>
-
-            <span>
-              <i className="map-dot resolved-dot" />
-              Resolved
-            </span>
+            </div>
 
           </div>
 
-        </div>
+        </section>
 
-      </section>
-
+      </div>
     </div>
   );
 }

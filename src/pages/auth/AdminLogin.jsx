@@ -6,6 +6,8 @@ import {
   Eye,
   EyeOff,
   ShieldCheck,
+  Building2,
+  CheckCircle2,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../../components/ui/Button";
@@ -81,7 +83,6 @@ function AdminLogin() {
 
       // Redirect to admin dashboard
       navigate("/admin/dashboard");
-
     } catch (loginError) {
       console.error("Admin login error:", loginError);
 
@@ -95,118 +96,180 @@ function AdminLogin() {
   };
 
   return (
-    <div className="auth-page">
+    <div className="admin-auth-page">
+      {/* =====================================================
+          LEFT AUTHORITY PANEL
+      ====================================================== */}
 
-      {/* LEFT BRAND PANEL */}
+      <section className="admin-auth-brand-panel">
+        <div className="admin-auth-brand-glow admin-glow-one" />
+        <div className="admin-auth-brand-glow admin-glow-two" />
 
-      <section className="auth-brand-panel">
+        {/* BRAND */}
 
-        <Link to="/" className="auth-brand">
-          <span className="auth-brand-mark">C</span>
-          CivicFix
+        <Link to="/" className="admin-auth-brand">
+          <span className="admin-auth-brand-mark">
+            C
+          </span>
+
+          <span>
+            <strong>CivicFix</strong>
+            <small>Authority Portal</small>
+          </span>
         </Link>
 
-        <div className="auth-brand-content">
+        {/* MAIN BRAND CONTENT */}
 
-          <div className="landing-eyebrow">
-            <ShieldCheck size={14} />
-            Authorized access
+        <div className="admin-auth-brand-content">
+          <div className="admin-auth-eyebrow">
+            <ShieldCheck size={15} />
+            <span>Secure authority access</span>
           </div>
 
           <h1>
-            Manage your
+            Better decisions.
             <br />
-            <span>city better.</span>
+            <span>Better cities.</span>
           </h1>
 
           <p>
-            Review citizen reports, coordinate responses,
-            monitor civic issues and drive them toward
-            resolution from one centralized workspace.
+            A centralized workspace for civic authorities
+            to review reports, coordinate responses and
+            move community issues toward resolution.
           </p>
 
+          <div className="admin-auth-features">
+            <div className="admin-auth-feature">
+              <span className="admin-auth-feature-icon">
+                <CheckCircle2 size={16} />
+              </span>
+
+              <div>
+                <strong>Review citizen reports</strong>
+                <span>
+                  Access incoming civic issues from one
+                  workspace.
+                </span>
+              </div>
+            </div>
+
+            <div className="admin-auth-feature">
+              <span className="admin-auth-feature-icon">
+                <CheckCircle2 size={16} />
+              </span>
+
+              <div>
+                <strong>Coordinate action</strong>
+                <span>
+                  Prioritize issues and manage their
+                  progress.
+                </span>
+              </div>
+            </div>
+
+            <div className="admin-auth-feature">
+              <span className="admin-auth-feature-icon">
+                <CheckCircle2 size={16} />
+              </span>
+
+              <div>
+                <strong>Monitor civic activity</strong>
+                <span>
+                  Understand what is happening across
+                  your service area.
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="auth-brand-footer">
-          CivicFix Authority Portal
-        </div>
+        {/* FOOTER */}
 
+        <div className="admin-auth-brand-footer">
+          <span>© CivicFix</span>
+          <span className="admin-auth-footer-divider" />
+          <span>Authority Operations</span>
+        </div>
       </section>
 
-      {/* FORM PANEL */}
+      {/* =====================================================
+          FORM PANEL
+      ====================================================== */}
 
-      <section className="auth-form-panel">
+      <section className="admin-auth-form-panel">
+        <div className="admin-auth-form-container">
+          {/* HEADER */}
 
-        <div className="auth-form-container">
+          <div className="admin-auth-form-header">
+            <div className="admin-auth-form-icon">
+              <Building2 size={21} />
+            </div>
 
-          <div className="auth-form-header">
+            <div className="admin-auth-form-eyebrow">
+              AUTHORITY PORTAL
+            </div>
 
-            <h2>Authority sign in</h2>
+            <h2>Welcome back</h2>
 
             <p>
-              Sign in with your authorized CivicFix
-              administrator account.
+              Sign in to securely access the CivicFix
+              administration workspace.
             </p>
-
           </div>
 
           {/* ERROR */}
 
           {error && (
-            <div className="auth-error">
-              {error}
+            <div className="admin-auth-error" role="alert">
+              <ShieldCheck size={17} />
+              <span>{error}</span>
             </div>
           )}
 
+          {/* FORM */}
+
           <form
-            className="auth-form"
+            className="admin-auth-form"
             onSubmit={handleSubmit}
           >
-
             {/* EMAIL */}
 
-            <div className="auth-field">
-
+            <div className="admin-auth-field">
               <label htmlFor="admin-email">
                 Official email
               </label>
 
-              <div className="auth-input-wrapper">
-
+              <div className="admin-auth-input-wrapper">
                 <Mail
                   size={18}
-                  className="auth-input-icon"
+                  className="admin-auth-input-icon"
                 />
 
                 <input
                   id="admin-email"
                   name="email"
                   type="email"
-                  className="auth-input"
+                  className="admin-auth-input"
                   placeholder="admin@civicfix.gov"
                   value={formData.email}
                   onChange={handleChange}
                   required
                   autoComplete="email"
                 />
-
               </div>
-
             </div>
 
             {/* PASSWORD */}
 
-            <div className="auth-field">
-
+            <div className="admin-auth-field">
               <label htmlFor="admin-password">
                 Password
               </label>
 
-              <div className="auth-input-wrapper">
-
+              <div className="admin-auth-input-wrapper">
                 <LockKeyhole
                   size={18}
-                  className="auth-input-icon"
+                  className="admin-auth-input-icon"
                 />
 
                 <input
@@ -217,7 +280,7 @@ function AdminLogin() {
                       ? "text"
                       : "password"
                   }
-                  className="auth-input"
+                  className="admin-auth-input"
                   placeholder="Enter your password"
                   value={formData.password}
                   onChange={handleChange}
@@ -227,7 +290,7 @@ function AdminLogin() {
 
                 <button
                   type="button"
-                  className="auth-password-toggle"
+                  className="admin-auth-password-toggle"
                   onClick={() =>
                     setShowPassword(
                       (previous) => !previous
@@ -245,70 +308,74 @@ function AdminLogin() {
                     <Eye size={18} />
                   )}
                 </button>
-
               </div>
-
             </div>
 
             {/* OPTIONS */}
 
-            <div className="auth-form-options">
-
-              <label className="auth-checkbox">
-
+            <div className="admin-auth-form-options">
+              <label className="admin-auth-checkbox">
                 <input
                   type="checkbox"
                   name="remember"
                 />
 
-                Remember me
-
+                <span>Remember me</span>
               </label>
 
               <a
                 href="mailto:support@civicfix.example"
-                className="auth-link"
+                className="admin-auth-help-link"
               >
-                Need help?
+                Need assistance?
               </a>
-
             </div>
 
             {/* SUBMIT */}
 
-            <div className="auth-submit">
-
+            <div className="admin-auth-submit">
               <Button
                 type="submit"
                 size="large"
                 disabled={loading}
               >
                 {loading ? (
-                  "Signing in..."
+                  "Verifying access..."
                 ) : (
                   <>
-                    Access dashboard
+                    Access authority portal
                     <ArrowRight size={17} />
                   </>
                 )}
               </Button>
-
             </div>
-
           </form>
 
-          <div className="auth-switch">
+          {/* SECURITY NOTE */}
 
-            <Link to="/">
-              ← Return to CivicFix
-            </Link>
+          <div className="admin-auth-security-note">
+            <ShieldCheck size={17} />
 
+            <div>
+              <strong>Authorized personnel only</strong>
+
+              <span>
+                This portal is restricted to registered
+                CivicFix authority accounts.
+              </span>
+            </div>
           </div>
 
+          {/* RETURN */}
+
+          <div className="admin-auth-return">
+            <Link to="/">
+              <span>←</span>
+              Return to CivicFix
+            </Link>
+          </div>
         </div>
-
       </section>
-
     </div>
   );
 }

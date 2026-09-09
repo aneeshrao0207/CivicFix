@@ -2,16 +2,16 @@ import { useEffect, useState } from "react";
 
 import {
   ArrowLeft,
+  AlertTriangle,
   CheckCircle2,
   ChevronDown,
   Clock3,
   FileText,
+  LoaderCircle,
   MapPin,
   MessageSquare,
   ShieldCheck,
   User,
-  LoaderCircle,
-  AlertTriangle,
 } from "lucide-react";
 
 import { Link, useParams } from "react-router-dom";
@@ -61,9 +61,6 @@ const statusLabels = {
 };
 
 function AdminIssueDetails() {
-  // IMPORTANT:
-  // AdminIssues.jsx navigates to /admin/issues/${issue.id}
-  // and App.jsx defines the route as /admin/issues/:id
   const { id } = useParams();
 
   const [issue, setIssue] = useState(null);
@@ -77,7 +74,9 @@ function AdminIssueDetails() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
   const [error, setError] = useState("");
+  const [departmentError, setDepartmentError] = useState("");
 
   // ============================================
   // FETCH ISSUE
@@ -99,14 +98,19 @@ function AdminIssueDetails() {
 
         setIssue(fetchedIssue);
 
-        setPriority(fetchedIssue.priority || "MEDIUM");
+        setPriority(
+          fetchedIssue.priority || "MEDIUM"
+        );
+
         setDepartment(
           fetchedIssue.assigned_department
             ? String(fetchedIssue.assigned_department)
             : ""
         );
-        setStatus(fetchedIssue.status || "REPORTED");
 
+        setStatus(
+          fetchedIssue.status || "REPORTED"
+        );
       } catch (fetchError) {
         console.error(
           "Failed to fetch issue:",
@@ -134,14 +138,23 @@ function AdminIssueDetails() {
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const data = await apiRequest("/departments");
+        setDepartmentError("");
 
-        setDepartments(data.departments || []);
+        const data = await apiRequest(
+          "/departments"
+        );
 
-      } catch (departmentError) {
+        setDepartments(
+          data.departments || []
+        );
+      } catch (fetchError) {
         console.error(
           "Failed to fetch departments:",
-          departmentError
+          fetchError
+        );
+
+        setDepartmentError(
+          "Departments could not be loaded."
         );
       }
     };
@@ -154,7 +167,9 @@ function AdminIssueDetails() {
   // ============================================
 
   const handleUpdate = async () => {
-    if (!issue) return;
+    if (!issue || saving) {
+      return;
+    }
 
     try {
       setSaving(true);
@@ -191,7 +206,9 @@ function AdminIssueDetails() {
 
       setDepartment(
         data.issue.assigned_department
-          ? String(data.issue.assigned_department)
+          ? String(
+              data.issue.assigned_department
+            )
           : ""
       );
 
@@ -199,12 +216,12 @@ function AdminIssueDetails() {
         data.issue.status || status
       );
 
+      setNote("");
       setSaved(true);
 
-      setTimeout(() => {
+      window.setTimeout(() => {
         setSaved(false);
       }, 2500);
-
     } catch (updateError) {
       console.error(
         "Failed to update issue:",
@@ -227,24 +244,21 @@ function AdminIssueDetails() {
   if (loading) {
     return (
       <div className="admin-issue-details-page">
-
         <div className="admin-issues-loading">
+          <div className="admin-issues-loading-icon">
+            <LoaderCircle
+              size={25}
+              className="loading-spinner"
+            />
+          </div>
 
-          <LoaderCircle
-            size={25}
-            className="loading-spinner"
-          />
-
-          <strong>
-            Loading issue...
-          </strong>
+          <strong>Loading issue</strong>
 
           <p>
-            Fetching issue details from the database.
+            Fetching issue details from the
+            database.
           </p>
-
         </div>
-
       </div>
     );
   }
@@ -256,32 +270,26 @@ function AdminIssueDetails() {
   if (error && !issue) {
     return (
       <div className="admin-issue-details-page">
-
         <div className="admin-issue-back">
-
           <Link to="/admin/issues">
             <ArrowLeft size={14} />
             Back to issues
           </Link>
-
         </div>
 
         <div className="admin-issues-error">
-
-          <AlertTriangle size={18} />
+          <div className="admin-issues-error-icon">
+            <AlertTriangle size={18} />
+          </div>
 
           <div>
             <strong>
               Unable to load issue
             </strong>
 
-            <p>
-              {error}
-            </p>
+            <p>{error}</p>
           </div>
-
         </div>
-
       </div>
     );
   }
@@ -335,49 +343,48 @@ function AdminIssueDetails() {
     issue.department_name ||
     "Not assigned";
 
+  const currentStatusLabel =
+    statusLabels[status] ||
+    status?.replaceAll("_", " ") ||
+    "Unknown";
+
+  // ============================================
+  // PAGE
+  // ============================================
+
   return (
     <div className="admin-issue-details-page">
-
       {/* =====================================
           BACK
       ===================================== */}
 
       <div className="admin-issue-back">
-
         <Link to="/admin/issues">
-
           <ArrowLeft size={14} />
-
           Back to issues
-
         </Link>
-
       </div>
-
 
       {/* =====================================
           HEADER
       ===================================== */}
 
       <header className="admin-issue-details-header">
-
-        <div>
-
+        <div className="admin-issue-header-content">
           <div className="admin-issue-id-label">
-
             {issue.report_id ||
               `CF-${issue.id}`}
-
           </div>
 
           <h1>
-            {issue.title}
+            {issue.title ||
+              "Untitled civic issue"}
           </h1>
 
           <p>
-            Review and manage this civic issue.
+            Review the report and take
+            administrative action.
           </p>
-
         </div>
 
         <div
@@ -385,207 +392,157 @@ function AdminIssueDetails() {
             status.toLowerCase()
           }`}
         >
-
           <span />
 
-          {statusLabels[status] ||
-            status.replaceAll("_", " ")}
-
+          {currentStatusLabel}
         </div>
-
       </header>
 
-
       {/* =====================================
-          ERROR AFTER UPDATE
+          UPDATE ERROR / SUCCESS
       ===================================== */}
 
-      {error && (
+      {error && issue && (
         <div className="admin-issues-error">
-
-          <AlertTriangle size={17} />
+          <div className="admin-issues-error-icon">
+            <AlertTriangle size={17} />
+          </div>
 
           <div>
-
             <strong>
               Unable to update issue
             </strong>
 
-            <p>
-              {error}
-            </p>
-
+            <p>{error}</p>
           </div>
-
         </div>
       )}
 
+      {saved && (
+        <div className="admin-issues-success">
+          <div className="admin-issues-success-icon">
+            <CheckCircle2 size={17} />
+          </div>
+
+          <div>
+            <strong>
+              Issue updated successfully
+            </strong>
+
+            <p>
+              The latest administrative changes
+              have been saved.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* =====================================
           CONTENT
       ===================================== */}
 
       <div className="admin-issue-details-grid">
-
         {/* ===================================
             LEFT
         =================================== */}
 
         <main>
-
           {/* REPORT INFORMATION */}
 
           <section className="admin-detail-card">
-
             <div className="admin-detail-card-header">
-
               <div>
-
-                <h2>
-                  Report information
-                </h2>
+                <h2>Report information</h2>
 
                 <p>
-                  Details submitted by the citizen.
+                  Details submitted by the
+                  citizen.
                 </p>
-
               </div>
 
-              <FileText size={16} />
-
+              <FileText size={17} />
             </div>
 
-
             <div className="admin-information-grid">
-
               <div className="admin-information-item">
-
-                <span>
-                  Category
-                </span>
+                <span>Category</span>
 
                 <strong>
                   {issue.category || "—"}
                 </strong>
-
               </div>
 
-
               <div className="admin-information-item">
-
-                <span>
-                  Reported by
-                </span>
+                <span>Reported by</span>
 
                 <strong>
                   {reporterName}
                 </strong>
-
               </div>
 
-
               <div className="admin-information-item">
-
-                <span>
-                  Reported date
-                </span>
+                <span>Reported date</span>
 
                 <strong>
                   {reportedDate}
                 </strong>
-
               </div>
 
-
               <div className="admin-information-item">
-
-                <span>
-                  Reported time
-                </span>
+                <span>Reported time</span>
 
                 <strong>
                   {reportedTime}
                 </strong>
-
               </div>
-
             </div>
-
           </section>
-
 
           {/* DESCRIPTION */}
 
           <section className="admin-detail-card">
-
             <div className="admin-detail-card-header">
-
               <div>
-
-                <h2>
-                  Description
-                </h2>
+                <h2>Description</h2>
 
                 <p>
                   Citizen-provided issue details.
                 </p>
-
               </div>
 
-              <MessageSquare size={16} />
-
+              <MessageSquare size={17} />
             </div>
 
-
             <div className="admin-description">
-
               <p>
                 {issue.description ||
                   "No description provided."}
               </p>
-
             </div>
-
           </section>
-
 
           {/* LOCATION */}
 
           <section className="admin-detail-card">
-
             <div className="admin-detail-card-header">
-
               <div>
-
-                <h2>
-                  Location
-                </h2>
+                <h2>Location</h2>
 
                 <p>
                   Reported issue location.
                 </p>
-
               </div>
 
-              <MapPin size={16} />
-
+              <MapPin size={17} />
             </div>
 
-
             <div className="admin-location-box">
-
               <div className="admin-location-map">
-
-                <MapPin size={23} />
-
+                <MapPin size={24} />
               </div>
 
-
               <div className="admin-location-info">
-
-                <span>
-                  Reported location
-                </span>
+                <span>Reported location</span>
 
                 <strong>
                   {issue.address ||
@@ -598,42 +555,28 @@ function AdminIssueDetails() {
                     ? `Coordinates: ${issue.latitude}, ${issue.longitude}`
                     : "Location coordinates were not provided with this report."}
                 </small>
-
               </div>
-
             </div>
-
           </section>
 
-
-          {/* STATUS TIMELINE */}
+          {/* ISSUE LIFECYCLE */}
 
           <section className="admin-detail-card">
-
             <div className="admin-detail-card-header">
-
               <div>
-
-                <h2>
-                  Issue lifecycle
-                </h2>
+                <h2>Issue lifecycle</h2>
 
                 <p>
                   Current progress of the report.
                 </p>
-
               </div>
 
-              <Clock3 size={16} />
-
+              <Clock3 size={17} />
             </div>
 
-
             <div className="admin-status-timeline">
-
               {statusSteps.map(
                 (step, index) => {
-
                   const isCompleted =
                     currentStatusIndex >=
                     index;
@@ -654,9 +597,7 @@ function AdminIssueDetails() {
                       }`}
                       key={step.key}
                     >
-
                       <div className="admin-timeline-marker">
-
                         {isCompleted ? (
                           <CheckCircle2
                             size={14}
@@ -664,24 +605,19 @@ function AdminIssueDetails() {
                         ) : (
                           <span />
                         )}
-
                       </div>
 
-
-                      <div>
-
+                      <div className="admin-timeline-label">
                         <strong>
                           {step.label}
                         </strong>
 
                         {isCurrent && (
                           <small>
-                            Current status
+                            Current
                           </small>
                         )}
-
                       </div>
-
 
                       {index <
                         statusSteps.length -
@@ -695,64 +631,68 @@ function AdminIssueDetails() {
                           }`}
                         />
                       )}
-
                     </div>
                   );
                 }
               )}
 
+              {status === "REJECTED" && (
+                <div className="admin-rejected-state">
+                  <span />
+                  <strong>
+                    Report rejected
+                  </strong>
+                </div>
+              )}
             </div>
-
           </section>
-
         </main>
-
 
         {/* ===================================
             RIGHT
         =================================== */}
 
         <aside>
-
           {/* ADMIN ACTION */}
 
           <section className="admin-action-card">
-
             <div className="admin-action-header">
-
               <div className="admin-action-icon">
-
-                <ShieldCheck size={17} />
-
+                <ShieldCheck size={18} />
               </div>
 
               <div>
-
-                <h2>
-                  Manage issue
-                </h2>
+                <h2>Manage issue</h2>
 
                 <p>
                   Administrative controls
                 </p>
-
               </div>
-
             </div>
 
+            <div className="admin-action-current">
+              <span>Current assignment</span>
+
+              <strong>
+                {departmentName}
+              </strong>
+            </div>
+
+            {departmentError && (
+              <div className="admin-department-warning">
+                <AlertTriangle size={13} />
+
+                {departmentError}
+              </div>
+            )}
 
             <div className="admin-action-fields">
-
               {/* PRIORITY */}
 
               <label>
-
-                <span>
-                  Priority
-                </span>
+                <span>Priority</span>
 
                 <div className="admin-detail-select">
-
                   <select
                     value={priority}
                     onChange={(event) =>
@@ -761,7 +701,6 @@ function AdminIssueDetails() {
                       )
                     }
                   >
-
                     <option value="LOW">
                       Low
                     </option>
@@ -777,26 +716,18 @@ function AdminIssueDetails() {
                     <option value="CRITICAL">
                       Critical
                     </option>
-
                   </select>
 
                   <ChevronDown size={13} />
-
                 </div>
-
               </label>
-
 
               {/* DEPARTMENT */}
 
               <label>
-
-                <span>
-                  Department
-                </span>
+                <span>Department</span>
 
                 <div className="admin-detail-select">
-
                   <select
                     value={department}
                     onChange={(event) =>
@@ -805,7 +736,6 @@ function AdminIssueDetails() {
                       )
                     }
                   >
-
                     <option value="">
                       Not assigned
                     </option>
@@ -820,26 +750,18 @@ function AdminIssueDetails() {
                         </option>
                       )
                     )}
-
                   </select>
 
                   <ChevronDown size={13} />
-
                 </div>
-
               </label>
-
 
               {/* STATUS */}
 
               <label>
-
-                <span>
-                  Status
-                </span>
+                <span>Status</span>
 
                 <div className="admin-detail-select">
-
                   <select
                     value={status}
                     onChange={(event) =>
@@ -848,7 +770,6 @@ function AdminIssueDetails() {
                       )
                     }
                   >
-
                     <option value="REPORTED">
                       Reported
                     </option>
@@ -872,97 +793,92 @@ function AdminIssueDetails() {
                     <option value="REJECTED">
                       Rejected
                     </option>
-
                   </select>
 
                   <ChevronDown size={13} />
-
                 </div>
-
               </label>
-
             </div>
 
-
-            {/* UPDATE */}
-
             <button
+              type="button"
               className="admin-update-button"
               onClick={handleUpdate}
               disabled={saving}
             >
-
-              {saving
-                ? "Updating..."
-                : saved
-                ? "Issue updated"
-                : "Update issue"}
-
+              {saving ? (
+                <>
+                  <LoaderCircle
+                    size={14}
+                    className="button-spinner"
+                  />
+                  Updating...
+                </>
+              ) : saved ? (
+                <>
+                  <CheckCircle2 size={14} />
+                  Issue updated
+                </>
+              ) : (
+                <>
+                  <ShieldCheck size={14} />
+                  Update issue
+                </>
+              )}
             </button>
-
           </section>
-
 
           {/* ADMIN NOTE */}
 
           <section className="admin-note-card">
-
             <div className="admin-note-header">
-
-              <MessageSquare size={15} />
+              <MessageSquare size={16} />
 
               <div>
-
                 <h2>
                   Administrative note
                 </h2>
 
                 <p>
-                  Add an internal note.
+                  Add an internal note with the
+                  update.
                 </p>
-
               </div>
-
             </div>
-
 
             <textarea
               value={note}
               onChange={(event) =>
                 setNote(event.target.value)
               }
-              placeholder="Write an internal note..."
+              placeholder="Example: Assigned to the road maintenance team for inspection."
             />
 
+            <div className="admin-note-footer">
+              <span>
+                {note.length}/500
+              </span>
 
-            <button
-              className="admin-note-button"
-              onClick={() =>
-                setNote("")
-              }
-            >
-              Clear note
-            </button>
-
+              <button
+                type="button"
+                className="admin-note-button"
+                onClick={() => setNote("")}
+                disabled={!note}
+              >
+                Clear
+              </button>
+            </div>
           </section>
-
 
           {/* REPORTER */}
 
           <section className="admin-reporter-card">
-
             <div className="admin-reporter-icon">
-
-              <User size={16} />
-
+              <User size={17} />
             </div>
 
-
             <div>
-
-              <span>
-                Reported by
-              </span>
+              <span>Reported by</span>
 
               <strong>
                 {reporterName}
@@ -971,15 +887,10 @@ function AdminIssueDetails() {
               <small>
                 Citizen reporter
               </small>
-
             </div>
-
           </section>
-
         </aside>
-
       </div>
-
     </div>
   );
 }

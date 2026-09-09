@@ -1,14 +1,17 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
 import {
-  Search,
-  Filter,
-  ChevronDown,
-  MapPin,
-  ArrowRight,
   AlertTriangle,
-  Clock3,
   CheckCircle2,
+  ChevronDown,
+  Clock3,
+  Filter,
   LoaderCircle,
+  MapPin,
+  RefreshCw,
+  Search,
+  SlidersHorizontal,
+  X,
 } from "lucide-react";
 
 import { Link } from "react-router-dom";
@@ -56,65 +59,62 @@ function AdminIssues() {
   const [categoryFilter, setCategoryFilter] = useState("ALL");
 
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
 
-
   // ============================================
-  // FETCH ALL ISSUES
+  // FETCH ISSUES
   // ============================================
 
-  useEffect(() => {
-    const fetchIssues = async () => {
-      try {
+  const fetchIssues = useCallback(async (isRefresh = false) => {
+    try {
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
         setLoading(true);
-        setError("");
-
-        const data = await apiRequest("/issues");
-
-        setIssues(data.issues || []);
-
-      } catch (fetchError) {
-        console.error(
-          "Failed to fetch admin issues:",
-          fetchError
-        );
-
-        setError(
-          fetchError.message ||
-            "Unable to load issues."
-        );
-      } finally {
-        setLoading(false);
       }
-    };
 
-    fetchIssues();
+      setError("");
+
+      const data = await apiRequest("/issues");
+
+      setIssues(data.issues || []);
+    } catch (fetchError) {
+      console.error("Failed to fetch admin issues:", fetchError);
+
+      setError(
+        fetchError.message ||
+          "Unable to load civic reports. Please try again."
+      );
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, []);
 
+  useEffect(() => {
+    fetchIssues();
+  }, [fetchIssues]);
 
   // ============================================
   // FILTER ISSUES
   // ============================================
 
   const filteredIssues = useMemo(() => {
+    const searchValue = search.toLowerCase().trim();
+
     return issues.filter((issue) => {
-      const searchValue = search
-        .toLowerCase()
-        .trim();
-
-      const reportId =
-        issue.report_id?.toLowerCase() || "";
-
-      const title =
-        issue.title?.toLowerCase() || "";
-
-      const location =
-        issue.address?.toLowerCase() || "";
+      const reportId = issue.report_id?.toLowerCase() || "";
+      const title = issue.title?.toLowerCase() || "";
+      const location = issue.address?.toLowerCase() || "";
+      const category = issue.category?.toLowerCase() || "";
 
       const matchesSearch =
+        !searchValue ||
         reportId.includes(searchValue) ||
         title.includes(searchValue) ||
-        location.includes(searchValue);
+        location.includes(searchValue) ||
+        category.includes(searchValue);
 
       const matchesStatus =
         statusFilter === "ALL" ||
@@ -143,26 +143,60 @@ function AdminIssues() {
     categoryFilter,
   ]);
 
-
   // ============================================
   // SUMMARY COUNTS
   // ============================================
 
-  const criticalCount = issues.filter(
-    (issue) =>
-      issue.priority === "CRITICAL"
-  ).length;
+  const summary = useMemo(() => {
+    return {
+      critical: issues.filter(
+        (issue) => issue.priority === "CRITICAL"
+      ).length,
 
-  const inProgressCount = issues.filter(
-    (issue) =>
-      issue.status === "IN_PROGRESS"
-  ).length;
+      inProgress: issues.filter(
+        (issue) =>
+          issue.status === "IN_PROGRESS" ||
+          issue.status === "ASSIGNED"
+      ).length,
 
-  const resolvedCount = issues.filter(
-    (issue) =>
-      issue.status === "RESOLVED"
-  ).length;
+      resolved: issues.filter(
+        (issue) => issue.status === "RESOLVED"
+      ).length,
+    };
+  }, [issues]);
 
+  // ============================================
+  // ACTIVE FILTERS
+  // ============================================
+
+  const hasActiveFilters =
+    search.trim() ||
+    statusFilter !== "ALL" ||
+    priorityFilter !== "ALL" ||
+    categoryFilter !== "ALL";
+
+  const clearFilters = () => {
+    setSearch("");
+    setStatusFilter("ALL");
+    setPriorityFilter("ALL");
+    setCategoryFilter("ALL");
+  };
+
+  // ============================================
+  // DATE FORMATTER
+  // ============================================
+
+  const formatDate = (date) => {
+    if (!date) {
+      return "Unknown date";
+    }
+
+    return new Date(date).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
 
   // ============================================
   // LOADING STATE
@@ -171,28 +205,23 @@ function AdminIssues() {
   if (loading) {
     return (
       <div className="admin-issues-page">
-
         <div className="admin-issues-loading">
+          <div className="admin-issues-loading-icon">
+            <LoaderCircle
+              size={24}
+              className="loading-spinner"
+            />
+          </div>
 
-          <LoaderCircle
-            size={24}
-            className="loading-spinner"
-          />
-
-          <strong>
-            Loading issues...
-          </strong>
+          <strong>Loading issues</strong>
 
           <p>
             Fetching civic reports from the database.
           </p>
-
         </div>
-
       </div>
     );
   }
-
 
   // ============================================
   // PAGE
@@ -200,50 +229,56 @@ function AdminIssues() {
 
   return (
     <div className="admin-issues-page">
-
       {/* =====================================
           HEADER
       ===================================== */}
 
       <header className="admin-issues-header">
-
-        <div>
-
+        <div className="admin-issues-heading">
           <div className="admin-issues-eyebrow">
-
             <Filter size={13} />
-
             ISSUE MANAGEMENT
-
           </div>
 
-          <h1>
-            All Issues
-          </h1>
+          <h1>All Issues</h1>
 
           <p>
-            Review, prioritize and manage civic reports.
+            Review, prioritize and manage civic reports
+            submitted by citizens.
           </p>
-
         </div>
 
+        <div className="admin-issues-header-actions">
+          <div className="issue-count">
+            <strong>{filteredIssues.length}</strong>
 
-        <div className="issue-count">
+            <span>
+              {filteredIssues.length === 1
+                ? "issue"
+                : "issues"}
+            </span>
+          </div>
 
-          <strong>
-            {filteredIssues.length}
-          </strong>
+          <button
+            type="button"
+            className="issues-refresh-button"
+            onClick={() => fetchIssues(true)}
+            disabled={refreshing}
+            title="Refresh issues"
+          >
+            <RefreshCw
+              size={15}
+              className={
+                refreshing ? "refresh-spinning" : ""
+              }
+            />
 
-          <span>
-            {filteredIssues.length === 1
-              ? "issue"
-              : "issues"}
-          </span>
-
+            <span>
+              {refreshing ? "Refreshing" : "Refresh"}
+            </span>
+          </button>
         </div>
-
       </header>
-
 
       {/* =====================================
           ERROR
@@ -251,131 +286,125 @@ function AdminIssues() {
 
       {error && (
         <div className="admin-issues-error">
-
-          <AlertTriangle size={17} />
-
-          <div>
-
-            <strong>
-              Unable to load issues
-            </strong>
-
-            <p>
-              {error}
-            </p>
-
+          <div className="admin-issues-error-icon">
+            <AlertTriangle size={17} />
           </div>
 
+          <div className="admin-issues-error-content">
+            <strong>Unable to load issues</strong>
+
+            <p>{error}</p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => fetchIssues()}
+            className="admin-issues-retry"
+          >
+            Try again
+          </button>
         </div>
       )}
-
 
       {/* =====================================
           SUMMARY
       ===================================== */}
 
       <section className="issue-summary-grid">
-
         <div className="issue-summary-card">
-
-          <div className="issue-summary-icon">
+          <div className="issue-summary-icon critical">
             <AlertTriangle size={16} />
           </div>
 
           <div>
+            <span>Critical priority</span>
 
-            <span>
-              Critical
-            </span>
+            <strong>{summary.critical}</strong>
 
-            <strong>
-              {criticalCount}
-            </strong>
-
+            <small>
+              Requires immediate attention
+            </small>
           </div>
-
         </div>
 
-
         <div className="issue-summary-card">
-
-          <div className="issue-summary-icon">
+          <div className="issue-summary-icon progress">
             <Clock3 size={16} />
           </div>
 
           <div>
+            <span>Active issues</span>
 
-            <span>
-              In progress
-            </span>
+            <strong>{summary.inProgress}</strong>
 
-            <strong>
-              {inProgressCount}
-            </strong>
-
+            <small>
+              Assigned or currently in progress
+            </small>
           </div>
-
         </div>
 
-
         <div className="issue-summary-card">
-
-          <div className="issue-summary-icon">
+          <div className="issue-summary-icon resolved">
             <CheckCircle2 size={16} />
           </div>
 
           <div>
+            <span>Resolved</span>
 
-            <span>
-              Resolved
-            </span>
+            <strong>{summary.resolved}</strong>
 
-            <strong>
-              {resolvedCount}
-            </strong>
-
+            <small>
+              Successfully closed reports
+            </small>
           </div>
-
         </div>
-
       </section>
 
-
       {/* =====================================
-          FILTER BAR
+          FILTER PANEL
       ===================================== */}
 
       <section className="issue-filter-panel">
+        <div className="issue-filter-heading">
+          <SlidersHorizontal size={15} />
+
+          <span>Filters</span>
+        </div>
 
         <div className="issue-search">
-
           <Search size={15} />
 
           <input
             type="text"
-            placeholder="Search by ID, issue or location..."
+            placeholder="Search by ID, issue, category or location..."
             value={search}
             onChange={(event) =>
               setSearch(event.target.value)
             }
           />
 
+          {search && (
+            <button
+              type="button"
+              className="issue-search-clear"
+              onClick={() => setSearch("")}
+              aria-label="Clear search"
+            >
+              <X size={13} />
+            </button>
+          )}
         </div>
 
-
         <div className="issue-filter-group">
-
           {/* STATUS */}
 
           <div className="issue-select">
-
             <select
               value={statusFilter}
               onChange={(event) =>
                 setStatusFilter(event.target.value)
               }
             >
-
               {Object.entries(statusLabels).map(
                 ([value, label]) => (
                   <option
@@ -386,25 +415,20 @@ function AdminIssues() {
                   </option>
                 )
               )}
-
             </select>
 
             <ChevronDown size={13} />
-
           </div>
-
 
           {/* PRIORITY */}
 
           <div className="issue-select">
-
             <select
               value={priorityFilter}
               onChange={(event) =>
                 setPriorityFilter(event.target.value)
               }
             >
-
               {Object.entries(priorityLabels).map(
                 ([value, label]) => (
                   <option
@@ -415,25 +439,20 @@ function AdminIssues() {
                   </option>
                 )
               )}
-
             </select>
 
             <ChevronDown size={13} />
-
           </div>
-
 
           {/* CATEGORY */}
 
           <div className="issue-select">
-
             <select
               value={categoryFilter}
               onChange={(event) =>
                 setCategoryFilter(event.target.value)
               }
             >
-
               {Object.entries(categoryLabels).map(
                 ([value, label]) => (
                   <option
@@ -444,63 +463,67 @@ function AdminIssues() {
                   </option>
                 )
               )}
-
             </select>
 
             <ChevronDown size={13} />
-
           </div>
 
+          {hasActiveFilters && (
+            <button
+              type="button"
+              className="clear-filters-button"
+              onClick={clearFilters}
+            >
+              <X size={13} />
+              Clear
+            </button>
+          )}
         </div>
-
       </section>
 
+      {/* =====================================
+          RESULTS META
+      ===================================== */}
+
+      <div className="issues-results-meta">
+        <div>
+          Showing{" "}
+          <strong>{filteredIssues.length}</strong>{" "}
+          of <strong>{issues.length}</strong> reports
+        </div>
+
+        {hasActiveFilters && (
+          <span className="filtered-indicator">
+            Filters applied
+          </span>
+        )}
+      </div>
 
       {/* =====================================
           ISSUE TABLE
       ===================================== */}
 
       <section className="issues-table-panel">
-
         <div className="issues-table-header">
-
-          <span>
-            Issue
-          </span>
-
-          <span>
-            Category
-          </span>
-
-          <span>
-            Location
-          </span>
-
-          <span>
-            Priority
-          </span>
-
-          <span>
-            Status
-          </span>
-
+          <span>Issue</span>
+          <span>Category</span>
+          <span>Location</span>
+          <span>Priority</span>
+          <span>Status</span>
           <span></span>
-
         </div>
 
-
         <div className="issues-table-body">
-
           {filteredIssues.length === 0 ? (
-
             <div className="no-issues">
-
-              <Search size={22} />
+              <div className="no-issues-icon">
+                <Search size={21} />
+              </div>
 
               <strong>
                 {issues.length === 0
                   ? "No issues yet"
-                  : "No issues found"}
+                  : "No matching issues"}
               </strong>
 
               <p>
@@ -509,49 +532,39 @@ function AdminIssues() {
                   : "Try changing your search or filters."}
               </p>
 
+              {issues.length > 0 && hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="no-issues-action"
+                >
+                  Clear filters
+                </button>
+              )}
             </div>
-
           ) : (
-
             filteredIssues.map((issue) => (
-
               <Link
                 key={issue.id}
                 to={`/admin/issues/${issue.id}`}
                 className="issue-table-row"
               >
-
                 {/* ISSUE */}
 
                 <div className="issue-main-cell">
-
                   <span className="issue-id">
                     {issue.report_id ||
                       `CF-${issue.id}`}
                   </span>
 
-                  <strong>
-                    {issue.title}
+                  <strong title={issue.title}>
+                    {issue.title || "Untitled issue"}
                   </strong>
 
                   <small>
-                    Reported{" "}
-                    {issue.created_at
-                      ? new Date(
-                          issue.created_at
-                        ).toLocaleDateString(
-                          "en-IN",
-                          {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          }
-                        )
-                      : "Unknown date"}
+                    Reported {formatDate(issue.created_at)}
                   </small>
-
                 </div>
-
 
                 {/* CATEGORY */}
 
@@ -559,73 +572,63 @@ function AdminIssues() {
                   {issue.category || "—"}
                 </div>
 
-
                 {/* LOCATION */}
 
-                <div className="issue-location-cell">
-
+                <div
+                  className="issue-location-cell"
+                  title={
+                    issue.address ||
+                    "Location not provided"
+                  }
+                >
                   <MapPin size={12} />
 
-                  {issue.address ||
-                    "Location not provided"}
-
+                  <span>
+                    {issue.address ||
+                      "Location not provided"}
+                  </span>
                 </div>
-
 
                 {/* PRIORITY */}
 
                 <div>
-
                   <span
                     className={`issue-priority ${
-                      issue.priority?.toLowerCase() ||
-                      ""
+                      issue.priority?.toLowerCase() || ""
                     }`}
                   >
                     {issue.priority || "NORMAL"}
                   </span>
-
                 </div>
-
 
                 {/* STATUS */}
 
                 <div>
-
                   <span
                     className={`issue-status ${
-                      issue.status?.toLowerCase() ||
-                      ""
+                      issue.status?.toLowerCase() || ""
                     }`}
                   >
-                    {statusLabels[
-                      issue.status
-                    ] ||
+                    {statusLabels[issue.status] ||
                       issue.status ||
                       "Unknown"}
                   </span>
-
                 </div>
-
 
                 {/* ARROW */}
 
                 <div className="issue-arrow">
-
-                  <ArrowRight size={14} />
-
+                  <span>View</span>
+                  <ChevronDown
+                    size={13}
+                    className="issue-arrow-icon"
+                  />
                 </div>
-
               </Link>
-
             ))
-
           )}
-
         </div>
-
       </section>
-
     </div>
   );
 }

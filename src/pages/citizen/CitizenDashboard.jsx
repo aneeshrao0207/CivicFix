@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   Clock3,
   AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 
 import { Link } from "react-router-dom";
@@ -55,30 +56,35 @@ function CitizenDashboard() {
   // FETCH CITIZEN REPORTS
   // ============================================
 
+  const fetchReports = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const data = await apiRequest("/issues/my");
+
+      setReports(data.issues || []);
+    } catch (fetchError) {
+      console.error(
+        "Failed to fetch citizen reports:",
+        fetchError
+      );
+
+      setReports([]);
+
+      const errorMessage =
+        fetchError?.message?.toLowerCase().includes("failed to fetch")
+          ? "Unable to connect to CivicFix. Please check your connection and try again."
+          : fetchError?.message ||
+            "Unable to load your reports.";
+
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        setLoading(true);
-        setError("");
-
-        const data = await apiRequest("/issues/my");
-
-        setReports(data.issues || []);
-      } catch (fetchError) {
-        console.error(
-          "Failed to fetch citizen reports:",
-          fetchError
-        );
-
-        setError(
-          fetchError.message ||
-            "Unable to load your reports."
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchReports();
   }, []);
 
@@ -192,6 +198,42 @@ function CitizenDashboard() {
 
 
         {/* ===================================
+            API ERROR BANNER
+        =================================== */}
+
+        {error && !loading && (
+          <section className="dashboard-api-error">
+
+            <div className="dashboard-api-error-icon">
+              <AlertCircle size={20} />
+            </div>
+
+            <div className="dashboard-api-error-content">
+
+              <strong>
+                Unable to connect to CivicFix
+              </strong>
+
+              <span>
+                {error}
+              </span>
+
+            </div>
+
+            <button
+              type="button"
+              className="dashboard-api-retry"
+              onClick={fetchReports}
+            >
+              <RefreshCw size={15} />
+              Retry
+            </button>
+
+          </section>
+        )}
+
+
+        {/* ===================================
             STATISTICS
         =================================== */}
 
@@ -214,13 +256,15 @@ function CitizenDashboard() {
             </div>
 
             <strong className="stat-value">
-              {loading
+              {loading || error
                 ? "—"
                 : statistics.total}
             </strong>
 
             <span className="stat-description">
-              All issues you've reported
+              {error
+                ? "Data unavailable"
+                : "All issues you've reported"}
             </span>
 
           </div>
@@ -243,13 +287,15 @@ function CitizenDashboard() {
             </div>
 
             <strong className="stat-value">
-              {loading
+              {loading || error
                 ? "—"
                 : statistics.pending}
             </strong>
 
             <span className="stat-description">
-              Waiting for action
+              {error
+                ? "Data unavailable"
+                : "Waiting for action"}
             </span>
 
           </div>
@@ -272,13 +318,15 @@ function CitizenDashboard() {
             </div>
 
             <strong className="stat-value">
-              {loading
+              {loading || error
                 ? "—"
                 : statistics.inProgress}
             </strong>
 
             <span className="stat-description">
-              Currently being handled
+              {error
+                ? "Data unavailable"
+                : "Currently being handled"}
             </span>
 
           </div>
@@ -301,13 +349,15 @@ function CitizenDashboard() {
             </div>
 
             <strong className="stat-value">
-              {loading
+              {loading || error
                 ? "—"
                 : statistics.resolved}
             </strong>
 
             <span className="stat-description">
-              Successfully completed
+              {error
+                ? "Data unavailable"
+                : "Successfully completed"}
             </span>
 
           </div>
@@ -400,6 +450,15 @@ function CitizenDashboard() {
               <span>
                 {error}
               </span>
+
+              <button
+                type="button"
+                className="dashboard-inline-retry"
+                onClick={fetchReports}
+              >
+                <RefreshCw size={14} />
+                Try again
+              </button>
 
             </div>
           )}

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+
 import {
   AlertTriangle,
   ArrowRight,
@@ -8,9 +9,11 @@ import {
   MapPin,
   Search,
   X,
+  RefreshCw,
 } from "lucide-react";
 
 import { Link } from "react-router-dom";
+
 import {
   MapContainer,
   Marker,
@@ -25,6 +28,7 @@ import { apiRequest } from "../../services/api";
 
 import "leaflet/dist/leaflet.css";
 import "./AdminMap.css";
+
 
 // ============================================
 // FIX LEAFLET DEFAULT MARKER ICONS
@@ -92,27 +96,48 @@ const statusColors = {
 
 
 // ============================================
-// CUSTOM MARKER
+// HELPERS
+// ============================================
+
+const getStatusLabel = (status) => {
+  if (!status) return "Unknown";
+
+  return (
+    statusLabels[status] ||
+    status
+      .replaceAll("_", " ")
+      .toLowerCase()
+      .replace(/\b\w/g, (letter) => letter.toUpperCase())
+  );
+};
+
+const getIssueId = (issue) => issue?.id || issue?.issue_id;
+
+
+// ============================================
+// CUSTOM MAP MARKER
 // ============================================
 
 const createMarkerIcon = (status = "REPORTED") => {
   const color =
-    statusColors[status] ||
-    statusColors.REPORTED;
+    statusColors[status] || statusColors.REPORTED;
 
   return L.divIcon({
     className: "civic-map-marker-wrapper",
+
     html: `
       <div
         class="civic-map-marker"
         style="--marker-color:${color}"
+        aria-hidden="true"
       >
-        <span></span>
+        <span class="civic-map-marker-core"></span>
       </div>
     `,
+
     iconSize: [34, 42],
     iconAnchor: [17, 42],
-    popupAnchor: [0, -40],
+    popupAnchor: [0, -39],
   });
 };
 
@@ -170,30 +195,31 @@ function AdminMap() {
   // FETCH ISSUES
   // ============================================
 
+  const fetchIssues = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const data = await apiRequest("/issues");
+
+      setIssues(data.issues || []);
+    } catch (fetchError) {
+      console.error(
+        "Failed to fetch map issues:",
+        fetchError
+      );
+
+      setError(
+        fetchError.message ||
+          "Unable to load issue locations."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   useEffect(() => {
-    const fetchIssues = async () => {
-      try {
-        setLoading(true);
-        setError("");
-
-        const data = await apiRequest("/issues");
-
-        setIssues(data.issues || []);
-      } catch (fetchError) {
-        console.error(
-          "Failed to fetch map issues:",
-          fetchError
-        );
-
-        setError(
-          fetchError.message ||
-            "Unable to load issue locations."
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchIssues();
   }, []);
 
@@ -216,7 +242,7 @@ function AdminMap() {
 
 
   // ============================================
-  // FILTER
+  // FILTERED ISSUES
   // ============================================
 
   const filteredIssues = useMemo(() => {
@@ -296,7 +322,7 @@ function AdminMap() {
 
 
   // ============================================
-  // COUNTS
+  // SUMMARY COUNTS
   // ============================================
 
   const criticalCount = issues.filter(
@@ -323,6 +349,17 @@ function AdminMap() {
 
 
   // ============================================
+  // ACTIVE FILTER CHECK
+  // ============================================
+
+  const hasActiveFilters =
+    Boolean(search.trim()) ||
+    statusFilter !== "ALL" ||
+    priorityFilter !== "ALL" ||
+    categoryFilter !== "ALL";
+
+
+  // ============================================
   // CLEAR FILTERS
   // ============================================
 
@@ -345,13 +382,15 @@ function AdminMap() {
 
         <div className="admin-map-loading">
 
-          <LoaderCircle
-            size={26}
-            className="map-loading-spinner"
-          />
+          <div className="admin-map-loading-icon">
+            <LoaderCircle
+              size={25}
+              className="map-loading-spinner"
+            />
+          </div>
 
           <strong>
-            Loading issue map...
+            Loading issue map
           </strong>
 
           <p>
@@ -411,7 +450,8 @@ function AdminMap() {
 
           <AlertTriangle size={17} />
 
-          <div>
+          <div className="admin-map-error-content">
+
             <strong>
               Unable to load map data
             </strong>
@@ -419,7 +459,17 @@ function AdminMap() {
             <p>
               {error}
             </p>
+
           </div>
+
+          <button
+            type="button"
+            className="admin-map-retry"
+            onClick={fetchIssues}
+          >
+            <RefreshCw size={13} />
+            Retry
+          </button>
 
         </div>
       )}
@@ -456,6 +506,7 @@ function AdminMap() {
         </div>
 
         <div className="map-summary-total">
+
           <span>
             Mapped issues
           </span>
@@ -467,6 +518,7 @@ function AdminMap() {
           <small>
             of {mappedIssues.length}
           </small>
+
         </div>
 
       </section>
@@ -480,7 +532,7 @@ function AdminMap() {
 
 
         {/* ===================================
-            FILTER PANEL
+            SIDEBAR
         =================================== */}
 
         <aside className="admin-map-sidebar">
@@ -488,23 +540,27 @@ function AdminMap() {
           <div className="map-sidebar-header">
 
             <div>
-              <span>
-                <Filter size={14} />
+
+              <span className="map-sidebar-kicker">
+                <Filter size={13} />
                 FILTERS
               </span>
 
               <h2>
                 Find issues
               </h2>
+
             </div>
 
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="clear-map-filters"
-            >
-              Clear
-            </button>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="clear-map-filters"
+              >
+                Clear
+              </button>
+            )}
 
           </div>
 
@@ -522,14 +578,14 @@ function AdminMap() {
               onChange={(event) =>
                 setSearch(event.target.value)
               }
+              aria-label="Search issues"
             />
 
             {search && (
               <button
                 type="button"
-                onClick={() =>
-                  setSearch("")
-                }
+                onClick={() => setSearch("")}
+                aria-label="Clear search"
               >
                 <X size={14} />
               </button>
@@ -551,12 +607,9 @@ function AdminMap() {
               <select
                 value={statusFilter}
                 onChange={(event) =>
-                  setStatusFilter(
-                    event.target.value
-                  )
+                  setStatusFilter(event.target.value)
                 }
               >
-
                 {Object.entries(statusLabels).map(
                   ([value, label]) => (
                     <option
@@ -567,7 +620,6 @@ function AdminMap() {
                     </option>
                   )
                 )}
-
               </select>
 
               <ChevronDown size={13} />
@@ -590,12 +642,9 @@ function AdminMap() {
               <select
                 value={priorityFilter}
                 onChange={(event) =>
-                  setPriorityFilter(
-                    event.target.value
-                  )
+                  setPriorityFilter(event.target.value)
                 }
               >
-
                 {Object.entries(priorityLabels).map(
                   ([value, label]) => (
                     <option
@@ -606,7 +655,6 @@ function AdminMap() {
                     </option>
                   )
                 )}
-
               </select>
 
               <ChevronDown size={13} />
@@ -629,12 +677,9 @@ function AdminMap() {
               <select
                 value={categoryFilter}
                 onChange={(event) =>
-                  setCategoryFilter(
-                    event.target.value
-                  )
+                  setCategoryFilter(event.target.value)
                 }
               >
-
                 {Object.entries(categoryLabels).map(
                   ([value, label]) => (
                     <option
@@ -645,7 +690,6 @@ function AdminMap() {
                     </option>
                   )
                 )}
-
               </select>
 
               <ChevronDown size={13} />
@@ -655,7 +699,7 @@ function AdminMap() {
           </label>
 
 
-          {/* ISSUE LIST */}
+          {/* ISSUE LIST HEADER */}
 
           <div className="map-issue-list-header">
 
@@ -670,21 +714,36 @@ function AdminMap() {
           </div>
 
 
+          {/* ISSUE LIST */}
+
           <div className="map-issue-list">
 
             {filteredIssues.length === 0 ? (
 
               <div className="map-no-results">
 
-                <MapPin size={19} />
+                <div className="map-no-results-icon">
+                  <MapPin size={19} />
+                </div>
 
                 <strong>
                   No mapped issues
                 </strong>
 
                 <p>
-                  Try changing your filters.
+                  {hasActiveFilters
+                    ? "Try changing your filters."
+                    : "No reported issues have valid map coordinates yet."}
                 </p>
+
+                {hasActiveFilters && (
+                  <button
+                    type="button"
+                    onClick={clearFilters}
+                  >
+                    Clear filters
+                  </button>
+                )}
 
               </div>
 
@@ -692,18 +751,18 @@ function AdminMap() {
 
               filteredIssues.map((issue) => {
 
-                const issueId =
-                  issue.id ||
-                  issue.issue_id;
+                const issueId = getIssueId(issue);
+
+                const isSelected =
+                  String(selectedIssue?.id) ===
+                  String(issueId);
 
                 return (
                   <button
                     type="button"
                     key={issueId}
                     className={`map-issue-item ${
-                      selectedIssue?.id === issueId
-                        ? "selected"
-                        : ""
+                      isSelected ? "selected" : ""
                     }`}
                     onClick={() =>
                       setSelectedIssue(issue)
@@ -743,6 +802,7 @@ function AdminMap() {
                   </button>
                 );
               })
+
             )}
 
           </div>
@@ -764,7 +824,7 @@ function AdminMap() {
           >
 
             <TileLayer
-              attribution='&copy; OpenStreetMap contributors'
+              attribution="&copy; OpenStreetMap contributors"
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
 
@@ -774,9 +834,7 @@ function AdminMap() {
 
             {filteredIssues.map((issue) => {
 
-              const issueId =
-                issue.id ||
-                issue.issue_id;
+              const issueId = getIssueId(issue);
 
               const latitude =
                 Number(issue.latitude);
@@ -827,11 +885,9 @@ function AdminMap() {
                             ""
                           }`}
                         >
-                          {statusLabels[
+                          {getStatusLabel(
                             issue.status
-                          ] ||
-                            issue.status ||
-                            "Unknown"}
+                          )}
                         </span>
 
                       </div>
@@ -840,8 +896,25 @@ function AdminMap() {
 
                         <MapPin size={13} />
 
-                        {issue.address ||
-                          "Location coordinates provided"}
+                        <span>
+                          {issue.address ||
+                            "Location coordinates provided"}
+                        </span>
+
+                      </div>
+
+                      <div className="map-popup-priority">
+
+                        <span>
+                          Priority
+                        </span>
+
+                        <strong
+                          className={`priority-${issue.priority?.toLowerCase() || "medium"}`}
+                        >
+                          {issue.priority ||
+                            "MEDIUM"}
+                        </strong>
 
                       </div>
 
@@ -864,7 +937,9 @@ function AdminMap() {
           </MapContainer>
 
 
-          {/* MAP LEGEND */}
+          {/* =================================
+              MAP LEGEND
+          ================================= */}
 
           <div className="map-legend">
 
@@ -897,10 +972,17 @@ function AdminMap() {
               Resolved
             </span>
 
+            <span>
+              <i className="legend-status rejected" />
+              Rejected
+            </span>
+
           </div>
 
 
-          {/* NO COORDINATES NOTICE */}
+          {/* =================================
+              MISSING LOCATION NOTICE
+          ================================= */}
 
           {issues.length > mappedIssues.length && (
 

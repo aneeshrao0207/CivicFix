@@ -14,11 +14,14 @@ import IssueDetails from "./pages/citizen/IssueDetails";
 import CitizenNotifications from "./pages/citizen/CitizenNotifications";
 import CitizenProfile from "./pages/citizen/CitizenProfile";
 
+import AdminProfile from "./pages/admin/AdminProfile";
+import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminIssues from "./pages/admin/AdminIssues";
 import AdminIssueDetails from "./pages/admin/AdminIssueDetails";
 import AdminMap from "./pages/admin/AdminMap";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminNotifications from "./pages/admin/AdminNotifications";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -94,36 +97,17 @@ function App() {
         {/* =====================================================
             ADMIN ROUTES
         ===================================================== */}
-
+        <Route path="/admin/profile" element={<AdminProfile />} />
         <Route element={<ProtectedRoute allowedRole="admin" />}>
-
-          <Route
-            path="/admin/dashboard"
-            element={<AdminDashboard />}
-          />
-
-          <Route
-            path="/admin/issues"
-            element={<AdminIssues />}
-          />
-
-          <Route
-            path="/admin/issues/:id"
-            element={<AdminIssueDetails />}
-          />
-
-          <Route
-            path="/admin/map"
-            element={<AdminMap />}
-          />
-
-          <Route
-            path="/admin/analytics"
-            element={<AdminAnalytics />}
-          />
-
-        </Route>
-
+        <Route element={<AdminLayout />}>
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/issues" element={<AdminIssues />} />
+        <Route path="/admin/issues/:id" element={<AdminIssueDetails />} />
+        <Route path="/admin/map" element={<AdminMap />} />
+        <Route path="/admin/analytics" element={<AdminAnalytics />} />
+        <Route path="/admin/notifications" element={<AdminNotifications />} />
+  </Route>
+</Route>
 
         {/* =====================================================
             FALLBACK
