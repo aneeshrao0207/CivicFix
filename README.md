@@ -1,16 +1,24 @@
 # CivicFix
 
-<p align="center">
+<div align="center">
 
-![Frontend](https://img.shields.io/badge/FRONTEND-REACT%20%2B%20VITE-087EA4?style=for-the-badge) ![HTML5](https://img.shields.io/badge/HTML5-HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white) ![CSS3](https://img.shields.io/badge/CSS3-CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white) ![JavaScript](https://img.shields.io/badge/JAVASCRIPT-JAVASCRIPT-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black) ![React](https://img.shields.io/badge/REACT-REACT-61DAFB?style=for-the-badge&logo=react&logoColor=black) ![Node.js](https://img.shields.io/badge/NODE.JS-NODE.JS-339933?style=for-the-badge&logo=node.js&logoColor=white) ![Express](https://img.shields.io/badge/EXPRESS-EXPRESS-000000?style=for-the-badge&logo=express&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/POSTGRESQL-POSTGRESQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Frontend](https://img.shields.io/badge/FRONTEND-REACT%20%2B%20VITE-087EA4?style=for-the-badge)
+![HTML5](https://img.shields.io/badge/HTML5-HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JAVASCRIPT-JAVASCRIPT-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![React](https://img.shields.io/badge/REACT-REACT-61DAFB?style=for-the-badge&logo=react&logoColor=black)
 
-</p>
+![Node.js](https://img.shields.io/badge/NODE.JS-NODE.JS-339933?style=for-the-badge&logo=node.js&logoColor=white)
+![Express](https://img.shields.io/badge/EXPRESS-EXPRESS-000000?style=for-the-badge&logo=express&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/POSTGRESQL-POSTGRESQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![JWT](https://img.shields.io/badge/AUTH-JWT-FF9800?style=for-the-badge)
+![REST API](https://img.shields.io/badge/API-REST-6F42C1?style=for-the-badge)
 
-<p align="center">
+![Responsive](https://img.shields.io/badge/RESPONSIVE-YES-3AAA00?style=for-the-badge)
+![Dark Mode](https://img.shields.io/badge/DARK%20MODE-AVAILABLE-8E00A8?style=for-the-badge)
+![Status](https://img.shields.io/badge/STATUS-COMPLETED-3AAA00?style=for-the-badge)
 
-![JWT](https://img.shields.io/badge/AUTH-JWT-FF9800?style=for-the-badge) ![REST API](https://img.shields.io/badge/API-REST-6F42C1?style=for-the-badge) ![Responsive](https://img.shields.io/badge/RESPONSIVE-YES-3AAA00?style=for-the-badge) ![Dark Mode](https://img.shields.io/badge/DARK%20MODE-AVAILABLE-8E00A8?style=for-the-badge) ![Status](https://img.shields.io/badge/STATUS-COMPLETED-3AAA00?style=for-the-badge)
-
-</p>
+</div>
 
 ---
 
