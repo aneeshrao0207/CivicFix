@@ -287,7 +287,7 @@ The complete issue lifecycle follows this workflow:
 │                                                      │
 │                     FRONTEND                         │
 │                                                      │
-│              React + Vite + Router                  │
+│              React + Vite + Router                   │
 │                                                      │
 │       ┌────────────────┐  ┌────────────────┐         │
 │       │ Citizen Portal │  │  Admin Portal  │         │
