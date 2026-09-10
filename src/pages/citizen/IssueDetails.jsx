@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
-  CalendarDays,
   CheckCircle2,
   Clock3,
   FileText,
@@ -12,7 +11,6 @@ import {
   MessageSquareText,
   RefreshCw,
   ShieldCheck,
-  UserRound,
   XCircle,
 } from "lucide-react";
 
@@ -25,16 +23,25 @@ const STATUS_CONFIG = {
     className: "status-pending",
     icon: Clock3,
   },
+
+  REPORTED: {
+    label: "Reported",
+    className: "status-pending",
+    icon: FileText,
+  },
+
   IN_PROGRESS: {
     label: "In Progress",
     className: "status-progress",
     icon: RefreshCw,
   },
+
   RESOLVED: {
     label: "Resolved",
     className: "status-resolved",
     icon: CheckCircle2,
   },
+
   REJECTED: {
     label: "Rejected",
     className: "status-rejected",
@@ -100,7 +107,24 @@ function IssueDetails() {
 
         const data = await apiRequest(`/issues/${id}`);
 
-        setIssue(data.issue || data);
+        /*
+         * The backend returns:
+         *
+         * {
+         *   success: true,
+         *   issue: {...},
+         *   timeline: [...]
+         * }
+         *
+         * The timeline is separate from issue,
+         * so attach it to the issue object for the UI.
+         */
+        setIssue({
+          ...(data.issue || data),
+          updates: Array.isArray(data.timeline)
+            ? data.timeline
+            : [],
+        });
       } catch (err) {
         setError(err.message || "Unable to load this report.");
       } finally {
@@ -118,7 +142,9 @@ function IssueDetails() {
           <div className="issue-details-loading">
             <div className="loading-spinner" />
             <h2>Loading report</h2>
-            <p>We're retrieving the latest information about your report.</p>
+            <p>
+              We're retrieving the latest information about your report.
+            </p>
           </div>
         </div>
       </main>
@@ -136,8 +162,13 @@ function IssueDetails() {
 
             <div>
               <span className="eyebrow">REPORT UNAVAILABLE</span>
+
               <h2>We couldn't load this report</h2>
-              <p>{error || "The requested report could not be found."}</p>
+
+              <p>
+                {error ||
+                  "The requested report could not be found."}
+              </p>
             </div>
 
             <button
@@ -157,7 +188,9 @@ function IssueDetails() {
   const statusConfig = getStatusConfig(issue.status);
   const StatusIcon = statusConfig.icon;
 
-  const updates = Array.isArray(issue.updates) ? issue.updates : [];
+  const updates = Array.isArray(issue.updates)
+    ? issue.updates
+    : [];
 
   const evidenceUrl =
     issue.imageUrl ||
@@ -175,8 +208,12 @@ function IssueDetails() {
       <div className="issue-details-container">
 
         {/* PAGE HEADER */}
+
         <header className="issue-details-header">
-          <Link to="/citizen/reports" className="back-link">
+          <Link
+            to="/citizen/reports"
+            className="back-link"
+          >
             <ArrowLeft size={17} />
             Back to My Reports
           </Link>
@@ -184,21 +221,30 @@ function IssueDetails() {
           <div className="issue-header-content">
             <div>
               <div className="issue-id-row">
-                <span className="eyebrow">CIVIC REPORT</span>
+                <span className="eyebrow">
+                  CIVIC REPORT
+                </span>
+
                 <span className="issue-id">
-                  {issue.report_id || issue.reportId || `CF-${id}`}
+                  {issue.report_id ||
+                    issue.reportId ||
+                    `CF-${id}`}
                 </span>
               </div>
 
-              <h1>{issue.title || "Untitled Report"}</h1>
+              <h1>
+                {issue.title || "Untitled Report"}
+              </h1>
 
               <p className="issue-header-description">
-                Track the progress and latest updates for your submitted
-                civic issue.
+                Track the progress and latest updates for
+                your submitted civic issue.
               </p>
             </div>
 
-            <div className={`issue-status ${statusConfig.className}`}>
+            <div
+              className={`issue-status ${statusConfig.className}`}
+            >
               <StatusIcon size={17} />
               <span>{statusConfig.label}</span>
             </div>
@@ -206,45 +252,70 @@ function IssueDetails() {
         </header>
 
         {/* SUMMARY STRIP */}
+
         <section className="issue-summary-card">
           <div className="summary-item">
-            <span className="summary-label">Category</span>
-            <strong>{issue.category || "—"}</strong>
-          </div>
+            <span className="summary-label">
+              Category
+            </span>
 
-          <div className="summary-divider" />
-
-          <div className="summary-item">
-            <span className="summary-label">Priority</span>
-            <strong>{getPriorityLabel(issue.priority)}</strong>
-          </div>
-
-          <div className="summary-divider" />
-
-          <div className="summary-item">
-            <span className="summary-label">Submitted</span>
             <strong>
-              {formatDate(issue.created_at || issue.createdAt)}
+              {issue.category || "—"}
             </strong>
           </div>
 
           <div className="summary-divider" />
 
           <div className="summary-item">
-            <span className="summary-label">Report ID</span>
+            <span className="summary-label">
+              Priority
+            </span>
+
             <strong>
-              {issue.report_id || issue.reportId || `CF-${id}`}
+              {getPriorityLabel(issue.priority)}
+            </strong>
+          </div>
+
+          <div className="summary-divider" />
+
+          <div className="summary-item">
+            <span className="summary-label">
+              Submitted
+            </span>
+
+            <strong>
+              {formatDate(
+                issue.created_at ||
+                  issue.createdAt
+              )}
+            </strong>
+          </div>
+
+          <div className="summary-divider" />
+
+          <div className="summary-item">
+            <span className="summary-label">
+              Report ID
+            </span>
+
+            <strong>
+              {issue.report_id ||
+                issue.reportId ||
+                `CF-${id}`}
             </strong>
           </div>
         </section>
 
         {/* MAIN CONTENT */}
+
         <div className="issue-details-grid">
 
           {/* LEFT COLUMN */}
+
           <div className="issue-details-main">
 
             {/* DESCRIPTION */}
+
             <section className="details-card">
               <div className="details-card-heading">
                 <div className="section-icon">
@@ -253,7 +324,11 @@ function IssueDetails() {
 
                 <div>
                   <h2>Issue description</h2>
-                  <p>Information provided when this report was submitted.</p>
+
+                  <p>
+                    Information provided when this
+                    report was submitted.
+                  </p>
                 </div>
               </div>
 
@@ -262,13 +337,15 @@ function IssueDetails() {
                   <p>{issue.description}</p>
                 ) : (
                   <p className="muted-text">
-                    No description was provided for this report.
+                    No description was provided for
+                    this report.
                   </p>
                 )}
               </div>
             </section>
 
             {/* LOCATION */}
+
             <section className="details-card">
               <div className="details-card-heading">
                 <div className="section-icon">
@@ -277,7 +354,10 @@ function IssueDetails() {
 
                 <div>
                   <h2>Issue location</h2>
-                  <p>Where the civic issue was reported.</p>
+
+                  <p>
+                    Where the civic issue was reported.
+                  </p>
                 </div>
               </div>
 
@@ -287,7 +367,10 @@ function IssueDetails() {
                 </div>
 
                 <div>
-                  <span className="location-label">Reported location</span>
+                  <span className="location-label">
+                    Reported location
+                  </span>
+
                   <p>{location}</p>
                 </div>
               </div>
@@ -296,16 +379,21 @@ function IssueDetails() {
                 (issue.longitude || issue.long) && (
                   <div className="coordinates">
                     <span>
-                      Latitude: {issue.latitude || issue.lat}
+                      Latitude:{" "}
+                      {issue.latitude || issue.lat}
                     </span>
+
                     <span>
-                      Longitude: {issue.longitude || issue.long}
+                      Longitude:{" "}
+                      {issue.longitude ||
+                        issue.long}
                     </span>
                   </div>
                 )}
             </section>
 
             {/* EVIDENCE */}
+
             <section className="details-card">
               <div className="details-card-heading">
                 <div className="section-icon">
@@ -314,7 +402,11 @@ function IssueDetails() {
 
                 <div>
                   <h2>Evidence</h2>
-                  <p>Photos or supporting evidence attached to this report.</p>
+
+                  <p>
+                    Photos or supporting evidence
+                    attached to this report.
+                  </p>
                 </div>
               </div>
 
@@ -332,9 +424,13 @@ function IssueDetails() {
                   </div>
 
                   <div>
-                    <strong>No evidence attached</strong>
+                    <strong>
+                      No evidence attached
+                    </strong>
+
                     <p>
-                      This report was submitted without an image.
+                      This report was submitted
+                      without an image.
                     </p>
                   </div>
                 </div>
@@ -343,14 +439,20 @@ function IssueDetails() {
           </div>
 
           {/* RIGHT COLUMN */}
+
           <aside className="issue-details-sidebar">
 
             {/* CURRENT STATUS */}
+
             <section className="status-card">
               <div className="status-card-top">
-                <span className="eyebrow">CURRENT STATUS</span>
+                <span className="eyebrow">
+                  CURRENT STATUS
+                </span>
 
-                <div className={`large-status-icon ${statusConfig.className}`}>
+                <div
+                  className={`large-status-icon ${statusConfig.className}`}
+                >
                   <StatusIcon size={21} />
                 </div>
               </div>
@@ -364,16 +466,23 @@ function IssueDetails() {
                   ? "This report has been reviewed and rejected."
                   : issue.status === "IN_PROGRESS"
                   ? "The responsible authority is currently working on this issue."
+                  : issue.status === "REPORTED"
+                  ? "Your report has been received and is awaiting review."
                   : "Your report has been received and is awaiting action."}
               </p>
 
               <div className="status-card-footer">
                 <ShieldCheck size={16} />
-                <span>Updates are provided by CivicFix authorities</span>
+
+                <span>
+                  Updates are provided by CivicFix
+                  authorities
+                </span>
               </div>
             </section>
 
             {/* REPORT INFORMATION */}
+
             <section className="details-card compact-card">
               <div className="details-card-heading">
                 <div className="section-icon">
@@ -382,26 +491,40 @@ function IssueDetails() {
 
                 <div>
                   <h2>Report information</h2>
-                  <p>Key details about this submission.</p>
+
+                  <p>
+                    Key details about this
+                    submission.
+                  </p>
                 </div>
               </div>
 
               <div className="info-list">
                 <div className="info-row">
                   <span>Category</span>
-                  <strong>{issue.category || "—"}</strong>
+
+                  <strong>
+                    {issue.category || "—"}
+                  </strong>
                 </div>
 
                 <div className="info-row">
                   <span>Priority</span>
-                  <strong>{getPriorityLabel(issue.priority)}</strong>
+
+                  <strong>
+                    {getPriorityLabel(
+                      issue.priority
+                    )}
+                  </strong>
                 </div>
 
                 <div className="info-row">
                   <span>Submitted</span>
+
                   <strong>
                     {formatDateTime(
-                      issue.created_at || issue.createdAt
+                      issue.created_at ||
+                        issue.createdAt
                     )}
                   </strong>
                 </div>
@@ -409,13 +532,17 @@ function IssueDetails() {
                 {issue.department_name && (
                   <div className="info-row">
                     <span>Department</span>
-                    <strong>{issue.department_name}</strong>
+
+                    <strong>
+                      {issue.department_name}
+                    </strong>
                   </div>
                 )}
               </div>
             </section>
 
             {/* TIMELINE */}
+
             <section className="details-card timeline-card">
               <div className="details-card-heading">
                 <div className="section-icon">
@@ -424,31 +551,48 @@ function IssueDetails() {
 
                 <div>
                   <h2>Report timeline</h2>
-                  <p>Track every important update.</p>
+
+                  <p>
+                    Track every important update.
+                  </p>
                 </div>
               </div>
 
               {updates.length > 0 ? (
                 <div className="timeline">
                   {updates.map((update, index) => {
-                    const updateStatus = getStatusConfig(
-                      update.status || issue.status
-                    );
+                    const updateStatus =
+                      getStatusConfig(
+                        update.status ||
+                          issue.status
+                      );
 
-                    const UpdateIcon = updateStatus.icon;
+                    const UpdateIcon =
+                      updateStatus.icon;
+
+                    const updateNote =
+                      update.note ||
+                      update.message ||
+                      update.notes ||
+                      "";
 
                     return (
                       <div
                         className={`timeline-item ${
-                          index === 0 ? "timeline-item-latest" : ""
+                          index === 0
+                            ? "timeline-item-latest"
+                            : ""
                         }`}
-                        key={update.id || index}
+                        key={
+                          update.id || index
+                        }
                       >
                         <div className="timeline-marker">
                           <UpdateIcon size={14} />
                         </div>
 
-                        {index !== updates.length - 1 && (
+                        {index !==
+                          updates.length - 1 && (
                           <div className="timeline-line" />
                         )}
 
@@ -461,7 +605,9 @@ function IssueDetails() {
                             </strong>
 
                             {index === 0 && (
-                              <span className="latest-pill">Latest</span>
+                              <span className="latest-pill">
+                                Latest
+                              </span>
                             )}
                           </div>
 
@@ -472,12 +618,15 @@ function IssueDetails() {
                             )}
                           </span>
 
-                          {update.message && (
-                            <p>{update.message}</p>
+                          {updateNote && (
+                            <p>{updateNote}</p>
                           )}
 
-                          {update.notes && (
-                            <p>{update.notes}</p>
+                          {update.updated_by_name && (
+                            <span className="timeline-updated-by">
+                              Updated by{" "}
+                              {update.updated_by_name}
+                            </span>
                           )}
                         </div>
                       </div>
@@ -490,11 +639,13 @@ function IssueDetails() {
                     <MessageSquareText size={19} />
                   </div>
 
-                  <strong>No updates yet</strong>
+                  <strong>
+                    No updates yet
+                  </strong>
 
                   <p>
-                    You'll see authority updates here as your
-                    report progresses.
+                    You'll see authority updates
+                    here as your report progresses.
                   </p>
                 </div>
               )}
@@ -503,23 +654,30 @@ function IssueDetails() {
         </div>
 
         {/* BOTTOM TRUST BAR */}
+
         <section className="issue-trust-bar">
           <div className="trust-bar-icon">
             <ShieldCheck size={19} />
           </div>
 
           <div>
-            <strong>Your report is being tracked securely</strong>
+            <strong>
+              Your report is being tracked securely
+            </strong>
+
             <p>
-              Keep your report ID handy when referring to this issue.
+              Keep your report ID handy when
+              referring to this issue.
             </p>
           </div>
 
-          <Link to="/citizen/reports" className="trust-bar-link">
+          <Link
+            to="/citizen/reports"
+            className="trust-bar-link"
+          >
             View all reports
           </Link>
         </section>
-
       </div>
     </main>
   );

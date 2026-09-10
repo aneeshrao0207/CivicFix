@@ -1,5 +1,5 @@
 import pool from "../config/db.js";
-
+import cloudinary from "../config/cloudinary.js";
 
 // ============================================
 // CREATE ISSUE
@@ -24,7 +24,37 @@ export const createIssue = async (req, res) => {
             });
         }
 
+        // ============================================
+        // UPLOAD IMAGE TO CLOUDINARY
+        // ============================================
+
+        let uploadedImageUrl = imageUrl || null;
+
+        if (req.file) {
+            uploadedImageUrl = await new Promise((resolve, reject) => {
+                const uploadStream = cloudinary.uploader.upload_stream(
+                    {
+                        folder: "civicfix/issues",
+                        resource_type: "image",
+                    },
+                    (error, result) => {
+                        if (error) {
+                            reject(error);
+                        } else {
+                            resolve(result.secure_url);
+                        }
+                    }
+                );
+
+                uploadStream.end(req.file.buffer);
+            });
+        }
+
         const reportId = `CF-${Date.now()}`;
+
+        // ============================================
+        // SAVE ISSUE
+        // ============================================
 
         const result = await pool.query(
             `INSERT INTO issues (
@@ -45,7 +75,7 @@ export const createIssue = async (req, res) => {
                 title.trim(),
                 category,
                 description.trim(),
-                imageUrl || null,
+                uploadedImageUrl,
                 latitude || null,
                 longitude || null,
                 address || null,
@@ -55,7 +85,10 @@ export const createIssue = async (req, res) => {
 
         const issue = result.rows[0];
 
-        // Create initial timeline entry
+        // ============================================
+        // CREATE INITIAL TIMELINE ENTRY
+        // ============================================
+
         await pool.query(
             `INSERT INTO issue_updates
                 (issue_id, updated_by, status, note)
@@ -67,6 +100,10 @@ export const createIssue = async (req, res) => {
                 "Issue reported by citizen.",
             ]
         );
+
+        // ============================================
+        // RESPONSE
+        // ============================================
 
         res.status(201).json({
             success: true,
@@ -178,7 +215,7 @@ export const getIssueById = async (req, res) => {
              LEFT JOIN users u
                 ON iu.updated_by = u.id
              WHERE iu.issue_id = $1
-             ORDER BY iu.created_at ASC`,
+             ORDER BY iu.created_at DESC`,
             [id]
         );
 
@@ -197,6 +234,7 @@ export const getIssueById = async (req, res) => {
         });
     }
 };
+
 
 // ============================================
 // ADMIN — GET ALL ISSUES
@@ -265,6 +303,7 @@ export const updateIssue = async (req, res) => {
 
         const newStatus = status || issue.status;
         const newPriority = priority || issue.priority;
+
         const newDepartment =
             assignedDepartment !== undefined
                 ? assignedDepartment
@@ -296,7 +335,10 @@ export const updateIssue = async (req, res) => {
 
         const updatedIssue = result.rows[0];
 
-        // Add timeline entry
+        // ============================================
+        // ADD TIMELINE ENTRY
+        // ============================================
+
         await pool.query(
             `INSERT INTO issue_updates
                 (issue_id, updated_by, status, note)
@@ -305,11 +347,14 @@ export const updateIssue = async (req, res) => {
                 id,
                 req.user.id,
                 newStatus,
-                note || `Issue updated by administrator.`,
+                note || "Issue updated by administrator.",
             ]
         );
 
-        // Notify citizen
+        // ============================================
+        // NOTIFY CITIZEN
+        // ============================================
+
         await pool.query(
             `INSERT INTO notifications
                 (user_id, issue_id, title, message)

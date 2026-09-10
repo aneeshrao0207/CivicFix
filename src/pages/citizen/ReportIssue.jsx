@@ -10,14 +10,21 @@ import {
   Upload,
   X,
 } from "lucide-react";
-
 import { Link, useNavigate } from "react-router-dom";
-
 import { apiRequest } from "../../services/api";
-
 import "./ReportIssue.css";
 
-function ReportIssue() {
+const categories = [
+  "Road",
+  "Garbage",
+  "Streetlight",
+  "Water",
+  "Traffic",
+  "Public Infrastructure",
+  "Other",
+];
+
+const ReportIssue = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -30,20 +37,17 @@ function ReportIssue() {
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
+
   const [location, setLocation] = useState(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+
   const [error, setError] = useState("");
 
-  const categories = [
-    "Road",
-    "Garbage",
-    "Streetlight",
-    "Water",
-    "Traffic",
-    "Public Infrastructure",
-    "Other",
-  ];
+  /* =========================================================
+     FORM CHANGE
+  ========================================================= */
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -53,45 +57,118 @@ function ReportIssue() {
       [name]: value,
     }));
 
-    if (error) {
-      setError("");
-    }
+    setError("");
   };
+
+  /* =========================================================
+     SELECT CURRENT LOCATION
+  ========================================================= */
+
+  const handleUseCurrentLocation = () => {
+    setError("");
+
+    if (!navigator.geolocation) {
+      setError(
+        "Location services are not supported by your browser. Please enable location services or try another browser."
+      );
+      return;
+    }
+
+    setIsGettingLocation(true);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const latitude = Number(position.coords.latitude);
+        const longitude = Number(position.coords.longitude);
+
+        if (
+          !Number.isFinite(latitude) ||
+          !Number.isFinite(longitude)
+        ) {
+          setIsGettingLocation(false);
+
+          setError(
+            "We could not determine your location. Please try again."
+          );
+
+          return;
+        }
+
+        setLocation({
+          latitude,
+          longitude,
+        });
+
+        setIsGettingLocation(false);
+        setError("");
+      },
+
+      (geoError) => {
+        setIsGettingLocation(false);
+
+        if (geoError.code === 1) {
+          setError(
+            "Location permission was denied. Please allow location access in your browser and try again."
+          );
+        } else if (geoError.code === 2) {
+          setError(
+            "Your location could not be determined. Please try again."
+          );
+        } else if (geoError.code === 3) {
+          setError(
+            "Location request timed out. Please try again."
+          );
+        } else {
+          setError(
+            "Unable to get your current location. Please try again."
+          );
+        }
+      },
+
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0,
+      }
+    );
+  };
+
+  /* =========================================================
+     FILE SELECTION
+  ========================================================= */
 
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
 
-    if (!file) return;
-
-    if (file.size > 10 * 1024 * 1024) {
-      setError("Image size must be 10MB or less.");
-      event.target.value = "";
+    if (!file) {
       return;
     }
+
+    setError("");
 
     if (!file.type.startsWith("image/")) {
-      setError("Please select a valid image.");
+      setError("Please select an image file.");
       event.target.value = "";
       return;
     }
 
-    if (preview) {
-      URL.revokeObjectURL(preview);
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Image size must be less than 10 MB.");
+      event.target.value = "";
+      return;
     }
 
     setSelectedFile(file);
 
-    const imageUrl = URL.createObjectURL(file);
-    setPreview(imageUrl);
-
-    setError("");
+    const objectUrl = URL.createObjectURL(file);
+    setPreview(objectUrl);
   };
 
-  const removeFile = () => {
-    if (preview) {
-      URL.revokeObjectURL(preview);
-    }
+  /* =========================================================
+     REMOVE IMAGE
+  ========================================================= */
 
+  const handleRemoveFile = () => {
     setSelectedFile(null);
     setPreview(null);
 
@@ -100,37 +177,24 @@ function ReportIssue() {
     }
   };
 
-  const getCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      setError("Geolocation is not supported by your browser.");
-      return;
-    }
-
-    setError("");
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });
-
-        setError("");
-      },
-      () => {
-        setError(
-          "Unable to access your location. Please allow location access and try again."
-        );
-      }
-    );
-  };
+  /* =========================================================
+     SUBMIT REPORT
+  ========================================================= */
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     setError("");
 
-    if (!formData.title.trim()) {
+    const title = formData.title.trim();
+    const description = formData.description.trim();
+    const address = formData.address.trim();
+
+    /* ---------------------------------------------------------
+       BASIC VALIDATION
+    --------------------------------------------------------- */
+
+    if (!title) {
       setError("Please enter an issue title.");
       return;
     }
@@ -140,77 +204,150 @@ function ReportIssue() {
       return;
     }
 
-    if (!formData.description.trim()) {
+    if (!description) {
       setError("Please describe the issue.");
+      return;
+    }
+
+    /* ---------------------------------------------------------
+       LOCATION IS REQUIRED
+       
+       GPS coordinates must be selected.
+       Address is only descriptive text.
+    --------------------------------------------------------- */
+
+    if (!location) {
+      setError(
+        "Please select your location before submitting the report."
+      );
+      return;
+    }
+
+    if (!address) {
+      setError(
+        "Please enter the address, area, landmark, or other location details."
+      );
       return;
     }
 
     setIsSubmitting(true);
 
     try {
+      const issueFormData = new FormData();
+
+      /* -------------------------------------------------------
+         ISSUE DETAILS
+      ------------------------------------------------------- */
+
+      issueFormData.append("title", title);
+
+      issueFormData.append(
+        "category",
+        formData.category
+      );
+
+      issueFormData.append(
+        "description",
+        description
+      );
+
+      /* -------------------------------------------------------
+         GPS LOCATION
+         
+         These are the actual coordinates selected by
+         the citizen.
+      ------------------------------------------------------- */
+
+      issueFormData.append(
+        "latitude",
+        String(location.latitude)
+      );
+
+      issueFormData.append(
+        "longitude",
+        String(location.longitude)
+      );
+
+      /* -------------------------------------------------------
+         ADDRESS / LANDMARK
+         
+         This is simply descriptive text.
+         It does NOT need to be geocoded or exact.
+      ------------------------------------------------------- */
+
+      issueFormData.append(
+        "address",
+        address
+      );
+
+      /* -------------------------------------------------------
+         PHOTO
+      ------------------------------------------------------- */
+
+      if (selectedFile) {
+        issueFormData.append(
+          "image",
+          selectedFile
+        );
+      }
+
+      /* -------------------------------------------------------
+         API REQUEST
+      ------------------------------------------------------- */
+
       const data = await apiRequest("/issues", {
         method: "POST",
-        body: JSON.stringify({
-          title: formData.title.trim(),
-          category: formData.category,
-          description: formData.description.trim(),
-          latitude: location?.latitude ?? null,
-          longitude: location?.longitude ?? null,
-          address: formData.address.trim() || null,
-
-          // Image upload will be connected separately.
-          imageUrl: null,
-        }),
+        body: issueFormData,
       });
-
-      console.log("Issue created successfully:", data);
 
       const issueId = data?.issue?.id;
 
       if (!issueId) {
         throw new Error(
-          "Your report was submitted, but the server did not return the issue ID."
+          "The report was submitted, but the issue ID was not returned."
         );
       }
 
       navigate(`/citizen/reports/${issueId}`);
     } catch (submitError) {
-      console.error("Report submission error:", submitError);
-
       setError(
-        submitError.message ||
-          "Unable to submit your report. Please try again."
+        submitError?.message ||
+          "Something went wrong while submitting your report."
       );
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  /* =========================================================
+     RENDER
+  ========================================================= */
+
   return (
     <div className="report-page">
       <main className="report-main">
         <div className="report-container">
 
-          {/* =====================================================
-              PAGE HEADER
-          ====================================================== */}
+          {/* ===================================================
+              HEADER
+          =================================================== */}
 
           <header className="report-page-header">
             <div className="report-header-left">
               <div className="report-header-icon">
-                <FileText size={20} />
+                <FileText size={19} />
               </div>
 
               <div>
                 <span className="report-eyebrow">
-                  CIVIC REPORT
+                  CIVICFIX · CITIZEN REPORT
                 </span>
 
-                <h1>Report an issue</h1>
+                <h1>Report a civic issue</h1>
 
                 <p>
-                  Help improve your community by reporting a
-                  problem that needs attention.
+                  Tell us what is wrong and help your
+                  community get it resolved.
                 </p>
               </div>
             </div>
@@ -221,13 +358,15 @@ function ReportIssue() {
             </div>
           </header>
 
-          {/* =====================================================
+          {/* ===================================================
               ERROR
-          ====================================================== */}
+          =================================================== */}
 
           {error && (
             <div className="report-error">
-              <span className="report-error-icon">!</span>
+              <span className="report-error-icon">
+                !
+              </span>
 
               <span>{error}</span>
 
@@ -236,27 +375,27 @@ function ReportIssue() {
                 onClick={() => setError("")}
                 aria-label="Dismiss error"
               >
-                <X size={15} />
+                <X size={13} />
               </button>
             </div>
           )}
+
+          {/* ===================================================
+              FORM
+          =================================================== */}
 
           <form
             className="report-form"
             onSubmit={handleSubmit}
           >
 
-            {/* ===================================================
-                MAIN TWO COLUMN GRID
-            ==================================================== */}
-
             <div className="report-main-grid">
 
               {/* =================================================
                   ISSUE DETAILS
-              ================================================== */}
+              ================================================= */}
 
-              <section className="report-card issue-details-card">
+              <section className="report-card">
 
                 <div className="report-card-heading">
                   <div className="section-number">
@@ -265,18 +404,21 @@ function ReportIssue() {
 
                   <div>
                     <h2>Issue details</h2>
+
                     <p>
-                      Tell us what is happening.
+                      Describe the problem clearly so it
+                      can be routed to the right department.
                     </p>
                   </div>
                 </div>
 
                 <div className="report-fields">
 
+                  {/* TITLE */}
+
                   <div className="report-field">
                     <label htmlFor="title">
-                      Issue title
-                      <span>*</span>
+                      Issue title <span>*</span>
                     </label>
 
                     <input
@@ -285,19 +427,16 @@ function ReportIssue() {
                       type="text"
                       value={formData.title}
                       onChange={handleChange}
-                      placeholder="e.g. Large pothole on Main Road"
-                      required
+                      placeholder="e.g. Large pothole near main gate"
+                      maxLength={120}
                     />
-
-                    <small>
-                      Keep the title short and specific.
-                    </small>
                   </div>
+
+                  {/* CATEGORY */}
 
                   <div className="report-field">
                     <label htmlFor="category">
-                      Category
-                      <span>*</span>
+                      Category <span>*</span>
                     </label>
 
                     <div className="report-select">
@@ -306,31 +445,31 @@ function ReportIssue() {
                         name="category"
                         value={formData.category}
                         onChange={handleChange}
-                        required
                       >
-                        <option value="" disabled>
+                        <option value="">
                           Select a category
                         </option>
 
                         {categories.map((category) => (
                           <option
-                            value={category}
                             key={category}
+                            value={category}
                           >
                             {category}
                           </option>
                         ))}
                       </select>
 
-                      <ChevronDown size={16} />
+                      <ChevronDown size={14} />
                     </div>
                   </div>
+
+                  {/* DESCRIPTION */}
 
                   <div className="report-field">
                     <div className="label-row">
                       <label htmlFor="description">
-                        Description
-                        <span>*</span>
+                        Description <span>*</span>
                       </label>
 
                       <span className="field-hint">
@@ -343,15 +482,14 @@ function ReportIssue() {
                       name="description"
                       value={formData.description}
                       onChange={handleChange}
-                      placeholder="Describe the problem, what is affected, and any details that may help the authorities understand it."
-                      rows="8"
-                      required
+                      placeholder="Explain what happened, where it is, and any other useful details..."
+                      maxLength={1500}
                     />
 
                     <small>
-                      Include important details such as severity,
-                      nearby landmarks, or how long the problem
-                      has existed.
+                      Include details that could help the
+                      responsible department understand
+                      the issue.
                     </small>
                   </div>
 
@@ -360,7 +498,7 @@ function ReportIssue() {
 
               {/* =================================================
                   LOCATION
-              ================================================== */}
+              ================================================= */}
 
               <section className="report-card location-card">
 
@@ -371,51 +509,74 @@ function ReportIssue() {
 
                   <div>
                     <h2>Issue location</h2>
+
                     <p>
-                      Help authorities find the exact location.
+                      First select the location, then
+                      describe the address or landmark.
                     </p>
                   </div>
+
+                  <span className="optional-badge">
+                    REQUIRED
+                  </span>
                 </div>
+
+                {/* CURRENT LOCATION */}
 
                 <button
                   type="button"
                   className={`location-action ${
-                    location ? "location-action-success" : ""
+                    location
+                      ? "location-action-success"
+                      : ""
                   }`}
-                  onClick={getCurrentLocation}
+                  onClick={handleUseCurrentLocation}
+                  disabled={
+                    isGettingLocation ||
+                    isSubmitting
+                  }
                 >
                   <div className="location-action-icon">
                     {location ? (
-                      <Check size={18} />
+                      <Check size={17} />
                     ) : (
-                      <MapPin size={18} />
+                      <MapPin size={17} />
                     )}
                   </div>
 
                   <div className="location-action-text">
                     <strong>
-                      {location
-                        ? "Location captured"
-                        : "Use my current location"}
+                      {isGettingLocation
+                        ? "Getting your location..."
+                        : location
+                        ? "Location selected"
+                        : "Select my location"}
                     </strong>
 
                     <span>
                       {location
-                        ? "Coordinates have been added to your report."
-                        : "Allow location access to pinpoint the issue."}
+                        ? "GPS coordinates have been captured successfully."
+                        : "Use your current location to mark where the issue is."}
                     </span>
                   </div>
 
-                  <MapPin size={16} />
+                  {!location && !isGettingLocation && (
+                    <ChevronDown size={14} />
+                  )}
                 </button>
 
+                {/* =================================================
+                    MANUAL ADDRESS
+                ================================================= */}
+
                 <div className="location-or">
-                  <span>OR ENTER MANUALLY</span>
+                  <span>THEN ENTER LOCATION DETAILS</span>
                 </div>
 
                 <div className="report-field">
                   <label htmlFor="address">
-                    Address / landmark
+                    Address / area / landmark{" "}
+                    <span>*</span>
                   </label>
 
                   <input
@@ -424,32 +585,44 @@ function ReportIssue() {
                     type="text"
                     value={formData.address}
                     onChange={handleChange}
-                    placeholder="e.g. Near Main Road bus stop"
+                    placeholder="e.g. Near Garden City University, Tumakuru"
+                    maxLength={250}
+                    disabled={isSubmitting}
                   />
+
+                  <small>
+                    Enter any useful description such as an
+                    area, landmark, street, building, or nearby
+                    place. It does not need to be an exact address.
+                  </small>
                 </div>
+
+                {/* =================================================
+                    MAP PREVIEW
+                ================================================= */}
 
                 <div className="map-preview">
                   <div className="map-grid"></div>
 
                   <div className="map-center">
                     <div className="map-pin">
-                      <MapPin size={19} />
+                      <MapPin size={17} />
                     </div>
 
                     <span>
                       {location
                         ? "Location selected"
-                        : "Map preview"}
+                        : "Select your location"}
                     </span>
                   </div>
 
-                  <div className="map-label map-label-top">
-                    Your location
-                  </div>
+                  <span className="map-label map-label-top">
+                    CivicFix
+                  </span>
 
-                  <div className="map-label map-label-bottom">
-                    Interactive map
-                  </div>
+                  <span className="map-label map-label-bottom">
+                    GPS location
+                  </span>
                 </div>
 
               </section>
@@ -457,7 +630,7 @@ function ReportIssue() {
 
             {/* ===================================================
                 EVIDENCE
-            ==================================================== */}
+            =================================================== */}
 
             <section className="report-card evidence-card">
 
@@ -467,9 +640,10 @@ function ReportIssue() {
                 </div>
 
                 <div>
-                  <h2>Evidence photo</h2>
+                  <h2>Photo evidence</h2>
+
                   <p>
-                    Add a photo to help authorities understand
+                    Add a photo to help verify and understand
                     the issue.
                   </p>
                 </div>
@@ -479,42 +653,54 @@ function ReportIssue() {
                 </span>
               </div>
 
-              {!preview ? (
-                <button
-                  type="button"
-                  className="upload-area"
-                  onClick={() =>
-                    fileInputRef.current?.click()
-                  }
-                >
-                  <div className="upload-main">
-                    <div className="upload-icon">
-                      <ImagePlus size={22} />
+              {!selectedFile ? (
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    hidden
+                  />
+
+                  <button
+                    type="button"
+                    className="upload-area"
+                    onClick={() =>
+                      fileInputRef.current?.click()
+                    }
+                    disabled={isSubmitting}
+                  >
+                    <div className="upload-main">
+                      <div className="upload-icon">
+                        <ImagePlus size={19} />
+                      </div>
+
+                      <div>
+                        <strong>
+                          Upload an issue photo
+                        </strong>
+
+                        <span>
+                          Choose a clear photo showing
+                          the problem.
+                        </span>
+                      </div>
                     </div>
 
-                    <div>
-                      <strong>
-                        Upload evidence photo
-                      </strong>
+                    <span className="upload-choose">
+                      <Upload size={12} />
+                      Choose image
+                    </span>
 
-                      <span>
-                        Drag and drop your image here or choose
-                        a file from your device
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="upload-choose">
-                    <Upload size={15} />
-                    Choose image
-                  </div>
-
-                  <span className="upload-format">
-                    PNG, JPG or WEBP · Maximum 10MB
-                  </span>
-                </button>
+                    <span className="upload-format">
+                      JPG · PNG · WEBP
+                    </span>
+                  </button>
+                </>
               ) : (
                 <div className="image-preview">
+
                   <img
                     src={preview}
                     alt="Selected issue evidence"
@@ -523,54 +709,48 @@ function ReportIssue() {
                   <div className="image-preview-info">
                     <div>
                       <strong>
-                        {selectedFile?.name}
+                        {selectedFile.name}
                       </strong>
 
                       <span>
-                        Photo selected successfully
+                        Photo ready to upload
                       </span>
                     </div>
 
                     <button
                       type="button"
-                      onClick={removeFile}
-                      aria-label="Remove image"
+                      onClick={handleRemoveFile}
+                      aria-label="Remove selected image"
+                      disabled={isSubmitting}
                     >
-                      <X size={17} />
+                      <X size={14} />
                     </button>
                   </div>
+
                 </div>
               )}
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                onChange={handleFileChange}
-                hidden
-              />
 
             </section>
 
             {/* ===================================================
-                SUBMISSION FOOTER
-            ==================================================== */}
+                SUBMISSION
+            =================================================== */}
 
             <div className="report-submit-area">
 
               <div className="submission-security">
                 <div className="security-icon">
-                  <ShieldCheck size={17} />
+                  <ShieldCheck size={16} />
                 </div>
 
                 <div>
                   <strong>
-                    Your report is secure
+                    Your report is securely submitted
                   </strong>
 
                   <span>
-                    It will be reviewed by an authorized
-                    CivicFix administrator.
+                    CivicFix uses your information only
+                    to process this report.
                   </span>
                 </div>
               </div>
@@ -587,7 +767,10 @@ function ReportIssue() {
                 <button
                   type="submit"
                   className="submit-report-button"
-                  disabled={isSubmitting}
+                  disabled={
+                    isSubmitting ||
+                    isGettingLocation
+                  }
                 >
                   {isSubmitting ? (
                     <>
@@ -596,14 +779,13 @@ function ReportIssue() {
                     </>
                   ) : (
                     <>
+                      <Check size={13} />
                       Submit report
-                      <Camera size={16} />
                     </>
                   )}
                 </button>
 
               </div>
-
             </div>
 
           </form>
@@ -611,6 +793,6 @@ function ReportIssue() {
       </main>
     </div>
   );
-}
+};
 
 export default ReportIssue;

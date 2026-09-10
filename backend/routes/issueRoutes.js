@@ -14,6 +14,8 @@ import {
     adminOnly,
 } from "../middleware/authMiddleware.js";
 
+import upload from "../middleware/upload.js";
+
 const router = express.Router();
 
 
@@ -21,10 +23,12 @@ const router = express.Router();
 // CITIZEN ROUTES
 // ============================================
 
+// Create a new issue with optional image evidence
 router.post(
     "/",
     protect,
     citizenOnly,
+    upload.single("image"),
     createIssue
 );
 
