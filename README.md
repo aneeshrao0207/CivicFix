@@ -2,35 +2,13 @@
 
 <p align="center">
 
-![Frontend](https://img.shields.io/badge/FRONTEND-REACT%20%2B%20VITE-087EA4?style=for-the-badge)
-
-![HTML5](https://img.shields.io/badge/HTML5-HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
-
-![CSS3](https://img.shields.io/badge/CSS3-CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
-
-![JavaScript](https://img.shields.io/badge/JAVASCRIPT-JAVASCRIPT-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
-
-![React](https://img.shields.io/badge/REACT-REACT-61DAFB?style=for-the-badge&logo=react&logoColor=black)
-
-![Node.js](https://img.shields.io/badge/NODE.JS-NODE.JS-339933?style=for-the-badge&logo=node.js&logoColor=white)
-
-![Express](https://img.shields.io/badge/EXPRESS-EXPRESS-000000?style=for-the-badge&logo=express&logoColor=white)
-
-![PostgreSQL](https://img.shields.io/badge/POSTGRESQL-POSTGRESQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Frontend](https://img.shields.io/badge/FRONTEND-REACT%20%2B%20VITE-087EA4?style=for-the-badge) ![HTML5](https://img.shields.io/badge/HTML5-HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white) ![CSS3](https://img.shields.io/badge/CSS3-CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white) ![JavaScript](https://img.shields.io/badge/JAVASCRIPT-JAVASCRIPT-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black) ![React](https://img.shields.io/badge/REACT-REACT-61DAFB?style=for-the-badge&logo=react&logoColor=black) ![Node.js](https://img.shields.io/badge/NODE.JS-NODE.JS-339933?style=for-the-badge&logo=node.js&logoColor=white) ![Express](https://img.shields.io/badge/EXPRESS-EXPRESS-000000?style=for-the-badge&logo=express&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/POSTGRESQL-POSTGRESQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 
 </p>
 
 <p align="center">
 
-![JWT](https://img.shields.io/badge/AUTH-JWT-FF9800?style=for-the-badge)
-
-![REST API](https://img.shields.io/badge/API-REST-6F42C1?style=for-the-badge)
-
-![Responsive](https://img.shields.io/badge/RESPONSIVE-YES-3AAA00?style=for-the-badge)
-
-![Dark Mode](https://img.shields.io/badge/DARK%20MODE-AVAILABLE-8E00A8?style=for-the-badge)
-
-![Status](https://img.shields.io/badge/STATUS-COMPLETED-3AAA00?style=for-the-badge)
+![JWT](https://img.shields.io/badge/AUTH-JWT-FF9800?style=for-the-badge) ![REST API](https://img.shields.io/badge/API-REST-6F42C1?style=for-the-badge) ![Responsive](https://img.shields.io/badge/RESPONSIVE-YES-3AAA00?style=for-the-badge) ![Dark Mode](https://img.shields.io/badge/DARK%20MODE-AVAILABLE-8E00A8?style=for-the-badge) ![Status](https://img.shields.io/badge/STATUS-COMPLETED-3AAA00?style=for-the-badge)
 
 </p>
 
@@ -139,7 +117,7 @@ Citizen Notification
 Resolution
 ```
 
-### 🎯 What CivicFix Solves
+### What CivicFix Solves
 
 | Problem                         | CivicFix Solution              |
 | ------------------------------- | ------------------------------ |
@@ -153,27 +131,27 @@ Resolution
 
 ---
 
-# 🎯 Objectives
+# Objectives
 
 CivicFix is built around five core objectives.
 
-### 1. 📝 Simplify Civic Issue Reporting
+### 1. Simplify Civic Issue Reporting
 
 Provide citizens with a clear and structured way to report problems in their surroundings.
 
-### 2. 🔎 Improve Issue Transparency
+### 2. Improve Issue Transparency
 
 Allow citizens to track the progress of their submitted reports.
 
-### 3. 🛡️ Centralize Issue Management
+### 3. Centralize Issue Management
 
 Give administrators a dedicated platform to view, organize, monitor, and manage civic issues.
 
-### 4. 🔔 Improve Communication
+### 4. Improve Communication
 
 Keep citizens informed through notifications and status updates.
 
-### 5. 🏢 Connect Issues with Responsible Departments
+### 5. Connect Issues with Responsible Departments
 
 Allow administrators to assign reported issues to the appropriate departments.
 
@@ -234,7 +212,7 @@ Administrators can:
 
 ---
 
-# 🔄 CivicFix Workflow
+# CivicFix Workflow
 
 The complete issue lifecycle follows this workflow:
 
@@ -293,7 +271,7 @@ The complete issue lifecycle follows this workflow:
 
 ---
 
-# 🏗️ System Architecture
+# System Architecture
 
 ```text
 ┌──────────────────────────────────────────────────────┐
@@ -397,7 +375,7 @@ The complete issue lifecycle follows this workflow:
 
 ---
 
-# 🗄️ Database Design
+# Database Design
 
 CivicFix uses PostgreSQL with a relational database structure.
 
@@ -439,7 +417,7 @@ Stores departments responsible for handling civic issues.
 
 ---
 
-# 🔗 Database Relationships
+# Database Relationships
 
 ```text
                          USERS
@@ -489,7 +467,7 @@ users.id
 
 ---
 
-# 🔐 Authentication & Authorization
+# Authentication & Authorization
 
 CivicFix uses role-based authentication.
 
@@ -523,7 +501,7 @@ JWT tokens are used to authenticate protected API requests.
 
 ---
 
-# 📡 REST API
+# REST API
 
 The backend follows a modular REST API architecture.
 
@@ -564,7 +542,7 @@ The API is organized into separate modules for authentication, citizens, issues,
 
 # 👤 Citizen Portal
 
-## 🏠 Dashboard
+## Dashboard
 
 Citizens can view an overview of their submitted issues.
 
@@ -582,7 +560,7 @@ The dashboard includes:
 
 ---
 
-## 📝 Report an Issue
+## Report an Issue
 
 Citizens can submit civic issues through a structured reporting interface.
 
@@ -598,7 +576,7 @@ Once submitted, the issue enters the CivicFix management workflow.
 
 ---
 
-## 📋 My Reports
+## My Reports
 
 Citizens can view all issues they have submitted.
 
@@ -612,7 +590,7 @@ The interface provides:
 
 ---
 
-## 🔎 Issue Details
+## Issue Details
 
 Citizens can open an individual report to view:
 
@@ -624,7 +602,7 @@ Citizens can open an individual report to view:
 
 ---
 
-## 🔔 Notifications
+## Notifications
 
 Citizens receive notifications related to their submitted issues.
 
@@ -638,7 +616,7 @@ Citizens can mark notifications as read.
 
 ---
 
-## 👤 Profile
+## Profile
 
 Citizens can:
 
@@ -652,7 +630,7 @@ Citizens can:
 
 # 🛡️ Admin Portal
 
-## 📊 Admin Dashboard
+## Admin Dashboard
 
 The Admin Dashboard provides an operational overview of CivicFix.
 
@@ -667,7 +645,7 @@ It includes:
 
 ---
 
-## 🗂️ Issue Management
+## Issue Management
 
 Administrators can:
 
@@ -681,7 +659,7 @@ Administrators can:
 
 ---
 
-## 🔎 Issue Details
+## Issue Details
 
 Administrators can:
 
@@ -693,7 +671,7 @@ Administrators can:
 
 ---
 
-## 🗺️ Map Monitoring
+## Map Monitoring
 
 CivicFix includes a map-based monitoring interface for viewing reported civic issues geographically.
 
@@ -701,7 +679,7 @@ The map provides administrators with a spatial overview of reported problems.
 
 ---
 
-## 📈 Analytics
+## Analytics
 
 The analytics interface provides visibility into civic issue data.
 
@@ -715,13 +693,13 @@ It can be used to understand:
 
 ---
 
-## 🔔 Admin Notifications
+## Admin Notifications
 
 Administrators have a dedicated notification interface for monitoring relevant platform activity.
 
 ---
 
-## 👤 Admin Profile
+## Admin Profile
 
 Administrators can manage:
 
@@ -732,7 +710,7 @@ Administrators can manage:
 
 ---
 
-# 🎨 UI/UX Design
+# UI/UX Design
 
 CivicFix follows a modern product-oriented design philosophy.
 
@@ -751,7 +729,7 @@ The interface is designed to feel like a real-world civic technology product rat
 
 ---
 
-# 🌗 Dark Mode
+# Dark Mode
 
 CivicFix supports:
 
@@ -765,7 +743,7 @@ Theme switching is available across both:
 
 ---
 
-# 📱 Responsive Design
+# Responsive Design
 
 CivicFix is designed for:
 
@@ -787,7 +765,7 @@ Responsive behavior is implemented across:
 
 ---
 
-# ⚠️ Error Handling
+# Error Handling
 
 CivicFix includes frontend handling for API failures.
 
@@ -850,132 +828,7 @@ CivicFix/
 
 ---
 
-# 🚀 Getting Started
-
-## Prerequisites
-
-Make sure the following are installed:
-
-- Node.js
-- npm
-- PostgreSQL
-- Git
-
----
-
-## 1. Clone the Repository
-
-```bash
-git clone <YOUR_GITHUB_REPOSITORY_URL>
-cd CivicFix
-```
-
----
-
-## 2. Install Frontend Dependencies
-
-```bash
-npm install
-```
-
----
-
-## 3. Install Backend Dependencies
-
-```bash
-cd backend
-npm install
-```
-
----
-
-## 4. Configure Environment Variables
-
-Create a `.env` file inside the `backend` directory.
-
-```env
-PORT=5000
-DATABASE_URL=your_postgresql_connection_string
-JWT_SECRET=your_secure_jwt_secret
-```
-
-> Never commit your `.env` file to GitHub.
-
----
-
-## 5. Configure PostgreSQL
-
-Create a PostgreSQL database for CivicFix.
-
-The database should contain:
-
-```text
-users
-departments
-issues
-issue_updates
-notifications
-```
-
-Make sure the database connection details match the values in your `.env` file.
-
----
-
-## 6. Start the Backend
-
-From the `backend` directory:
-
-```bash
-npm run dev
-```
-
-The backend runs on:
-
-```text
-http://localhost:5000
-```
-
----
-
-## 7. Start the Frontend
-
-Open another terminal.
-
-Return to the project root:
-
-```bash
-cd ..
-```
-
-Then run:
-
-```bash
-npm run dev
-```
-
-Vite will provide the local development URL.
-
----
-
-# 🔑 Demo Accounts
-
-For local testing, create separate citizen and administrator accounts.
-
-Example:
-
-```text
-Admin
-Email: admin@civicfix.com
-
-Citizen
-Email: citizen@civicfix.com
-```
-
-> Do not publish real passwords or sensitive credentials in the repository.
-
----
-
-# 🧪 Testing
+# Testing
 
 CivicFix has been tested across the major application workflows.
 
@@ -1014,7 +867,7 @@ CivicFix has been tested across the major application workflows.
 
 ---
 
-# 🔒 Security Considerations
+# Security Considerations
 
 ### Password Security
 
@@ -1038,7 +891,7 @@ Cross-origin access is controlled through backend configuration.
 
 ---
 
-# 🧠 Product Thinking
+# Product Thinking
 
 CivicFix was designed around the complete lifecycle of a civic issue rather than simply creating a complaint form.
 
@@ -1076,7 +929,7 @@ The central product idea is:
 
 ---
 
-# 📈 Potential Impact
+# Potential Impact
 
 CivicFix can improve civic issue management through:
 
@@ -1102,7 +955,7 @@ Aggregated issue data can help identify recurring infrastructure problems.
 
 ---
 
-# 🏆 Project Highlights
+# Project Highlights
 
 - Full-stack civic issue management platform
 - Separate Citizen and Admin portals
@@ -1127,7 +980,7 @@ Aggregated issue data can help identify recurring infrastructure problems.
 
 ---
 
-# 💡 What This Project Demonstrates
+# What This Project Demonstrates
 
 ## Frontend Development
 
@@ -1179,30 +1032,30 @@ Aggregated issue data can help identify recurring infrastructure problems.
 
 ---
 
-# 🔮 Future Improvements
+# Future Improvements
 
 Potential future improvements include:
 
-- 📷 Image attachments for reports
-- 📍 GPS-based location capture
-- 🔔 Real-time notifications
-- 📧 Email notifications
-- 📱 Push notifications
-- 🤖 AI-assisted issue categorization
-- 🔍 Duplicate issue detection
-- ⭐ Citizen feedback and ratings
-- ⏱️ SLA and response-time tracking
-- 📊 Advanced administrative analytics
-- 🧠 AI-based issue priority scoring
-- 🗺️ Advanced GIS functionality
-- 📱 Dedicated mobile application
-- 🌐 Public transparency dashboard
-- ☁️ Cloud deployment
-- 🔐 Advanced security controls
+- Image attachments for reports
+- GPS-based location capture
+- Real-time notifications
+- Email notifications
+- Push notifications
+- AI-assisted issue categorization
+- Duplicate issue detection
+- Citizen feedback and ratings
+- SLA and response-time tracking
+- Advanced administrative analytics
+- AI-based issue priority scoring
+- Advanced GIS functionality
+- Dedicated mobile application
+- Public transparency dashboard
+- Cloud deployment
+- Advanced security controls
 
 ---
 
-# 📊 Project Status
+# Project Status
 
 | Module               | Status      |
 | -------------------- | ----------- |
@@ -1220,7 +1073,7 @@ Potential future improvements include:
 
 ---
 
-# 👨‍💻 Developer
+# Developer
 
 ## Aneesh Rao S V
 
@@ -1232,7 +1085,7 @@ Interested in building digital products that combine:
 
 ---
 
-# 📌 Project Vision
+# Project Vision
 
 CivicFix is more than a complaint submission system.
 
