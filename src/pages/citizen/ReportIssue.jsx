@@ -1,7 +1,10 @@
 import { useRef, useState } from "react";
+
 import {
+  AlertCircle,
   Camera,
   Check,
+  CheckCircle2,
   ChevronDown,
   FileText,
   ImagePlus,
@@ -10,8 +13,11 @@ import {
   Upload,
   X,
 } from "lucide-react";
+
 import { Link, useNavigate } from "react-router-dom";
+
 import { apiRequest } from "../../services/api";
+
 import "./ReportIssue.css";
 
 const categories = [
@@ -61,7 +67,7 @@ const ReportIssue = () => {
   };
 
   /* =========================================================
-     SELECT CURRENT LOCATION
+     CURRENT LOCATION
   ========================================================= */
 
   const handleUseCurrentLocation = () => {
@@ -69,7 +75,7 @@ const ReportIssue = () => {
 
     if (!navigator.geolocation) {
       setError(
-        "Location services are not supported by your browser. Please enable location services or try another browser."
+        "Location services are not supported by your browser. Please try another browser."
       );
       return;
     }
@@ -178,7 +184,7 @@ const ReportIssue = () => {
   };
 
   /* =========================================================
-     SUBMIT REPORT
+     SUBMIT
   ========================================================= */
 
   const handleSubmit = async (event) => {
@@ -189,10 +195,6 @@ const ReportIssue = () => {
     const title = formData.title.trim();
     const description = formData.description.trim();
     const address = formData.address.trim();
-
-    /* ---------------------------------------------------------
-       BASIC VALIDATION
-    --------------------------------------------------------- */
 
     if (!title) {
       setError("Please enter an issue title.");
@@ -208,13 +210,6 @@ const ReportIssue = () => {
       setError("Please describe the issue.");
       return;
     }
-
-    /* ---------------------------------------------------------
-       LOCATION IS REQUIRED
-       
-       GPS coordinates must be selected.
-       Address is only descriptive text.
-    --------------------------------------------------------- */
 
     if (!location) {
       setError(
@@ -235,10 +230,6 @@ const ReportIssue = () => {
     try {
       const issueFormData = new FormData();
 
-      /* -------------------------------------------------------
-         ISSUE DETAILS
-      ------------------------------------------------------- */
-
       issueFormData.append("title", title);
 
       issueFormData.append(
@@ -251,13 +242,6 @@ const ReportIssue = () => {
         description
       );
 
-      /* -------------------------------------------------------
-         GPS LOCATION
-         
-         These are the actual coordinates selected by
-         the citizen.
-      ------------------------------------------------------- */
-
       issueFormData.append(
         "latitude",
         String(location.latitude)
@@ -268,21 +252,10 @@ const ReportIssue = () => {
         String(location.longitude)
       );
 
-      /* -------------------------------------------------------
-         ADDRESS / LANDMARK
-         
-         This is simply descriptive text.
-         It does NOT need to be geocoded or exact.
-      ------------------------------------------------------- */
-
       issueFormData.append(
         "address",
         address
       );
-
-      /* -------------------------------------------------------
-         PHOTO
-      ------------------------------------------------------- */
 
       if (selectedFile) {
         issueFormData.append(
@@ -290,10 +263,6 @@ const ReportIssue = () => {
           selectedFile
         );
       }
-
-      /* -------------------------------------------------------
-         API REQUEST
-      ------------------------------------------------------- */
 
       const data = await apiRequest("/issues", {
         method: "POST",
@@ -329,34 +298,74 @@ const ReportIssue = () => {
         <div className="report-container">
 
           {/* ===================================================
-              HEADER
+              PAGE HEADER
           =================================================== */}
 
           <header className="report-page-header">
-            <div className="report-header-left">
-              <div className="report-header-icon">
-                <FileText size={19} />
-              </div>
+
+            <div className="report-header-content">
+
+              
 
               <div>
                 <span className="report-eyebrow">
-                  CIVICFIX · CITIZEN REPORT
+                  CIVICFIX · NEW REPORT
                 </span>
 
-                <h1>Report a civic issue</h1>
+                <h1>
+                  Report a civic issue
+                </h1>
 
                 <p>
-                  Tell us what is wrong and help your
-                  community get it resolved.
+                  Help improve your community by reporting
+                  a problem that needs attention.
                 </p>
+              </div>
+
+            </div>
+
+            <div className="report-header-security">
+              <ShieldCheck size={15} />
+              <span>Secure submission</span>
+            </div>
+
+          </header>
+
+          {/* ===================================================
+              PROGRESS
+          =================================================== */}
+
+          <div className="report-progress">
+
+            <div className="progress-step active">
+              <span>01</span>
+              <div>
+                <strong>Issue</strong>
+                <small>What happened?</small>
               </div>
             </div>
 
-            <div className="report-header-status">
-              <span className="status-dot"></span>
-              Secure submission
+            <div className="progress-line"></div>
+
+            <div className="progress-step active">
+              <span>02</span>
+              <div>
+                <strong>Location</strong>
+                <small>Where is it?</small>
+              </div>
             </div>
-          </header>
+
+            <div className="progress-line"></div>
+
+            <div className="progress-step">
+              <span>03</span>
+              <div>
+                <strong>Evidence</strong>
+                <small>Add a photo</small>
+              </div>
+            </div>
+
+          </div>
 
           {/* ===================================================
               ERROR
@@ -364,19 +373,24 @@ const ReportIssue = () => {
 
           {error && (
             <div className="report-error">
-              <span className="report-error-icon">
-                !
-              </span>
 
-              <span>{error}</span>
+              <div className="report-error-icon">
+                <AlertCircle size={16} />
+              </div>
+
+              <div className="report-error-content">
+                <strong>Something needs your attention</strong>
+                <span>{error}</span>
+              </div>
 
               <button
                 type="button"
                 onClick={() => setError("")}
                 aria-label="Dismiss error"
               >
-                <X size={13} />
+                <X size={15} />
               </button>
+
             </div>
           )}
 
@@ -389,27 +403,39 @@ const ReportIssue = () => {
             onSubmit={handleSubmit}
           >
 
+            {/* =================================================
+                TOP GRID
+            ================================================= */}
+
             <div className="report-main-grid">
 
               {/* =================================================
                   ISSUE DETAILS
               ================================================= */}
 
-              <section className="report-card">
+              <section className="report-card issue-details-card">
 
                 <div className="report-card-heading">
+
                   <div className="section-number">
                     01
                   </div>
 
-                  <div>
-                    <h2>Issue details</h2>
+                  <div className="section-heading-text">
+                    <span className="section-kicker">
+                      ISSUE DETAILS
+                    </span>
+
+                    <h2>
+                      What is the problem?
+                    </h2>
 
                     <p>
-                      Describe the problem clearly so it
-                      can be routed to the right department.
+                      Give enough detail so the responsible
+                      department can understand the issue quickly.
                     </p>
                   </div>
+
                 </div>
 
                 <div className="report-fields">
@@ -417,8 +443,10 @@ const ReportIssue = () => {
                   {/* TITLE */}
 
                   <div className="report-field">
+
                     <label htmlFor="title">
-                      Issue title <span>*</span>
+                      Issue title
+                      <span>*</span>
                     </label>
 
                     <input
@@ -429,25 +457,41 @@ const ReportIssue = () => {
                       onChange={handleChange}
                       placeholder="e.g. Large pothole near main gate"
                       maxLength={120}
+                      disabled={isSubmitting}
                     />
+
+                    <div className="field-footer">
+                      <span>
+                        Keep it short and specific.
+                      </span>
+
+                      <span>
+                        {formData.title.length}/120
+                      </span>
+                    </div>
+
                   </div>
 
                   {/* CATEGORY */}
 
                   <div className="report-field">
+
                     <label htmlFor="category">
-                      Category <span>*</span>
+                      Issue category
+                      <span>*</span>
                     </label>
 
                     <div className="report-select">
+
                       <select
                         id="category"
                         name="category"
                         value={formData.category}
                         onChange={handleChange}
+                        disabled={isSubmitting}
                       >
                         <option value="">
-                          Select a category
+                          Select the type of issue
                         </option>
 
                         {categories.map((category) => (
@@ -460,21 +504,27 @@ const ReportIssue = () => {
                         ))}
                       </select>
 
-                      <ChevronDown size={14} />
+                      <ChevronDown size={15} />
+
                     </div>
+
                   </div>
 
                   {/* DESCRIPTION */}
 
                   <div className="report-field">
+
                     <div className="label-row">
+
                       <label htmlFor="description">
-                        Description <span>*</span>
+                        Description
+                        <span>*</span>
                       </label>
 
                       <span className="field-hint">
                         Be specific
                       </span>
+
                     </div>
 
                     <textarea
@@ -482,18 +532,27 @@ const ReportIssue = () => {
                       name="description"
                       value={formData.description}
                       onChange={handleChange}
-                      placeholder="Explain what happened, where it is, and any other useful details..."
+                      placeholder="Explain what happened, where it is, how serious it is, and any other useful details..."
                       maxLength={1500}
+                      disabled={isSubmitting}
                     />
 
-                    <small>
-                      Include details that could help the
-                      responsible department understand
-                      the issue.
-                    </small>
+                    <div className="field-footer">
+
+                      <span>
+                        More detail helps the department act faster.
+                      </span>
+
+                      <span>
+                        {formData.description.length}/1500
+                      </span>
+
+                    </div>
+
                   </div>
 
                 </div>
+
               </section>
 
               {/* =================================================
@@ -503,25 +562,33 @@ const ReportIssue = () => {
               <section className="report-card location-card">
 
                 <div className="report-card-heading">
+
                   <div className="section-number">
                     02
                   </div>
 
-                  <div>
-                    <h2>Issue location</h2>
+                  <div className="section-heading-text">
+                    <span className="section-kicker">
+                      LOCATION
+                    </span>
+
+                    <h2>
+                      Where is the issue?
+                    </h2>
 
                     <p>
-                      First select the location, then
-                      describe the address or landmark.
+                      Mark the location first, then add
+                      a useful landmark or area description.
                     </p>
                   </div>
 
-                  <span className="optional-badge">
+                  <span className="required-badge">
                     REQUIRED
                   </span>
+
                 </div>
 
-                {/* CURRENT LOCATION */}
+                {/* LOCATION BUTTON */}
 
                 <button
                   type="button"
@@ -536,46 +603,85 @@ const ReportIssue = () => {
                     isSubmitting
                   }
                 >
+
                   <div className="location-action-icon">
+
                     {location ? (
                       <Check size={17} />
                     ) : (
                       <MapPin size={17} />
                     )}
+
                   </div>
 
                   <div className="location-action-text">
+
                     <strong>
                       {isGettingLocation
                         ? "Getting your location..."
                         : location
                         ? "Location selected"
-                        : "Select my location"}
+                        : "Use my current location"}
                     </strong>
 
                     <span>
                       {location
-                        ? "GPS coordinates have been captured successfully."
-                        : "Use your current location to mark where the issue is."}
+                        ? "GPS coordinates captured successfully."
+                        : "Allow CivicFix to mark the issue location."}
                     </span>
+
                   </div>
 
-                  {!location && !isGettingLocation && (
-                    <ChevronDown size={14} />
+                  {location && (
+                    <CheckCircle2
+                      size={17}
+                      className="location-success-icon"
+                    />
                   )}
+
+                  {!location &&
+                    !isGettingLocation && (
+                      <ChevronDown size={14} />
+                    )}
+
                 </button>
 
-                {/* =================================================
-                    MANUAL ADDRESS
-                ================================================= */}
+                {/* LOCATION STATUS */}
 
-                <div className="location-or">
-                  <span>THEN ENTER LOCATION DETAILS</span>
+                {location && (
+                  <div className="location-coordinates">
+
+                    <div>
+                      <span>LATITUDE</span>
+                      <strong>
+                        {location.latitude.toFixed(6)}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>LONGITUDE</span>
+                      <strong>
+                        {location.longitude.toFixed(6)}
+                      </strong>
+                    </div>
+
+                  </div>
+                )}
+
+                {/* DIVIDER */}
+
+                <div className="location-divider">
+                  <span>
+                    LOCATION DETAILS
+                  </span>
                 </div>
 
+                {/* ADDRESS */}
+
                 <div className="report-field">
+
                   <label htmlFor="address">
-                    Address / area / landmark{" "}
+                    Address / area / landmark
                     <span>*</span>
                   </label>
 
@@ -591,66 +697,90 @@ const ReportIssue = () => {
                   />
 
                   <small>
-                    Enter any useful description such as an
-                    area, landmark, street, building, or nearby
-                    place. It does not need to be an exact address.
+                    Add a street, area, building, landmark,
+                    or nearby place. It does not need to be
+                    an exact address.
                   </small>
+
                 </div>
 
-                {/* =================================================
-                    MAP PREVIEW
-                ================================================= */}
+                {/* MAP */}
 
-                <div className="map-preview">
+                <div
+                  className={`map-preview ${
+                    location
+                      ? "map-preview-selected"
+                      : ""
+                  }`}
+                >
+
                   <div className="map-grid"></div>
 
+                  <div className="map-road map-road-one"></div>
+                  <div className="map-road map-road-two"></div>
+                  <div className="map-road map-road-three"></div>
+
                   <div className="map-center">
+
                     <div className="map-pin">
                       <MapPin size={17} />
                     </div>
 
                     <span>
                       {location
-                        ? "Location selected"
-                        : "Select your location"}
+                        ? "Issue location captured"
+                        : "GPS location preview"}
                     </span>
+
                   </div>
 
                   <span className="map-label map-label-top">
-                    CivicFix
+                    CIVICFIX
                   </span>
 
                   <span className="map-label map-label-bottom">
-                    GPS location
+                    {location
+                      ? "COORDINATES READY"
+                      : "WAITING FOR LOCATION"}
                   </span>
+
                 </div>
 
               </section>
+
             </div>
 
-            {/* ===================================================
+            {/* =================================================
                 EVIDENCE
-            =================================================== */}
+            ================================================= */}
 
             <section className="report-card evidence-card">
 
               <div className="report-card-heading">
+
                 <div className="section-number">
                   03
                 </div>
 
-                <div>
-                  <h2>Photo evidence</h2>
+                <div className="section-heading-text">
+                  <span className="section-kicker">
+                    EVIDENCE
+                  </span>
+
+                  <h2>
+                    Add a photo
+                  </h2>
 
                   <p>
-                    Add a photo to help verify and understand
-                    the issue.
+                    A clear photo can help the department
+                    understand and verify the issue.
                   </p>
                 </div>
 
                 <span className="optional-badge">
                   OPTIONAL
                 </span>
+
               </div>
 
               {!selectedFile ? (
@@ -671,21 +801,30 @@ const ReportIssue = () => {
                     }
                     disabled={isSubmitting}
                   >
-                    <div className="upload-main">
+
+                    <div className="upload-visual">
+
                       <div className="upload-icon">
-                        <ImagePlus size={19} />
+                        <Camera size={19} />
                       </div>
 
-                      <div>
-                        <strong>
-                          Upload an issue photo
-                        </strong>
-
-                        <span>
-                          Choose a clear photo showing
-                          the problem.
-                        </span>
+                      <div className="upload-plus">
+                        <ImagePlus size={13} />
                       </div>
+
+                    </div>
+
+                    <div className="upload-main">
+
+                      <strong>
+                        Add issue photo
+                      </strong>
+
+                      <span>
+                        Show the problem clearly from
+                        a useful angle.
+                      </span>
+
                     </div>
 
                     <span className="upload-choose">
@@ -694,27 +833,45 @@ const ReportIssue = () => {
                     </span>
 
                     <span className="upload-format">
-                      JPG · PNG · WEBP
+                      JPG · PNG · WEBP · MAX 10 MB
                     </span>
+
                   </button>
                 </>
               ) : (
                 <div className="image-preview">
 
-                  <img
-                    src={preview}
-                    alt="Selected issue evidence"
-                  />
+                  <div className="image-preview-media">
+
+                    <img
+                      src={preview}
+                      alt="Selected issue evidence"
+                    />
+
+                    <div className="image-preview-badge">
+                      <Check size={12} />
+                      Ready
+                    </div>
+
+                  </div>
 
                   <div className="image-preview-info">
-                    <div>
+
+                    <div className="image-file-details">
+
                       <strong>
                         {selectedFile.name}
                       </strong>
 
                       <span>
-                        Photo ready to upload
+                        Photo ready to upload ·{" "}
+                        {(
+                          selectedFile.size /
+                          (1024 * 1024)
+                        ).toFixed(2)}{" "}
+                        MB
                       </span>
+
                     </div>
 
                     <button
@@ -723,8 +880,9 @@ const ReportIssue = () => {
                       aria-label="Remove selected image"
                       disabled={isSubmitting}
                     >
-                      <X size={14} />
+                      <X size={15} />
                     </button>
+
                   </div>
 
                 </div>
@@ -732,27 +890,29 @@ const ReportIssue = () => {
 
             </section>
 
-            {/* ===================================================
+            {/* =================================================
                 SUBMISSION
-            =================================================== */}
+            ================================================= */}
 
             <div className="report-submit-area">
 
               <div className="submission-security">
+
                 <div className="security-icon">
-                  <ShieldCheck size={16} />
+                  <ShieldCheck size={17} />
                 </div>
 
                 <div>
                   <strong>
-                    Your report is securely submitted
+                    Your information is protected
                   </strong>
 
                   <span>
                     CivicFix uses your information only
-                    to process this report.
+                    to process and track this report.
                   </span>
                 </div>
+
               </div>
 
               <div className="report-submit-actions">
@@ -772,23 +932,27 @@ const ReportIssue = () => {
                     isGettingLocation
                   }
                 >
+
                   {isSubmitting ? (
                     <>
                       <span className="submit-spinner"></span>
-                      Submitting...
+                      Submitting report...
                     </>
                   ) : (
                     <>
-                      <Check size={13} />
+                      <Check size={14} />
                       Submit report
                     </>
                   )}
+
                 </button>
 
               </div>
+
             </div>
 
           </form>
+
         </div>
       </main>
     </div>
