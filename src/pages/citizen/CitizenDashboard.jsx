@@ -29,6 +29,28 @@ const statusLabels = {
   REJECTED: "Rejected",
 };
 
+/* ============================================
+   TIME-BASED GREETING
+============================================ */
+
+const getGreeting = () => {
+  const hour = new Date().getHours();
+
+  if (hour >= 5 && hour < 12) {
+    return "Good morning";
+  }
+
+  if (hour >= 12 && hour < 17) {
+    return "Good afternoon";
+  }
+
+  if (hour >= 17 && hour < 21) {
+    return "Good evening";
+  }
+
+  return "Good night";
+};
+
 function CitizenDashboard() {
   const [reports, setReports] = useState([]);
   const [search, setSearch] = useState("");
@@ -51,6 +73,12 @@ function CitizenDashboard() {
   }
 
   const userName = currentUser?.name || "Citizen";
+
+  // ============================================
+  // GET CURRENT GREETING
+  // ============================================
+
+  const greeting = getGreeting();
 
   // ============================================
   // FETCH CITIZEN REPORTS
@@ -166,8 +194,8 @@ function CitizenDashboard() {
             </div>
 
             <h1>
-              Good morning, {userName}
-              <span>👋</span>
+              {greeting}, {userName}
+              
             </h1>
 
             <p className="dashboard-subtitle">
