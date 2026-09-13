@@ -108,7 +108,7 @@ function IssueDetails() {
         const data = await apiRequest(`/issues/${id}`);
 
         /*
-         * The backend returns:
+         * Backend returns:
          *
          * {
          *   success: true,
@@ -116,8 +116,8 @@ function IssueDetails() {
          *   timeline: [...]
          * }
          *
-         * The timeline is separate from issue,
-         * so attach it to the issue object for the UI.
+         * Timeline is attached to the issue object
+         * for frontend rendering.
          */
         setIssue({
           ...(data.issue || data),
@@ -141,7 +141,9 @@ function IssueDetails() {
         <div className="issue-details-container">
           <div className="issue-details-loading">
             <div className="loading-spinner" />
+
             <h2>Loading report</h2>
+
             <p>
               We're retrieving the latest information about your report.
             </p>
@@ -207,7 +209,9 @@ function IssueDetails() {
     <main className="issue-details-page">
       <div className="issue-details-container">
 
-        {/* PAGE HEADER */}
+        {/* =====================================================
+            PAGE HEADER
+        ===================================================== */}
 
         <header className="issue-details-header">
           <Link
@@ -251,7 +255,9 @@ function IssueDetails() {
           </div>
         </header>
 
-        {/* SUMMARY STRIP */}
+        {/* =====================================================
+            SUMMARY STRIP
+        ===================================================== */}
 
         <section className="issue-summary-card">
           <div className="summary-item">
@@ -306,7 +312,11 @@ function IssueDetails() {
           </div>
         </section>
 
-        {/* MAIN CONTENT */}
+        {/* =====================================================
+            TOP CONTENT GRID
+            LEFT  = Description + Location
+            RIGHT = Status + Report Information
+        ===================================================== */}
 
         <div className="issue-details-grid">
 
@@ -390,51 +400,6 @@ function IssueDetails() {
                     </span>
                   </div>
                 )}
-            </section>
-
-            {/* EVIDENCE */}
-
-            <section className="details-card">
-              <div className="details-card-heading">
-                <div className="section-icon">
-                  <ImageIcon size={18} />
-                </div>
-
-                <div>
-                  <h2>Evidence</h2>
-
-                  <p>
-                    Photos or supporting evidence
-                    attached to this report.
-                  </p>
-                </div>
-              </div>
-
-              {evidenceUrl ? (
-                <div className="evidence-preview">
-                  <img
-                    src={evidenceUrl}
-                    alt="Evidence submitted with this report"
-                  />
-                </div>
-              ) : (
-                <div className="evidence-empty">
-                  <div className="evidence-empty-icon">
-                    <ImageIcon size={21} />
-                  </div>
-
-                  <div>
-                    <strong>
-                      No evidence attached
-                    </strong>
-
-                    <p>
-                      This report was submitted
-                      without an image.
-                    </p>
-                  </div>
-                </div>
-              )}
             </section>
           </div>
 
@@ -540,25 +505,83 @@ function IssueDetails() {
                 )}
               </div>
             </section>
+          </aside>
+        </div>
 
-            {/* TIMELINE */}
+        {/* =====================================================
+            LOWER CONTENT GRID
+            EVIDENCE + TIMELINE
+            EQUAL WIDTH / EQUAL HEIGHT
+        ===================================================== */}
 
-            <section className="details-card timeline-card">
-              <div className="details-card-heading">
-                <div className="section-icon">
-                  <Clock3 size={18} />
-                </div>
+        <div className="issue-details-lower-grid">
 
-                <div>
-                  <h2>Report timeline</h2>
+          {/* EVIDENCE */}
 
-                  <p>
-                    Track every important update.
-                  </p>
-                </div>
+          <section className="details-card evidence-card">
+            <div className="details-card-heading">
+              <div className="section-icon">
+                <ImageIcon size={18} />
               </div>
 
-              {updates.length > 0 ? (
+              <div>
+                <h2>Evidence</h2>
+
+                <p>
+                  Photos or supporting evidence
+                  attached to this report.
+                </p>
+              </div>
+            </div>
+
+            <div className="evidence-content">
+              {evidenceUrl ? (
+                <div className="evidence-preview">
+                  <img
+                    src={evidenceUrl}
+                    alt="Evidence submitted with this report"
+                  />
+                </div>
+              ) : (
+                <div className="evidence-empty">
+                  <div className="evidence-empty-icon">
+                    <ImageIcon size={21} />
+                  </div>
+
+                  <div>
+                    <strong>
+                      No evidence attached
+                    </strong>
+
+                    <p>
+                      This report was submitted
+                      without an image.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* TIMELINE */}
+
+          <section className="details-card timeline-card">
+            <div className="details-card-heading">
+              <div className="section-icon">
+                <Clock3 size={18} />
+              </div>
+
+              <div>
+                <h2>Report timeline</h2>
+
+                <p>
+                  Track every important update.
+                </p>
+              </div>
+            </div>
+
+            {updates.length > 0 ? (
+              <div className="timeline-scroll">
                 <div className="timeline">
                   {updates.map((update, index) => {
                     const updateStatus =
@@ -633,27 +656,29 @@ function IssueDetails() {
                     );
                   })}
                 </div>
-              ) : (
-                <div className="timeline-empty">
-                  <div className="timeline-empty-icon">
-                    <MessageSquareText size={19} />
-                  </div>
-
-                  <strong>
-                    No updates yet
-                  </strong>
-
-                  <p>
-                    You'll see authority updates
-                    here as your report progresses.
-                  </p>
+              </div>
+            ) : (
+              <div className="timeline-empty">
+                <div className="timeline-empty-icon">
+                  <MessageSquareText size={19} />
                 </div>
-              )}
-            </section>
-          </aside>
+
+                <strong>
+                  No updates yet
+                </strong>
+
+                <p>
+                  You'll see authority updates
+                  here as your report progresses.
+                </p>
+              </div>
+            )}
+          </section>
         </div>
 
-        {/* BOTTOM TRUST BAR */}
+        {/* =====================================================
+            BOTTOM TRUST BAR
+        ===================================================== */}
 
         <section className="issue-trust-bar">
           <div className="trust-bar-icon">

@@ -178,7 +178,7 @@
 }
 
 /* =========================================================
-   MAIN GRID
+   TOP MAIN GRID
 ========================================================= */
 
 .issue-details-grid {
@@ -320,59 +320,6 @@
 }
 
 /* =========================================================
-   EVIDENCE
-========================================================= */
-
-.evidence-preview {
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  background: var(--color-surface-muted);
-}
-
-.evidence-preview img {
-  display: block;
-  width: 100%;
-  max-height: 420px;
-  object-fit: cover;
-}
-
-.evidence-empty {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 22px;
-  border: 1px dashed var(--color-border);
-  border-radius: 9px;
-  background: var(--color-surface-muted);
-}
-
-.evidence-empty-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-  border-radius: 8px;
-  background: var(--color-surface);
-  color: var(--color-text-muted);
-}
-
-.evidence-empty strong {
-  display: block;
-  margin-bottom: 4px;
-  color: var(--color-text-primary);
-  font-size: 13px;
-}
-
-.evidence-empty p {
-  margin: 0;
-  color: var(--color-text-muted);
-  font-size: 12px;
-}
-
-/* =========================================================
    CURRENT STATUS CARD
 ========================================================= */
 
@@ -476,20 +423,144 @@
 }
 
 /* =========================================================
-   TIMELINE
+   LOWER GRID
+   EVIDENCE + TIMELINE
 ========================================================= */
 
-.timeline {
+.issue-details-lower-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: stretch;
+  margin-top: 24px;
+}
+
+/* =========================================================
+   EVIDENCE CARD
+========================================================= */
+
+.evidence-card,
+.timeline-card {
+  height: 520px;
+  min-height: 520px;
+  overflow: hidden;
+}
+
+.evidence-card {
   display: flex;
   flex-direction: column;
+}
+
+.evidence-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: flex-start;
+}
+
+.evidence-preview {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface-muted);
+}
+
+.evidence-preview img {
+  display: block;
+  width: 100%;
+  max-height: 390px;
+  object-fit: cover;
+}
+
+.evidence-empty {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 22px;
+  border: 1px dashed var(--color-border);
+  border-radius: 9px;
+  background: var(--color-surface-muted);
+}
+
+.evidence-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+}
+
+.evidence-empty strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--color-text-primary);
+  font-size: 13px;
+}
+
+.evidence-empty p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+/* =========================================================
+   TIMELINE CARD
+========================================================= */
+
+.timeline-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.timeline-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.timeline-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.timeline-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 999px;
+}
+
+.timeline {
+  position: relative;
+  margin-top: 2px;
+  padding-left: 4px;
 }
 
 .timeline-item {
   position: relative;
   display: flex;
-  gap: 13px;
-  min-height: 80px;
+  gap: 14px;
+  padding-bottom: 24px;
 }
+
+.timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+/* =========================================================
+   TIMELINE MARKER
+========================================================= */
 
 .timeline-marker {
   position: relative;
@@ -497,79 +568,122 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
-  border: 1px solid var(--color-border);
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border: 1px solid #e3e7ee;
   border-radius: 50%;
-  background: var(--color-surface);
-  color: var(--color-text-muted);
+  background: #f4f6fa;
+  color: #7b8798;
 }
 
 .timeline-item-latest .timeline-marker {
-  border-color: var(--color-primary);
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
+  border-color: #cfe0ff;
+  background: #eaf2ff;
+  color: #1769ff;
 }
+
+/* =========================================================
+   TIMELINE CONNECTING LINE
+========================================================= */
 
 .timeline-line {
   position: absolute;
-  top: 30px;
-  left: 14px;
+  top: 34px;
+  bottom: 0;
+  left: 16px;
   width: 1px;
-  height: calc(100% - 12px);
-  background: var(--color-border);
+  background: #e2e6ec;
 }
 
+/* =========================================================
+   TIMELINE CONTENT
+========================================================= */
+
 .timeline-content {
-  flex: 1;
   min-width: 0;
-  padding-bottom: 22px;
+  flex: 1;
+  padding-top: 1px;
 }
 
 .timeline-top {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .timeline-top strong {
-  color: var(--color-text-primary);
-  font-size: 13px;
-}
-
-.latest-pill {
-  padding: 3px 7px;
-  border-radius: 5px;
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  color: #182230;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.4;
 }
 
 .timeline-date {
   display: block;
   margin-top: 4px;
-  color: var(--color-text-muted);
-  font-size: 10px;
+  color: #8b96a7;
+  font-size: 11px;
+  line-height: 1.4;
 }
 
 .timeline-content p {
-  margin: 9px 0 0;
-  color: var(--color-text-secondary);
+  margin: 8px 0 0;
+  color: #687587;
   font-size: 12px;
-  line-height: 1.6;
+  line-height: 1.55;
 }
 
+/* =========================================================
+   LATEST BADGE
+========================================================= */
+
+.latest-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #eef5ff;
+  color: #1769ff;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   UPDATED BY
+========================================================= */
+
+.timeline-updated-by {
+  display: block;
+  margin-top: 8px;
+  color: #9aa4b2;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+/* =========================================================
+   TIMELINE EMPTY STATE
+========================================================= */
+
 .timeline-empty {
-  padding: 18px;
-  border: 1px dashed var(--color-border);
-  border-radius: 9px;
+  flex: 1;
+  min-height: 145px;
+  margin-top: 2px;
+  padding: 24px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  background: var(--color-surface-muted);
+  border: 1px dashed #dfe4eb;
+  border-radius: 12px;
+  background: #f7f8fa;
 }
 
 .timeline-empty-icon {
@@ -578,24 +692,45 @@
   justify-content: center;
   width: 38px;
   height: 38px;
-  margin: 0 auto 10px;
-  border-radius: 8px;
-  background: var(--color-surface);
-  color: var(--color-text-muted);
+  margin-bottom: 11px;
+  border: 1px solid #e6eaf0;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #98a3b3;
 }
 
 .timeline-empty strong {
-  display: block;
-  color: var(--color-text-primary);
+  color: #273142;
   font-size: 13px;
+  font-weight: 650;
 }
 
 .timeline-empty p {
-  max-width: 230px;
+  max-width: 240px;
   margin: 6px auto 0;
-  color: var(--color-text-muted);
+  color: #8b96a7;
   font-size: 11px;
   line-height: 1.5;
+}
+
+/* =========================================================
+   STATUS MARKER COLORS
+========================================================= */
+
+.timeline-item .status-pending {
+  color: #7b8798;
+}
+
+.timeline-item .status-progress {
+  color: #1769ff;
+}
+
+.timeline-item .status-resolved {
+  color: #159447;
+}
+
+.timeline-item .status-rejected {
+  color: #d64545;
 }
 
 /* =========================================================
@@ -803,14 +938,8 @@
     grid-template-columns: 1fr;
   }
 
-  .issue-details-sidebar {
-    display: grid;
+  .issue-details-lower-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
-  }
-
-  .timeline-card {
-    grid-column: 1 / -1;
   }
 }
 
@@ -837,12 +966,14 @@
     align-self: flex-start;
   }
 
-  .issue-details-sidebar {
+  .issue-details-lower-grid {
     grid-template-columns: 1fr;
   }
 
+  .evidence-card,
   .timeline-card {
-    grid-column: auto;
+    height: 460px;
+    min-height: 460px;
   }
 }
 
@@ -887,268 +1018,10 @@
     gap: 5px;
   }
 
-  .issue-trust-bar {
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .trust-bar-link {
-    width: 100%;
-    margin-left: 49px;
-  }
-
-  .issue-details-error {
-    flex-direction: column;
-    margin: 40px auto;
-  }
-}
-/* =========================================================
-   REPORT TIMELINE
-========================================================= */
-
-.timeline-card {
-  overflow: hidden;
-}
-
-.timeline {
-  position: relative;
-  margin-top: 22px;
-  padding-left: 4px;
-}
-
-.timeline-item {
-  position: relative;
-  display: flex;
-  gap: 14px;
-  padding-bottom: 24px;
-}
-
-.timeline-item:last-child {
-  padding-bottom: 0;
-}
-
-/* Timeline marker */
-
-.timeline-marker {
-  position: relative;
-  z-index: 2;
-
-  width: 34px;
-  height: 34px;
-
-  flex: 0 0 34px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 50%;
-
-  background: #f4f6fa;
-  border: 1px solid #e3e7ee;
-
-  color: #7b8798;
-}
-
-/* Latest marker */
-
-.timeline-item-latest .timeline-marker {
-  background: #eaf2ff;
-  border-color: #cfe0ff;
-  color: #1769ff;
-}
-
-/* Connecting line */
-
-.timeline-line {
-  position: absolute;
-
-  left: 16px;
-  top: 34px;
-  bottom: 0;
-
-  width: 1px;
-
-  background: #e2e6ec;
-}
-
-/* Timeline content */
-
-.timeline-content {
-  min-width: 0;
-  flex: 1;
-
-  padding-top: 1px;
-}
-
-.timeline-top {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  min-width: 0;
-}
-
-.timeline-top strong {
-  font-size: 14px;
-  font-weight: 650;
-  color: #182230;
-
-  line-height: 1.4;
-}
-
-.timeline-date {
-  display: block;
-
-  margin-top: 4px;
-
-  font-size: 11px;
-  line-height: 1.4;
-
-  color: #8b96a7;
-}
-
-.timeline-content p {
-  margin: 8px 0 0;
-
-  font-size: 12px;
-  line-height: 1.55;
-
-  color: #687587;
-}
-
-/* Latest badge */
-
-.latest-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 3px 7px;
-
-  border-radius: 999px;
-
-  background: #eef5ff;
-  color: #1769ff;
-
-  font-size: 9px;
-  font-weight: 700;
-
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-
-  white-space: nowrap;
-}
-
-/* Updated by */
-
-.timeline-updated-by {
-  display: block;
-
-  margin-top: 8px;
-
-  font-size: 10px;
-  line-height: 1.4;
-
-  color: #9aa4b2;
-}
-
-/* =========================================================
-   TIMELINE EMPTY STATE
-========================================================= */
-
-.timeline-empty {
-  min-height: 145px;
-
-  margin-top: 20px;
-  padding: 24px 18px;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  text-align: center;
-
-  border-radius: 12px;
-
-  background: #f7f8fa;
-  border: 1px dashed #dfe4eb;
-}
-
-.timeline-empty-icon {
-  width: 38px;
-  height: 38px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  margin-bottom: 11px;
-
-  border-radius: 10px;
-
-  background: #ffffff;
-  border: 1px solid #e6eaf0;
-
-  color: #98a3b3;
-}
-
-.timeline-empty strong {
-  font-size: 13px;
-  font-weight: 650;
-
-  color: #273142;
-}
-
-.timeline-empty p {
-  max-width: 240px;
-
-  margin: 6px auto 0;
-
-  font-size: 11px;
-  line-height: 1.5;
-
-  color: #8b96a7;
-}
-
-
-/* =========================================================
-   STATUS MARKER COLORS
-========================================================= */
-
-/* Pending / Reported */
-
-.timeline-item .status-pending {
-  color: #7b8798;
-}
-
-/* In progress */
-
-.timeline-item .status-progress {
-  color: #1769ff;
-}
-
-/* Resolved */
-
-.timeline-item .status-resolved {
-  color: #159447;
-}
-
-/* Rejected */
-
-.timeline-item .status-rejected {
-  color: #d64545;
-}
-
-
-/* =========================================================
-   MOBILE
-========================================================= */
-
-@media (max-width: 768px) {
-  .timeline {
-    margin-top: 18px;
+  .evidence-card,
+  .timeline-card {
+    height: 420px;
+    min-height: 420px;
   }
 
   .timeline-item {
@@ -1159,7 +1032,6 @@
   .timeline-marker {
     width: 31px;
     height: 31px;
-
     flex-basis: 31px;
   }
 
@@ -1181,7 +1053,22 @@
   }
 
   .latest-pill {
-    font-size: 8px;
     padding: 3px 6px;
+    font-size: 8px;
+  }
+
+  .issue-trust-bar {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .trust-bar-link {
+    width: 100%;
+    margin-left: 49px;
+  }
+
+  .issue-details-error {
+    flex-direction: column;
+    margin: 40px auto;
   }
 }
